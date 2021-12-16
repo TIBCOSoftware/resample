@@ -5,6 +5,7 @@ Title: S+Resample: bootstrap, jackknife, permutation tests, cross validation
 Author: TIBCO Software Inc.
 Maintainer: TIBCO Software Inc. <http://spotfire.tibco.com/support>
 Dialect: S-PLUS
+License: BSD_3_clause + file LICENSE
 Copyright: 2000-2010 TIBCO Software Inc
 Description: The resample package included functions for resampling, including
   * bootstrap
