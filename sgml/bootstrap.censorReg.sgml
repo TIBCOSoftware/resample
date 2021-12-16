@@ -1,0 +1,163 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrap.censorReg</s-topic>
+</s-topics>
+<s-title>
+General Nonparametric Bootstrapping for censorReg Objects 
+</s-title>
+<s-description>
+Performs bootstrap resampling of observations from fitted models of 
+class 
+<code>censorReg</code> 
+and <code>censorRegList</code> for specified statistics, 
+and summarizes the bootstrap distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrap.censorReg(data, statistic, B = 1000, args.stat = NULL, 
+    group, subject, 
+    sampler = samp.bootstrap, seed = .Random.seed, 
+    sampler.prob, sampler.args, 
+    sampler.args.group, 
+    resampleColumns, 
+    label, statisticNames, 
+    block.size = min(100,B), 
+    trace = resampleOptions()$trace, assign.frame1 = F, 
+    save.indices, save.group, save.subject, 
+    statistic.is.random, 
+    group.order.matters = T, 
+    seed.statistic = 500, 
+    L, model.mat, 
+    ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+a 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+or <code>censorRegList</code> object to be bootstrapped. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that operates on <code>censorReg</code> objects and returns a 
+vector or matrix. 
+It may be a function (e.g. <code>coef</code>) which 
+accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>predict(fit,newdata=orig.frame)</code>. 
+If the <code>data</code> object is given by name (e.g. <code>data=fit</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=glm(formula,dataframe)</code>) use the name <code>data</code> in 
+the expression, e.g. <code>predict(data,newdata=orig.frame)</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+The remaining arguments have the same usage as in the default version of 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+except for: 
+<s-arg name="group">
+in addition to the usual options, 
+this method accepts logical values. 
+If <code>TRUE</code> (the default), 
+groups (strata) for resampling are inferred from the data via 
+the <code>strata</code> function in the <code>formula</code> argument to <code>censorReg</code>. 
+If <code>FALSE</code>, no stratification is used in resampling. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>bootstrap</code> which inherits from <code>resamp</code>.  See 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+for details. 
+</s-value>
+<s-details>
+This function is designed to simplify calls to 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and speed 
+up the resulting computations when the statistic of interest requires 
+the computation of a censorReg object.  Without this method, 
+bootstrapping 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+objects would require, for example, 
+<p>
+# 
+<br>
+bootstrap(data=data.frame, coef(censorReg(formula, data=data.frame, ...),...),...) 
+<br>
+# 
+<p>
+In this case 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+is called once per iteration, and a new object of 
+class <code>censorReg</code> is created each time.  (In fact, 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+is currently incompatible with 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+using the above idiom -- see Bug 20994.) 
+Faster (but equivalent) results are obtained using 
+<p>
+# 
+<br>
+bootstrap(censorReg(formula, data.frame, ...), coef, ...) 
+<br>
+# 
+<p>
+which dispatches to <code>bootstrap.censorReg</code>.  The savings come from the 
+reduction of the overhead required to create the fitted model. 
+<code>bootstrap.censorReg</code> does this work just once, saves the result in 
+an object of class <code>model.list</code>, and then resamples the <code>model.list</code>. 
+<p>
+A word of warning on resampling 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+objects:  Adequate modeling 
+by 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+requires a minimum number of failures in the data or 
+every stratum (see 
+<s-function name="censorReg.good.data.sgm">censorReg.good.data</s-function> 
+for details). 
+Resampling with replacement may create an individual sample with too few 
+failures, even if the original data has enough.  In this case the 
+statistic for that sample is omitted and <code>bootstrap</code> fails, 
+because the statistic size varies from sample to sample. 
+</s-details>
+<s-section name=" BUGS">
+
+See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="censorReg.sgm">censorReg</s-function>,  
+<s-function name="censorReg.good.data.sgm">censorReg.good.data</s-function>,  
+<s-function name="censorReg.model.list.sgm">censorReg.model.list</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+# Unstratified data, default statistic `coef'. Take out the 
+# "voltage" = 20 records (for which there are no failures)  
+# to avoid warnings. 
+fit <- censorReg(censor(days, event) ~ voltage,  
+                 data = capacitor[-(1:25),],  
+                 distribution = "weibull", threshold = "Lin") 
+bootstrap(fit, coef(fit), seed=0, B=100) 
+ 
+# Stratified data: fit is of class `censorRegList'. 
+fit <- censorReg(censor(days, event) ~ strata(voltage),  
+                 data = capacitor[-(1:25),], 
+                 distribution = "weibull", threshold = "Lin") 
+bootstrap(fit, coef(fit), seed=0, B=100) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

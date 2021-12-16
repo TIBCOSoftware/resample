@@ -1,0 +1,300 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>tiltAfterBootstrap</s-topic>
+</s-topics>
+<s-title>
+Tilting-after-bootstrap Diagnostics 
+</s-title>
+<s-description>
+Diagnostic procedure, to estimate how  
+summaries of a bootstrap distribution (like quantiles, bias, standard error) 
+are related to the statistic of interest. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+tiltAfterBootstrap(boot.obj, 
+    functional = "Bias&#38;SE", passObserved = F, 
+    probs = ppoints(10, 0.5), L, tau, 
+    column = 1, tilt = "exponential", 
+    subjectDivide = F, modifiedStatistic = NULL, 
+    ..., frame.eval = boot.obj$parent.frame) 
+ 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="boot.obj">
+a bootstrap object, created by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="functional">
+This may be a character string, one of: 
+<code>"Quantiles"</code>, <code>"Centered Quantiles"</code>, <code>"Standardized Quantiles"</code>, 
+<code>"Mean"</code>, <code>"Bias"</code>, <code>"SE"</code>, or <code>"Bias&#38;SE"</code>. 
+Or it may be a function that takes the matrix of bootstrap 
+replicates as its first argument, such as <code>colMeans</code>; see DETAILS 
+below for additional requirements. 
+</s-arg>
+<s-arg name="passObserved">
+logical; <code>TRUE</code> if <code>functional</code> accepts the observed value of the 
+bootstrap statistic as an argument; 
+e.g. <code>"Bias"</code> is the mean of the bootstrap distribution minus the 
+observed value. 
+If <code>functional</code> is one of the 
+character strings above this is set automatically, 
+to <code>TRUE</code> for <code>"Bias"</code>, <code>"Bias&#38;SE"</code>, 
+<code>"Centered Quantiles"</code> and <code>"Standardized Quantiles"</code>. 
+If <code>TRUE</code>, the bootstrap statistic will be 
+modified to accept a <code>weights</code> argument; see "DETAILS", below. 
+</s-arg>
+<s-arg name="probs">
+vector of values between 0 and 1; each value determines a tilting 
+factor used to reweight the bootstrap distribution with the 
+new center at roughly the <code>probs</code> quantile of the unweighted 
+bootstrap distribution.  This argument is ignored if <code>tau</code> is provided. 
+</s-arg>
+<s-arg name="L">
+influence values, to be used for computing probabilities 
+by exponential or maximum likelihood tilting.  This may be a vector or 
+matrix, in which case the length (or number of 
+rows) is equal to the number of observations (or number of subjects, 
+if sampling by subject was used) in the original bootstrap data.  The 
+influence values are 
+computed internally if this argument is missing; see 
+<s-function name="resampGetL.sgm">resampGetL</s-function>. 
+</s-arg>
+<s-arg name="tau">
+vector of tilting parameters, may be supplied in place of <code>probs</code>. 
+Must be supplied if <code>tilt="ml"</code>. 
+</s-arg>
+<s-arg name="column">
+an integer from 1:p, where <code>p = length(boot.obj$observed)</code>.  When 
+<code>p&gt;1</code>, the bootstrap distribution is a joint distribution, and 
+<code>column</code> describes the component of the joint distribution for which tilting 
+parameters are computed. 
+</s-arg>
+<s-arg name="tilt">
+one of "exponential" or "ml", for exponential or maximum likelihood 
+tilting.  If "ml", then you must specify <code>tau</code> rather than <code>probs</code>. 
+</s-arg>
+<s-arg name="subjectDivide">
+logical flag, meaningful only if the sampling in <code>boot.obj</code> was by 
+subject.  Internal calculations involve assigning weights to subjects; 
+if <code>TRUE</code> then the weight for each subject is divided among observations 
+for that subject before calculating the statistic; 
+if <code>FALSE</code> the subject weight is replicated to observations for that subject. 
+</s-arg>
+<s-arg name="modifiedStatistic">
+if the bootstrap statistic is an expression that calls a function 
+with a "hidden" <code>weights</code> argument, then pass this to indicate how to 
+call your function. 
+See "DETAILS", below. 
+</s-arg>
+<s-arg name="...">
+other arguments passed to <code>functional</code>. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>boot.obj</code> 
+can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>"tiltAfterBootstrap"</code>; a list with components 
+<s-return-component name="call">
+the function call to this function, 
+</s-return-component>
+<s-return-component name="Func">
+the value of the functional applied to the original bootstrap distribution 
+(including control adjustments), converted to a vector. 
+Let <code>p</code> denote the length of this. 
+</s-return-component>
+<s-return-component name="Func.replicates">
+matrix with one row for every value of <code>probs</code> or <code>tau</code>, and 
+<code>p</code> columns.  Each row is the value of the functional when applied 
+to one tilted bootstrap distribution.  Let <code>m</code> be the number of rows. 
+</s-return-component>
+<s-return-component name="observed">
+the original observed statistic, from the bootstrap object. 
+</s-return-component>
+<s-return-component name="statistic">
+the bootstrap statistic, recalculated for the weighted empirical 
+distribution with the same values as the original sample but with 
+unequal probabilities determined by tilting.  A matrix of dimension 
+<code>k x p</code>, where <code>k</code> is the length of <code>tau</code>. 
+In some cases this will be missing. See 
+"DETAILS", below. 
+</s-return-component>
+<s-return-component name="tau">
+vector of tilting parameters, length <code>k</code>. 
+</s-return-component>
+<s-return-component name="probs">
+vector of probabilities, length <code>k</code>, approximate quantiles of the original 
+bootstrap distribution (of a linear approximation to the statistic). 
+</s-return-component>
+<s-return-component name="column">
+integer - this determines which dimension of the statistic to use 
+for tilting, when the statistic is multivariate. 
+</s-return-component>
+<s-return-component name="effectiveB">
+vector of length <code>k</code>, giving the effective bootstrap sample size with 
+unequal weights, assuming independence between the weights and other 
+quantities (this assumption is violated, so these numbers are only 
+a guideline). 
+</s-return-component>
+<s-return-component name="quantiles">
+logical, <code>TRUE</code> if the function is known to compute quantiles, 
+centered or standardized quantiles. 
+</s-return-component>
+<s-return-component name="dim.Func">
+dimension of the functional calculated for a single bootstrap distribution. 
+</s-return-component>
+<s-return-component name="dimnames.Func">
+dimname of the functional calculated for a single bootstrap distribution. 
+</s-return-component>
+</s-value>
+
+<s-details>
+Suppose one were to modify the original empirical distribution by 
+placing unequal weights on the observations.  As the weights change, 
+both the statistic calculated from the weighted distribution, and 
+the bootstrap distribution obtained by sampling with probabilities 
+equal to those weights, change.  Bootstrap tilting looks at the relationships 
+between the statistic and summaries ("functionals") of the bootstrap 
+distribution, as the weights change.  In particular, the weights 
+are selected by exponential or maximum likelihood tilting; 
+these approximately maximize the change in the statistic given the 
+distance (forward or backward Kullback-Leibler distance) between 
+the weights and the original equal weights. 
+<p>
+Assuming that the weighted statistic can be calculated, the most 
+generally useful plot is of the functional (such as quantiles of 
+the weighted bootstrap distribution) against the weighted statistics. 
+<p>
+For example, when considering use of a inference procedure such as 
+t-tests or confidence intervals that assumes that standard errors are 
+independent of the statistic, it is useful to check that assumption by 
+plotting either "Centered Quantiles" or "SE" (standard error) against 
+the statistic. 
+<p>
+The implementation here doesn't actually require bootstrap sampling with 
+unequal probabilities.  Instead it uses importance sampling 
+reweighting to obtain a weighted bootstrap distribution that approximates 
+the shape that would be obtained from sampling with probabilities 
+equal to the weights. 
+<p>
+This function attempts to recalculate the bootstrap statistic by 
+adding weights determined by the tilting parameters. 
+<p>
+The name <code>"Splus.resamp.weights"</code> is reserved for internal use.  To 
+avoid naming conflicts, that name can not be used as 
+a variable name in the <code>data</code> argument to <code>boot.obj</code>, if <code>data</code> 
+is a data frame. 
+<p>
+When the bootstrap statistic is an expression, for example 
+<code>mean(x)</code>, a modified expression 
+<code>mean(x, weights = Splus.resamp.weights)</code> is created. 
+Only calls to functions that have an argument named <code>weights</code> 
+are modified; e.g. <code>sum(x)/length(x)</code> would fail because <code>sum</code> 
+does not have a <code>weights</code> argument. 
+If the expression calls a function with a "hidden" weights argument, 
+e.g. you may pass weights as part of the <code>...</code> list, then 
+use the <code>modifiedStatistic</code> argument to specify that, e.g. 
+<code>modifiedStatistic = myFun(x, weights = Splus.resamp.weights)</code>. 
+An expression such as 
+<code>mean(y[a==1])</code> is converted to 
+<code>mean(y[a==1], weights = Splus.resamp.weights)</code> 
+which will fail because the weights vector was not subscripted along 
+with <code>y</code>. 
+In cases such as these pass a function that performs the desired 
+calculations, or use 
+<br>
+<code>modifiedStatistic = mean(y[a==1], weights = Splus.resamp.weights[a==1])</code> 
+<p>
+(You must use the name <code>Splus.resamp.weights</code> in <code>modifiedStatistic</code>.) 
+If <code>modifiedStatistic</code> is not provided and the bootstrap 
+statistic can not be successfully modified to accomodate weights, there 
+are two possibilities: if <code>passObserved = T</code>, an error is 
+signalled since the recalculated statistic 
+values are required by <code>functional</code>; if <code>passObserved = F</code>, the 
+output <code>statistic</code> component is simply omitted. 
+<p>
+The bootstrap statistic 
+should be <code>"functional"</code>; that is, the observed value of the statistic 
+should be equal to the value computed with equal weights.  A warning 
+occurs if this is not the case. 
+</s-details>
+<s-section name="REFERENCES">
+Hesterberg, T.C. (2001), 
+"Bootstrap Tilting Diagnostics" 
+<it>Proceedings of the Statistical Computing Section,</it>
+American Statistical Association (CD-ROM). 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>  creates the bootstrap objects. 
+<s-function name="plot.tiltAfterBootstrap.sgm">plot.tiltAfterBootstrap</s-function>  plots the result. 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>  performs diagnostics similar to those here. 
+<s-function name="resampFunctionalList.sgm">resampFunctionalList</s-function>  contains example functionals, including the built-in options. 
+<s-function name="resampGetL.sgm">resampGetL</s-function>  is used to calculate L, a linear approximation to the statistic of interest. 
+<s-function name="reweight.sgm">reweight</s-function>  creates reweighted bootstrap distributions (using importance samping identities) for arbitrary weights. 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>  does confidence limits based on bootstrap tilting. 
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>  creates sets of weights using exponential or maximum likelihood tilting, using L. 
+<s-function name="influence.sgm">influence</s-function>  does asymptotic calculations for standard error or bias based on the linear approximation and a directional quadratic approximation.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+x <- qexp(ppoints(30)) 
+boot <- bootstrap(x, mean, seed=1, save.indices=T) 
+tab1 <- tiltAfterBootstrap(boot) 
+tab1 # k = 10.  For 10 different sets of weights, this 
+     # shows the weighted mean, five quantiles of the bootstrap 
+     # distribution, and effective sample sizes.  This loses 
+     # effective sample size in the tails unless importance sampling 
+     # is used, see below or doc/tutorial.ssc 
+plot(tab1) 
+tab2 <- tiltAfterBootstrap(boot, "Centered Quantiles") 
+plot(tab2) 
+# The bootstrap distributions are wider when the statistic 
+# increases (but with some noise on the right due to small effective 
+# sample sizes) 
+ 
+tab3 <- tiltAfterBootstrap(boot, functional = "SE") 
+plot(tab3) 
+# standard error (standard deviation of the bootstrap distribution) 
+# increases as the statistic increases (but with noise on the right) 
+# Could use this to estimate a variance-stabilizing relationship. 
+ 
+# Use importance sampling to improve the effective sample sizes on ends 
+taus <- saddlepointPSolve(c(.05, .95), L=x) 
+boot2 <- bootstrap(x, mean, B = c(400, 300, 300), 
+    # 400 observations with equal probabilties, 300 tilted each direction 
+    sampler.prob = list(NULL,  
+      tiltWeights(taus[1], L=x),  # tilt left 
+      tiltWeights(taus[2], L=x)), # tilt right 
+    seed=1, save.indices=T) 
+tab4 <- tiltAfterBootstrap(boot2) 
+tab4 # effective sample sizes are now all over 400 
+plot(tab4) 
+tab5 <- tiltAfterBootstrap(boot2, "SE") 
+plot(tab5) 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

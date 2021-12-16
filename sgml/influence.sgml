@@ -1,0 +1,293 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>influence</s-topic>
+</s-topics>
+<s-title>
+Empirical influence values 
+</s-title>
+<s-description>
+Calculate empirical influence values and related quantities 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+influence(data, statistic, args.stat,  
+          group, subject,  
+          label, statisticNames, 
+          assign.frame1 = F, weights, 
+          epsilon = 0.001, unbiased = F, returnL = F, 
+          save.group, save.subject,  
+          subjectDivide = F, modifiedStatistic) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data; may be a vector, matrix, or data frame. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be calculated; 
+a function or expression that returns a vector or matrix. 
+Not all expressions work; see details below. 
+It may be a function which 
+accepts data as the first argument and has an argument named 
+<code>weights</code>; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression. 
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="args.stat">
+list of other arguments, if any, passed to <code>statistic</code> when calculating 
+the statistic. 
+</s-arg>
+<s-arg name="group">
+vector of length equal to the number of observations in <code>data</code>, for 
+stratified sampling or multiple-sample problems. 
+Sampling is done separately for each group 
+(determined by unique values of this vector). 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or expression involving such variables. 
+</s-arg>
+<s-arg name="subject">
+vector of length equal to the number of observations in <code>data</code>; 
+if present then subjects 
+(determined by unique values of this vector) are resampled rather than 
+individual observations. 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables. 
+If <code>group</code> is also present, <code>subject</code> must be nested within <code>group</code> 
+(each subject must be in only one group). 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before evaluating the statistic. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="weights">
+a vector of length equal to the number of observations (or subjects). 
+The empirical influence function is calculated at the empirical 
+distribution with these probabilities (normalized to sum to 1) 
+on the observations or subjects.  When sampling by subject these may 
+be observation weights or subject weights.  In the latter case,  
+the vector may be named, in which case the names must correspond to 
+the unique values of <code>subject</code>.  Otherwise the weights are taken to be 
+ordered with respect to the sorted values of <code>subject</code>. 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables.  The default implies equal 
+weights. 
+</s-arg>
+<s-arg name="epsilon">
+small value used for numerical evaluation of derivatives. 
+</s-arg>
+<s-arg name="unbiased">
+logical value; if <code>TRUE</code> then standard error estimates are computed 
+using a divisor of <code>(n-1)</code> instead of <code>n</code>; then squared standard error 
+estimates are more nearly unbiased. 
+</s-arg>
+<s-arg name="returnL">
+logical flag, if <code>TRUE</code> then only the <code>L</code> matrix is returned, rather 
+than the list described below. 
+</s-arg>
+<s-arg name="save.group, save.subject">
+logical flags, if <code>TRUE</code> then <code>group</code> and <code>subject</code> vectors, respectively, 
+are saved in the returned object.  Both defaults are <code>TRUE</code> if <code>n&lt;=10000</code>. 
+</s-arg>
+<s-arg name="subjectDivide">
+logical flag, meaningful only if sampling by subject.  Internal 
+calculations involve assigning weights to subjects;  
+if <code>TRUE</code> then the weight for each subject is divided among observations 
+for that subject before calculating the statistic; 
+if <code>FALSE</code> the subject weight is replicated to observations for that subject. 
+Also, if <code>TRUE</code> and <code>weights</code> contains observation weights,  
+then initial subject weights will be the sums of weights for the 
+observations.  
+</s-arg>
+<s-arg name="modifiedStatistic">
+if your <code>statistic</code> is an expression that calls a function with a "hidden" 
+<code>weights</code> argument, then pass this to indicate how to call your function. 
+See below. 
+</s-arg>
+</s-args-optional>
+<s-value>
+object of class <code>c("influence", "resamp")</code>, with 
+components  
+<code>call</code>,  
+<code>observed</code>,  
+<code>replicates</code> 
+<code>estimate</code>,  
+<code>B</code>,  
+<code>n</code>,  
+<code>dim.obs</code>, 
+<code>L</code>, 
+<code>epsilon</code>, 
+<code>defaultLabel</code>, 
+and perhaps (depending on whether sampling by group, subject, etc.) 
+<code>label</code>, 
+<code>groupSizes</code>, 
+<code>group</code>, 
+<code>subject</code>, 
+<code>modifiedStatistic</code>, 
+<code>replicates2</code>, 
+and 
+<code>epsilon2</code>. 
+see 
+<s-function name="influence.object.sgm">influence.object</s-function> 
+for components not described below: 
+<s-return-component name="replicates">
+value of <code>statistic</code> evaluated at distance <code>epsilon</code> 
+in each direction from <code>weights</code>. If sampling by subject, the rows 
+are named with the unique values of <code>subject</code>. 
+</s-return-component>
+<s-return-component name="L">
+the empirical influence function values. If sampling by subject, the rows 
+are named with the unique values of <code>subject</code>.  Includes attributes 
+<code>"method"</code> (which is set to <code>"influence"</code>) and <code>"epsilon"</code>.  
+</s-return-component>
+<s-return-component name="estimate">
+data frame with columns containing the 
+mean of the <code>replicates</code>, and estimated bias and standard error. 
+In addition, if <code>weights</code> is missing, columns containing 
+estimates of acceleration, <code>z0</code>, and <code>cq</code> used by other bootstrap 
+procedures. 
+</s-return-component>
+</s-value>
+
+<s-details>
+The empirical influence values measure the effect on <code>statistic</code> of 
+perturbing the empirical (weighted) distribution represented by 
+<code>data</code>. The ith influence value is essentially the derivative 
+in the "direction" of the i'th observation (or subject, if 
+sampling by subject).  The derivatives are approximated with finite 
+difference quotients by reweighting the original distribution. 
+<p>
+The name <code>"Splus.resamp.weights"</code> is reserved for internal use by 
+<code>influence</code>.  To avoid naming conflicts, that name can not be used as 
+a variable name in <code>data</code>, if <code>data</code> is a data frame. 
+<p>
+When statistic is an expression, for example 
+<code>mean(x)</code>, a modified expression 
+<code>mean(x, weights = Splus.resamp.weights)</code> is created. 
+Only calls to functions that have an argument named <code>weights</code> 
+are modified; e.g. <code>sum(x)/length(x)</code> would fail because <code>sum</code> 
+does not have a <code>weights</code> argument. 
+If your expression calls a function with a "hidden" weights argument, 
+e.g. you may pass weights as part of the <code>...</code> list, then 
+use the <code>modifiedStatistic</code> argument to specify that, e.g. 
+<code>modifiedStatistic = myFun(x, weights = Splus.resamp.weights)</code>. 
+An expression such as 
+<code>mean(y[a==1])</code> is converted to 
+<code>mean(y[a==1], weights = Splus.resamp.weights)</code> 
+which will fail because the weights vector was not subscripted along 
+with <code>y</code>. 
+In cases such as these pass a function that performs the desired 
+calculations, or use 
+<br>
+<code>modifiedStatistic = mean(y[a==1], weights = Splus.resamp.weights[a==1])</code> 
+<p>
+For statistics which are not smooth functions of weights, 
+derivatives calculated using small values of <code>epsilon</code> will be unstable. 
+Consider a larger value of for such statistics, e.g. 
+<code>epsilon=1/sqrt(n)</code> (the "butcher knife"). 
+</s-details>
+
+<s-section name=" REFERENCES">
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. (1982), 
+<it>The Jackknife, the Bootstrap and Other Resampling Plans,</it>
+Society for Industrial and Applied Mathematics, Philadelphia. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+<p>
+Hesterberg, T.C. (1995), 
+"Tail-Specific Linear Approximations for Efficient Bootstrap Simulations," 
+<it>Journal of Computational and Graphical Statistics,</it>
+<bf>4</bf>, 113-133. 
+</s-section>
+
+<s-section name=" BUGS">
+<code>influence</code> can fail if <code>statistic</code> calls a modeling function like 
+<code>lm</code>. See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function> 
+for details. 
+</s-section>
+
+<s-see>
+dd
+<s-function name="jackknife.sgm">jackknife</s-function>  and 
+<s-function name="limits.abc.sgm">limits.abc</s-function>  do many similar calculations.
+
+More details on many arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.
+
+Print, summarize, plot: 
+<s-function name="print.influence.sgm">print.influence</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>.
+
+Description of the object, extract parts: 
+<s-function name="influence.object.sgm">influence.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+Confidence intervals: 
+<s-function name="limits.abc.sgm">limits.abc</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>.
+
+Modify an "influence" object: 
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+# Influence in robust estimation 
+set.seed(1); x <- rcauchy(40) 
+influence.obj <- influence(x, location.m) 
+plot(x, influence.obj$L)  # outliers have less influence 
+ 
+# influence function is useful for linear approximations 
+obj <- bootstrap(x, location.m, B=200, save.indices=T) 
+plot(indexMeans(influence.obj$L, obj$indices), 
+     obj$replicates) 
+ 
+# Use extra quantities for BCa interval 
+limits.bca(obj, acceleration = influence.obj$estimate$accel, 
+           z0 = influence.obj$estimate$z0) 
+ 
+# Sampling by subject (type of auto) 
+influence(fuel.frame, mean(Fuel), subject = Type)$L 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

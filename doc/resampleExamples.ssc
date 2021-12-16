@@ -1,0 +1,290 @@
+### This document contains examples from the S+Resample manual
+
+#####Chapter 1
+
+###Section: Example: Resampling the Variance
+
+swiss.x[,"Education"]			#only worked when I typed it in myself
+
+Edu <- swiss.x[,"Education"]
+boot.obj1 <- bootstrap(data = Edu, statistic = var, 
+    B = 1000,  seed = 0)
+boot.obj1
+
+summary(boot.obj1)
+
+plot(boot.obj1) 
+
+qqnorm(boot.obj1)
+
+###Section: The group argument
+
+swiss.new <- data.frame(Edu=swiss.x[,"Education"],  
+    IM=swiss.x[,"Infant Mortality"])   
+boot.obj <- bootstrap(data = swiss.new, 
+    statistic = mean(IM[Edu>20]) - mean(IM[Edu<=20]), 
+    group = Edu>20, seed = 0, trace = F)
+
+summary(boot.obj)
+
+###Section: Subject argument
+
+bootstrap(solder[solder$Opening == "M",], mean(skips), 
+    seed = 0, trace = F)
+
+bootstrap(solder[solder$Opening == "M",], mean(skips), 
+    subject = PadType, seed = 0, trace = F)
+
+###Section: The Jackknife
+
+jack.obj <- jackknife(data = swiss.x[,"Education"], 
+    statistic = var)
+jack.obj
+
+summary(jack.obj)
+
+plot(jack.obj)
+
+###Section: Example  #Does NOT work
+
+IM <- swiss.x[,"Infant Mortality"]
+pt.obj <- permutationTestMeans(data = IM, 
+    treatment = Edu > 20, alternative = "greater", B = 1000, 
+    seed = 9)
+pt.obj
+
+pt.obj <- permutationTest(data = IM, 
+    statistic = mean(IM[Edu <= 20]) - mean(IM[Edu > 20]),
+    B = 1000, seed = 9, trace = F, alternative = "greater")
+pt.obj
+
+pt.obj <- permutationTest(data = swiss.x[,"Education"],
+    statistic = cor(data, swiss.x[,"Infant Mortality"]),
+    alternative = "less", seed = 0, trace = F)
+
+summary(pt.obj)
+
+plot(pt.obj)
+
+
+
+
+#####Chapter 2
+
+###Section: Resampling the Correlation Coefficient
+
+school <- 1:15
+lsat <- c(576, 635, 558, 578, 666, 580, 555, 661, 651, 
+    605, 653, 575, 545, 572, 594)
+gpa <- c(3.39, 3.30, 2.81, 3.03, 3.44, 3.07, 3.00, 3.43,
+    3.36, 3.13, 3.12, 2.74, 2.76, 2.88, 2.96)
+law.data <- data.frame(School = school, LSAT = lsat, 
+    GPA = gpa)
+
+boot.obj2 <- bootstrap(law.data, cor(LSAT, GPA),
+    B = 1000, seed = 0, trace = F)
+summary(boot.obj2)
+
+plot(boot.obj2)
+
+jackknife(law.data, cor(LSAT, GPA))
+
+###Section: Jackknife after bootstrap
+
+jab.obj2 <- jackknifeAfterBootstrap(boot.obj2, 
+    functional = "bias")
+jab.obj2
+
+plot(jab.obj2) 
+
+plot(lsat[-12], gpa[-12], xlab = "LSAT", ylab = "GPA")
+points(lsat[12], gpa[12], pch = 2)
+
+###Section: Resampling Regression Coefficients
+
+stack <- data.frame(stack.loss, stack.x)
+names(stack)
+
+boot.obj3 <- bootstrap(stack,
+    coef(lm(stack.loss ~ Air.Flow + Water.Temp + Acid.Conc.,
+    stack)), B = 1000, seed = 0, trace = F)
+
+boot.obj3 <- bootstrap(lm(stack.loss ~ 
+    Air.Flow + Water.Temp + Acid.Conc., stack), 
+    coef, B = 1000, seed = 0, trace = F)
+
+boot.obj3
+
+summary(boot.obj3)
+
+plot(boot.obj3)
+
+jab.obj3 <- jackknifeAfterBootstrap(boot.obj3, "SE")
+jab.obj3
+
+plpot(jab.obj3)
+
+#####Chapter 3
+
+###Section: The influence function
+
+infl.obj <- influence(data = swiss.x[,"Education"], 
+    statistic = var) 
+
+infl.obj
+
+plot(infl.obj)  
+
+plot(swiss.x[,"Education"], infl.obj$L)
+
+jfit <- jackknife(swiss.x[,"Education"], var, 
+    args.stat = list(unbiased = F))
+jack.L <- subtractMeans(-(jfit$n - 1) * 
+    (jfit$replicates - jfit$observed))
+infl.L <- influence(swiss.x[,"Education"], var, 
+    epsilon = -1/(jfit$n - 1))$L
+all.equal(jack.L, infl.L)
+
+###Section: Approximating bootstrap replicates
+
+set.seed(0)
+inds <- samp.boot.mc(47, B = 500)
+
+approxT <- infl.obj$observed + indexMeans(infl.obj$L, 
+    inds)
+
+boot.obj <- bootstrap(swiss.x[,"Education"],
+    statistic = var, seed = 0, B = 500,
+    args.stat = list(unbiased = F))
+
+plot(approxT, boot.obj$replicates)
+abline(0,1, col = 2)
+points(boot.obj$observed, pch = "O")
+
+cor(approxT, boot.obj$replicates)
+
+###Section: The limits.abc function
+
+limits.abc(data = swiss.x[,"Education"], 
+    statistic = var)
+
+###Section: The resampGetL function
+
+boot.L <- resampGetL(boot.obj)
+
+plot(swiss.x[,"Education"], boot.L, pch = "+")
+
+points(swiss.x[,"Education"], infl.obj$L, pch = "o", 
+    col = 2)
+
+attr(boot.L, "correlation")
+
+ 
+
+#####Chapter 4
+
+###Section: The parametric bootstrap
+
+Edu <- swiss.x[,"Education"]
+rate <- mean(Edu)/var(Edu)
+shape <- mean(Edu)*rate
+
+hist(Edu, xlim = c(0,70), ylim = c(0,.07), prob = T)
+x <- qgamma(ppoints(100), shape = shape, rate = rate)
+
+lines(x, dgamma(x, shape = shape, rate = rate)) 
+
+pboot.obj <- parametricBootstrap(Edu, var, rsampler = rgamma,
+    args.rsampler = list(shape = shape, rate = rate),
+    seed = 0, B = 1000)
+
+summary(pboot.obj)
+
+plot(pboot.obj)
+
+###Section: The smoothed bootstrap
+
+sboot.obj <- smoothedBootstrap(Edu, statistic = var, seed = 0)
+summary(sboot.obj)
+
+plotCDF(boot.obj$replicates)
+plotCDF(sboot.obj$replicates, new=F, col=2)
+
+
+
+#####Chapter 5
+
+###Section: Parametric Bootstrap Testing
+
+pbt.obj <- parametricBootstrapTest(Edu, statistic = skewness, 
+    rsampler = rgamma, 
+    args.rsampler = list(rate = mean(Edu)/var(Edu), 
+    shape = mean(Edu)^2/var(Edu)), 
+    null.value="skewness = 2.4", alternative = "greater", 
+    trace = F, seed = 0)
+pbt.obj
+
+###Section: Another Example
+
+set.seed(13)  # to duplicate results of calling rmvnorm
+NN <- rmvnorm(125, d = 4)
+pbt.obj2 <- parametricBootstrapTest(NN, colMeans, rmvnorm, args.rsampler =
+    list(mean = rep(0.2, 4), sd = colStdevs(NN)),
+    null.value = c("mean1 = 0.2", "mean2 = 0.2", "mean3 = 0.2",
+    "mean4 = 0.2"), trace = F)
+pbt.obj2        
+
+pbt.obj3 <- parametricBootstrapTest(NN, colMeans, rmvnorm, args.rsampler =
+    list(mean = rep(0.2, 4), sd = colStdevs(NN)),
+    null.value = rep(0.2, 4), trace = F, seed =
+    pbt.obj2$seed.start)
+pbt.obj3
+
+plot(pbt.obj3)
+
+
+
+
+#####Chapter 6
+
+###Section: Cross-validation: the  crossValidation function
+
+attach(air)
+tempErr <- rep(NA, 11)
+for(i in 1:11){
+   res <- crossValidation(ozone, temperature, smooth.spline, 
+   args.modelFit = list(df = i+1),
+   predFun = function(object, newdata)
+     predict(object, x = newdata)$y, 
+   K = 10, seed = i)
+   tempErr[i] <- res$error
+ }
+tempErr 
+
+argminErr <- which(tempErr == min(tempErr))[1] + 1
+argminErr
+
+plot(ozone,temperature)
+lines(smooth.spline(ozone,temperature, df = argminErr), 
+    lty = 1)
+
+res
+
+tempErr <- rep(NA, 11)
+for(i in 1:11){
+    res <- bootstrapValidation(ozone, temperature,
+    smooth.spline, args.modelFit = list(df = i+1),
+    predFun = function(object, newdata){ predict(object,
+    x = newdata)$y}, B = 30, seed = i)
+ tempErr[i] <- res$err632plus
+ }
+tempErr 
+
+argminErr <- which(tempErr == min(tempErr))[1] + 1
+argminErr
+
+lines(smooth.spline(ozone,temperature, df = argminErr),
+    lty = 2)
+
+res
+

@@ -1,0 +1,74 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>summary.parametricBootstrap</s-topic>
+</s-topics>
+<s-title>
+Summary Method for Pbootstrap Objects 
+</s-title>
+<s-description>
+Produces a summary for 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function> 
+objects.  This calculates empirical percentiles 
+for the (parametric) bootstrap distributions of parameters, and correlations of 
+parameter replicates if applicable.  The print method displays the same 
+results as 
+<s-function name="print.resamp.sgm">print.resamp</s-function>, 
+plus these quantities. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+summary.parametricBootstrap(object, probs=c(25, 50, 950, 975)/1000) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="object">
+object of class 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="probs">
+probability levels at which to calculate percentiles. 
+</s-arg>
+</s-args-optional>
+<s-value>
+a list containing selected components of <code>object</code> (<code>call</code>, <code>B</code>, 
+<code>observed</code>, <code>estimate</code>), plus percentiles 
+<code>limits.emp</code> 
+and (if <code>observed</code> has more than one element) 
+the correlation matrix <code>correlation</code> for the 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function> 
+replicates. 
+</s-value>
+<s-details>
+The print method 
+<s-function name="print.summary.parametricBootstrap.sgm">print.summary.parametricBootstrap</s-function> 
+prints the results in a nicely formatted manner. 
+</s-details>
+<s-see>
+
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>,  
+<s-function name="print.summary.parametricBootstrap.sgm">print.summary.parametricBootstrap</s-function>,  
+<s-function name="summary.bootstrap.sgm">summary.bootstrap</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+temp <- parametricBootstrap(iris[,1,1], mean, rsampler = rnorm, 
+           args.rsampler = list(mean = mean(iris[,1,1]), 
+           sd = sqrt(var(iris[,1,1])))) 
+summary(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

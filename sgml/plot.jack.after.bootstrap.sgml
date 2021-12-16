@@ -1,0 +1,129 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>plot.jackknifeAfterBootstrap</s-topic>
+</s-topics>
+<s-title>
+Plot Jackknife-After-Bootstrap Diagnostics 
+</s-title>
+<s-description>
+Plot either: 
+(1) The functional (e.g. quantiles, for each leave-one-out bootstrap distribution) vs. any of jackknife statistics, influence values, or the original data. 
+(2) Standardized influence of each observation on the functional, 
+analogous to a Cook's distance plot. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plot.jackknifeAfterBootstrap(x, nrow=NULL, grid.layout=T, id.outliers=T, 
+   threshold=x$threshold, ..., graphical = x$graphical, 
+   xaxis, superpose, Func, subset.x, subset.plots, absolute = F) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="nrow">
+number of rows of plots on the screen.  If <code>NULL</code> and quantiles are not 
+being plotted and <code>x$dim.func</code> is non-NULL, the first dimension is used; 
+otherwise this is set to two if multiple plots are needed. 
+</s-arg>
+<s-arg name="grid.layout">
+logical flag indicating whether to display plots in a single grid or as 
+separate plots when the resampled statistic is a vector. 
+</s-arg>
+<s-arg name="id.outliers">
+logical flag indicating whether observation numbers should be printed for  
+standardized 
+influences greater than the specified <code>threshold</code>. 
+</s-arg>
+<s-arg name="threshold">
+threshold at which points are considered to have a relatively large influence. 
+A straight line is drawn at this level, and observations with a standardized 
+influence greater than this threshold are labeled if <code>id.outliers=T</code>. 
+</s-arg>
+<s-arg name="...">
+additional arguments may be passed on to <code>plot</code> to alter the default 
+appearance of the plot. 
+</s-arg>
+<s-arg name="graphical">
+logical, if <code>TRUE</code> then the functional is plotted; if <code>FALSE</code> then 
+standardized influence is plotted.  Default is the value of <code>x$graphical</code>. 
+</s-arg>
+<s-arg name="xaxis">
+what values to use on the x axis, one of  
+<code>"Observation"</code> (observation number, default for influence plot), 
+<code>"L"</code> (empirical influence function) 
+<code>"jackknife"</code> - (jackknife statistics = leave-one-out statistics,  
+        default for plot of functional), 
+<code>"data"</code> - original data. 
+</s-arg>
+<s-arg name="superpose">
+logical, if <code>TRUE</code> then columns of the function are combined on 
+a single plot; if <code>FALSE</code> they are shown on separate plots. 
+By default this is <code>TRUE</code> when the functional is known to consist of 
+quantiles. 
+</s-arg>
+<s-arg name="Func">
+logical, if <code>TRUE</code> (the default) then when the functional is plotted, 
+horizontal dotted lines are included at the values of the functional 
+for the original bootstrap distribution. 
+</s-arg>
+<s-arg name="subset.x">
+vector of integers or names; 
+if <code>xaxis</code> is one of <code>"L"</code>, <code>"jackknife"</code>, or <code>"data"</code>, you may use this 
+to select a column for use in plotting. 
+</s-arg>
+<s-arg name="subset.plots">
+integer vector,  
+use this to do only a subset of the plots that would otherwise be produced. 
+</s-arg>
+<s-arg name="absolute">
+logical, if <code>TRUE</code> then absolute values of standardized influence are plotted; 
+if <code>FALSE</code> then negative values are shown. 
+</s-arg>
+</s-args-optional>
+<s-value>
+no value is returned. 
+</s-value>
+<s-side-effects>
+For each column (if the functional is multivariate), 
+a plot is produced in which high-density 
+lines are used to display the standardized influences.  A solid horizontal line 
+is plotted at the value of <code>threshold</code>.  If <code>id.outliers=T</code>, then values greater 
+than <code>threshold</code> are labeled with their observation number. 
+</s-side-effects>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- qexp(ppoints(19)) 
+boot <- bootstrap(x, mean) 
+plot(boot) # slightly skewed 
+jab <- jackknifeAfterBootstrap(boot) 
+plot(jab) 
+plot(jab, xaxis = "L") 
+plot(jab, xaxis = "data") 
+ 
+jab <- jackknifeAfterBootstrap(boot, functional = "Centered Quantiles") 
+plot(jab) 
+ 
+# See also extensive examples in the help file for jackknifeAfterBootstrap 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

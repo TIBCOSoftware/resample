@@ -1,0 +1,8 @@
+# Remove objects
+rm(last.dump)
+rm(.Last.fixed)
+rm(newProperty, newFunctionInfo, copyProperty, newContextMenu, newClassInfo)
+rm(.Last.value)
+if(exists(".Random.seed")) rm(.Random.seed) else rm()
+
+"Done with remove.ssc" # for script file input

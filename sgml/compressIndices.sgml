@@ -1,0 +1,102 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>compressIndices</s-topic>
+   <s-topic>uncompressIndices</s-topic>
+</s-topics>
+<s-title>
+Compress or Uncompress a Matrix of Resampling Indices
+</s-title>
+<s-description>
+Compress or uncompress a matrix of resampling indices.
+</s-description>
+<s-usage>
+<s-old-style-usage>
+compressIndices(indices, n=nrow(indices))
+uncompressIndices(x)
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="indices">
+matrix with dimensions <code>m</code> by B,
+vector of indices for resampling,
+containing values from 1 to <code>n</code> (or 0 to <code>n</code>);
+usually <code>m</code> = <code>n</code>.
+</s-arg>
+<s-arg name="x">
+matrix of class <code>"compressIndices"</code>.
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="n">
+maximum possible value of indices; by default this is the number of rows,
+which is appropriate for ordinary bootstrap sampling.
+If you use the <code>size</code> argument to bootstrap samplers then the number
+of rows of <code>indices</code> does not match the number of original observations,
+and you should specify <code>n</code> as the latter.
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix of class <code>"compressIndices"</code>, with additional components
+<s-return-component name="originalDim">
+vector of length 2, dimension of the original <code>indices</code> matrix.
+</s-return-component>
+<s-return-component name="n">
+integer, value of <code>n</code>.
+<p>
+<br>
+<code>uncompressIndices</code> returns an ordinary matrix of indices (the original
+indices, except sorted by column, with any zeroes at the end).
+</s-return-component>
+</s-value>
+
+<s-details>
+All information about the order of the indices is lost in compression.
+<p>
+Each column of indices is converted to frequencies, and the information
+about frequencies is stored in <code>m+n</code> bits, where <code>m</code> is the number of
+rows of <code>indices</code>, with frequencies represented by the number of 1s
+between 0's.  The information is then stored in 32-bit unsigned integers.
+If <code>m==n</code> the compressed indices require about 1/16 the space of the
+original indices.
+<p>
+There are subscript, print, and cbind methods for <code>"compressIndices"</code> objects.
+Subscripting columns returns another <code>"compressIndices"</code> object;
+subscripting rows returns an ordinary matrix or vector.
+<p>
+The compressed indices may be stored as a "compressedIndices" component
+of a <code>"bootstrap"</code> object, by setting <code>save.indices=2</code> when calling
+<s-function name="bootstrap.sgm">bootstrap</s-function>.
+<p>
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>
+extracts indices from a <code>"bootstrap"</code> object,
+first looking for the original indices, then for
+compressed indices (which it uncompresses).
+</s-details>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+indices <- samp.bootstrap(n = 100, B = 1000)
+cindices <- compressIndices(indices)
+indices2 <- uncompressIndices(cindices)
+all.equal(indices2, apply(indices, 2, sort))  # The same
+object.size(indices)  # 400184
+object.size(cindices) #  28386
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,183 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+<s-topic>tiltBootProbs</s-topic>
+</s-topics>
+<s-title>
+Bootstrap Tilting Probabilities 
+</s-title>
+<s-description>
+Estimate the probability that the bootstrap statistic value would 
+exceed the observed value, if bootstrap sampling were to take place 
+from a tilted distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+tiltBootProbs(tau, boot.obj, tilt = "exponential", 
+              subset.statistic = 1, 
+              observed = *, replicates = *, L = *, 
+              indices = *, group = *, treatment = *, 
+              weights = *, 
+              normalizeWeights = T, 
+              tol = 1e-06, maxiter = 50, 
+              frame.eval = sys.parent(1)) 
+* means that by default the argument is extracted from boot.obj, 
+  and subscripted using subset.statistic if appropriate. 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="tau">
+vector of tilting parameters 
+</s-arg>
+<s-arg name="boot.obj">
+bootstrap object (created by 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>). 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="tilt">
+one of "exponential" or "ml", for exponential or maximum likelihood tilting. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic that was bootstrapped has 
+length greater than 1, use this to request intervals for just one 
+element (parameters) of the statistic. 
+</s-arg>
+<s-arg name="observed">
+observed statistic value. 
+</s-arg>
+<s-arg name="replicates">
+values of the statistic from bootstrap samples. 
+</s-arg>
+<s-arg name="L">
+vector of values to be used for tilting.  Normally these are 
+empirical influence values or other values that could be used in 
+calculating a linear approximation for the statistic. 
+</s-arg>
+<s-arg name="indices">
+matrix of indices that determine bootstrap samples. 
+</s-arg>
+<s-arg name="group">
+<code>NULL</code>, or vector the same length as <code>L</code>, indicating stratified sampling or 
+multiple-group problems; unique values of this vector determine groups. 
+</s-arg>
+<s-arg name="treatment">
+vector indicating a two-sample application created by 
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>, 
+by default extracted from <code>boot.obj</code>. 
+</s-arg>
+<s-arg name="weights">
+<code>NULL</code>, or vector the same length as <code>replicates</code>, typically resulting 
+from importance sampling. 
+</s-arg>
+<s-arg name="normalizeWeights">
+logical; if <code>TRUE</code> weights are normalized to mean 1 
+before calling C code.  If <code>FALSE</code> they are not normalized; this yields 
+more accurate results when a good importance sampling design was used. 
+</s-arg>
+<s-arg name="tol">
+Find <code>lambda</code> values such 
+that tilting weights sum within each group to within <code>tol</code> of 1. 
+Used only for multiple-group <code>"ml"</code> tilting. 
+</s-arg>
+<s-arg name="maxiter">
+maximum number of iterations allowed for finding values of <code>tau</code> which 
+bracket the solution for each <code>q</code> (after the root is bracketed additional 
+iterations may be performed). 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when 
+creating <code>boot.obj</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+This is used in calculating default values of <code>L</code> and <code>indices</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+list, with components 
+<s-return-component name="tau">
+the input tau. 
+</s-return-component>
+<s-return-component name="p">
+the estimated probabilities. 
+</s-return-component>
+</s-value>
+
+<s-details>
+Exponential tilting places probability proportional to 
+<br>
+<code>weights * exp(tau * (L-Lbar))</code> 
+<br>
+on the values in <code>L</code>, where <code>Lbar</code> is the mean of <code>L</code>. 
+Maximum likelihood tilting places probabilities proportional to 
+<br>
+<code>weights * 1/(1 - tau * (L-Lbar))</code> 
+<br>
+These weights are empirical maximum likelihood weights, in that they maximize 
+the product of probabilities subject to the weighted mean matching 
+a specified value. 
+<p>
+For <code>tau&lt;0</code>, the answer is an estimate of 
+P(bootstrap replicate <code>&gt;=</code> observed). 
+For <code>tau&gt;0</code>, the answer is an estimate of 
+1 - P(bootstrap replicate <code>&lt;=</code> observed). 
+See examples below. 
+<p>
+Bootstrap tilting interval correspond to finding the values of <code>tau</code> 
+that make <code>p</code> equal to specified confidence levels, using that 
+<code>tau</code> to calculated tilting weights for the original observations, 
+and recalculating the observed value using the original data but 
+these weights.  This process is performed by 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>. 
+</s-details>
+
+<s-section name=" REFERENCES">
+Hesterberg, T.C. (2003), 
+"Tilting Calculations for Resampling Inferences and Approximations", 
+Research Report No. 103, Research Department, Insightful Corp., 
+1700 Westlake Ave. N., Suite 500, Seattle, WA 98109. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+bfit <- bootstrap(1:30, mean, save.indices=T) 
+tiltBootProbs(c(.01, .02, .03), bfit) 
+ 
+# Information on what calculations are performed 
+x <- 1:30 
+boot <- bootstrap(1:30, mean, seed=0) 
+tiltBootProbs(c(-.01, .01), boot) # 0.3127023 0.6711574 
+tau <-  -0.01   # Case 1, tau < 0 
+# Now do the calculations by hand, for comparison 
+w <- tiltWeights(tau, resampGetL(boot))  # This is the general way 
+w <- exp(tau * x); w <- w/sum(w)   # This gives the same answer here 
+mean((boot$replicates >= boot$observed) * 
+     indexProducts(30*w, resampGetIndices(boot))) 
+# That gives 0.3127023, which matches tiltBootProbs 
+tau <-  0.01   # Case 2: tau > 0 
+w <- tiltWeights(tau, resampGetL(boot)) 
+1 - mean((boot$replicates <= boot$observed) * 
+         indexProducts(30*w, resampGetIndices(boot))) 
+# That gives 0.6711574, which matches tiltBootProbs 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

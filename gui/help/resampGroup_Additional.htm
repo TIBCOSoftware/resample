@@ -1,0 +1,32 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Additional Arguments boot</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Additional Arguments</H3>
+<P>
+Specify any additional arguments in this area,
+separated by commas, e.g.:
+<br>
+<code>label = "Try 1", block.size = 50</code>.
+
+<p>
+To pass additional arguments to the statistic, pass them
+as a list using the
+<code>args.statistics</code> argument, e.g. (if the statistic
+is <code>mean</code>):
+<br>
+<code>args.statistics = list(trim=.1, na.rm=T)</code>
+</BODY>
+</HTML>

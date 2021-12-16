@@ -1,0 +1,117 @@
+<HTML>
+ <!-- guitopic GUI Correlation/Resample -->
+ <!-- s-keyword guiresamp -->
+ <HEAD>
+  <!-- $MVD$:app("RoboHELP HTML Edition by Blue Sky Software, portions by MicroVision Dev. Inc.","769") -->
+  <!-- $MVD$:template("","0","0") -->
+  <!-- $MVD$:fontset("Untitled Font Set 14","Arial","SansSerif") -->
+  <!-- $MVD$:fontset("Arial","Arial") -->
+  <!-- $MVD$:fontset("Courier New","Courier New") -->
+  <!-- $MVD$:fontset("Arial CYR","Arial CYR") -->
+  <!-- $MVD$:fontset("@MS Mincho","@MS Mincho") -->
+  <TITLE>Correlations and Covariances</TITLE>
+  <META NAME="generator" CONTENT="RoboHELP by Blue Sky Software www.blue-sky.com Classic Edition">
+  <META NAME="generator" CONTENT="RoboHELP by Blue Sky Software www.blue-sky.com HTML Edition">
+  <SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+ </SCRIPT>
+ <LINK REL="StyleSheet" HREF="splus.css">
+ <META NAME="MS-HAID" CONTENT="function_menuCorResample">
+ <META NAME="MS-HKWD" CONTENT="Correlations and Covariances">
+</HEAD>
+
+
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+
+<table width="100%" border="0" cellspacing="0"
+cellpadding="0" bgcolor="#CCCCCC" >
+<tr>
+<td width="50%"><tt></tt></td>
+<td width="50%"><div align="right"><font face="Times New Roman, Times, serif">S+Resample GUI Reference</font></div>
+</td></tr></table>
+
+<P CLASS="ms-section-1">Correlations and Covariances</P>
+<P STYLE="margin-top : 0.0;margin-bottom : 0.0;" CLASS="ms-body1">&nbsp;</P>
+
+
+<P CLASS="ms-body">
+The <span STYLE="font-weight : bold;">Correlations/Resample</span> dialog 
+calculates correlation and variance/covariance matrices, and allows
+bootstrapping to obtain standard errors or confidence intervals for
+the estimated correlations or covariances.</P>
+
+
+<P CLASS="ms-section-4">
+To compute correlations and covariances matrices:</P>
+<P CLASS="ms-body">
+Choose <span STYLE="font-weight : bold;">Statistics</span> 
+<IMG SRC="arrow5.gif">
+<span STYLE="font-weight : bold;"><FONT FACE="@MS Mincho">Data Summary</FONT>
+</span> <IMG SRC="arrow5.gif">
+<span STYLE="font-weight : bold;">Correlations/Resample</span>.
+The dialog shown below appears.</P>
+
+
+<P CLASS="ms-section-4">Cor and Cov Page</P>
+<P class="ms-body" ><IMG src="FINGER.gif"> <span style="font-size:12pt; font-weight:bold; font-style:italic; ">Click individual fields in the dialog below for more specific information.</span></P>
+<P CLASS="ms-body"><IMG SRC="CORR_resamp.gif" width=426 height=392 USEMAP="#AreaMap0"></P>
+
+
+<P CLASS="ms-section-4">Bootstrap Page</P>
+<P class="ms-body" ><IMG src="FINGER.gif"> <span style="font-size:12pt; font-weight:bold; font-style:italic; ">Click individual fields in the dialog below for more specific information.</span></P>
+<P CLASS="ms-body"><IMG SRC="CORR_boot.gif" width=426 height=392 USEMAP="#AreaMap1"></P>
+
+
+
+<MAP NAME="AreaMap0">
+<AREA COORDS="9,65,209,85" HREF="javascript:BSSCPopup('Data_Set.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,90,209,161" HREF="javascript:BSSCPopup('Variables_Summary_Stats.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,173,209,208" HREF="javascript:BSSCPopup('Method_to_Handle_Missing_Values_correlations.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,48,417,107" HREF="javascript:BSSCPopup('Statistic_Type.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,123,417,143" HREF="javascript:BSSCPopup('Fraction_to_Trim.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,166,417,192" HREF="javascript:BSSCPopup('Save_As_Summary_Stats.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,193,417,215" HREF="javascript:BSSCPopup('Print_Results.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+
+<MAP NAME="AreaMap1">
+<AREA COORDS="9,55,209,89" HREF="javascript:BSSCPopup('resamp_performBoot.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,114,209,148" HREF="javascript:BSSCPopup('resamp_B.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,155,209,175" HREF="javascript:BSSCPopup('resamp_sampler.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,181,209,201" HREF="javascript:BSSCPopup('resamp_strata7.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,207,209,227" HREF="javascript:BSSCPopup('resamp_seed.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,238,209,272" HREF="javascript:BSSCPopup('resamp_SaveAs.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,310,417,348" HREF="javascript:BSSCPopup('resampGroup_Additional.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,48,417,141" HREF="javascript:BSSCPopup('resampGroup_Plots.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,162,417,182" HREF="javascript:BSSCPopup('resamp_Percentiles.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,189,417,208" HREF="javascript:BSSCPopup('resamp_BCa.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,214,417,234" HREF="javascript:BSSCPopup('resamp_Tilting.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,240,417,260" HREF="javascript:BSSCPopup('resamp_tLimits.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,266,417,290" HREF="javascript:BSSCPopup('resamp_Levels.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+
+<P CLASS="ms-section-4">
+Related <span STYLE="font-variant : small-caps;">S-Plus</span> 
+language functions:</P>
+<P CLASS="ms-program-code">
+cor, var
+
+<P CLASS="ms-section-4">Resampling functions:</P>
+<P class="ms-program-code" >
+<a href="bootstrap.html">bootstrap</a>,
+<a href="bootstrap2.html">bootstrap2</a>,
+<a href="plot.resamp.html">plot.resamp</a>,
+<a href="qqnorm.resamp.html">qqnorm.resamp</a>,
+<a href="summary.resamp.html">summary.resamp</a>,
+<a href="limits.percentile.html">limits.percentile</a>,
+<a href="limits.bca.html">limits.bca</a>,
+<a href="limits.tilt.html">limits.tilt</a>,
+<a href="limits.t.html">limits.t</a>.
+
+
+<script>
+<!--
+BSSCCreatePopupDiv();
+//-->
+  </script></BODY>
+</HTML>

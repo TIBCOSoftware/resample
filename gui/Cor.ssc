@@ -1,0 +1,373 @@
+#############################################################################
+# This file contains the gui specs for
+# the dialog box that comes up when you select from the SPlusMenuBar
+#   "Statistics"  "Data Summaries"  "Correlations/Resample..."
+# The dialog box is named "Correlations and Covariances"
+#
+# This file also contains:
+#   menuCorResample  - the menu function
+#   backCorResample  - the call back function
+#   createMenuCorResample - add or ...
+#   removeMenuCorResample - remove menu "Correlations/Resample"
+#############################################################################
+
+newProperty(Name = "resampPage_Cor", Type = "Page",
+	    DialogPrompt = "Cor and Cov",
+	    PropertyList = c(
+	      "SPropDataXG2",
+	      "SPropCorG",
+	      "SPropResultsG",
+	      "SPropInvisible1",
+	      "SPropInvisible2"
+	      )
+	    )
+
+resampFormatArgumentList <- function(...){
+  v <- c(...)
+  paste("#", seq(from=0, length=length(v)), "=", v, sep="") #
+}
+
+newFunctionInfo(Name = "menuCorResample",
+		DialogHeader = "Correlations and Covariances",
+		CallBackFunction = "backCorResample",
+                HelpCommand = 'help("function_menuCorResample")',
+		PropertyList = c(
+		  "resampPage_Cor",
+		  "resampPage_boot",
+		  "resampPage_permCor",
+		  ),
+		DefaultValueList = "#16=F", # set tilting to F
+		ArgumentList = resampFormatArgumentList(
+		  "SPropSaveObj",
+		  "SPropDataX2",
+		  "SPropVariableX2",
+		  "SPropInvisible1",
+		  "SPropTrim",
+		  "SPropInvisible2",
+		  "SPropNAMethod",
+		  "SPropPrintObjP",
+		  "SPropCorCovButtons",
+
+		  "resamp_performBoot",
+		  "resamp_B1000_7",
+		  "resamp_sampler7",
+		  "resamp_strata7",	# ""
+		  "resamp_seed7",
+		  "resamp_Percentiles7", # T
+		  "resamp_BCa7",	# T
+		  "resamp_Tilting7",	# This is set to F above
+		  "resamp_tLimits7",
+		  "resamp_Levels7",	# c(25, 50, 950, 975)/1000
+		  "resamp_Histogram7",
+		  "resamp_QQ7",
+		  "resamp_PlotBoth7",
+		  "resamp_SaveAs7",	# ""
+		  "resamp_Additional7",	# ""
+
+		  "resamp_performPerm",	#  F
+		  "resamp_permuteCols",
+		  "resamp_alternative",
+		  "resamp_B999_8",
+		  "resamp_strata8",	# ""
+		  "resamp_seed8",	# ""
+		  "resamp_Histogram8",
+		  "resamp_QQ8",
+		  "resamp_PlotBoth8",
+		  "resamp_SaveAs8",	# ""
+		  "resamp_Additional8"	# ""
+		  )
+		)
+
+rm(resampFormatArgumentList)
+
+
+menuCorResample <-
+function(data,
+	 variables = names(data),
+	 cor.p = F,
+	 trim = 0,
+	 cov.p = F,
+	 na.method = "fail",
+	 print.it = T,
+	 statistic = "Correlations",
+
+	 boot.perform = F,
+	 boot.B = NULL,
+	 boot.sampler = "",
+	 boot.group = "",
+	 boot.seed = NULL,
+	 boot.summ.emp = T,
+	 boot.summ.bca = T,
+	 boot.summ.tilt = F,
+	 boot.summ.tLimits = F,
+	 boot.summ.probs = ".025, .05, .95, .975",
+	 boot.plot.dist = F,
+	 boot.plot.QQ = F,
+	 boot.plot.both = T,
+	 boot.save.obj = "",
+	 boot.additional.args = "",
+
+	 perm.perform = F,
+	 resampleColumns,
+	 alternative,
+	 perm.B = NULL,
+	 perm.group = "",	# should be identical to boot.group
+	 perm.seed = NULL,
+	 perm.plot.dist = F,
+	 perm.plot.QQ = F,
+	 perm.plot.both = T,
+	 perm.save.obj = "",
+	 perm.additional.args = ""
+	 )
+{
+  # Note cor.p and cov.p have been replaced with statistic.
+  # They are left in solely for backwards compatibility.
+  dataCall <- substitute( data )
+  dataLab <- deparse(dataCall)
+
+  DEBUG <- (exists( ".resample.debug" ) && .resample.debug)
+
+  # data _ as.data.frame(data) (this shouldn't be necessary)
+  if(!missing(variables))
+    if(is.list(variables))
+      variables <- unlist(variables)
+    else variables <- sapply(unpaste(variables, sep = ","),
+			    strip.blanks)
+  if(!is.element(variables[[1]], c("<ALL>", "(All Variables)"))) {
+    if(!length(variables))
+      stop("You must select at least one variable\n")
+    data <- data[, variables, drop = F]
+  }
+  if(is.data.frame(data)){
+    dropped.cols <- !sapply(data, is.numeric) | sapply(data, is.dates)
+    if(all(dropped.cols))
+      stop("No numeric columns specified.")
+    if(any(dropped.cols)) {
+      warning(paste("Dropping non-numeric column(s) ",
+  		    paste(names(data)[dropped.cols], collapse = ", "), ".",
+  		    sep = ""))
+      data <- data[, !dropped.cols, drop = F]
+    }
+  }
+  na.method <- casefold(na.method)
+  if(statistic == "Correlations") {	# || (cor.p && !cov.p))
+    coeff <- cor(data, trim = trim, na.method = na.method)
+    header.txt <- paste("\n\t***  Correlations for data in: ",
+		       dataLab, "***\n\n")
+  }
+  else {
+    coeff <- var(data, na.method = na.method)
+    header.txt <- paste("\n\t***  Covariances for data in: ",
+		       dataLab, "***\n\n")
+  }
+  if(print.it) {
+    cat(header.txt)
+    print(coeff)
+  }
+
+  ###### Resampling
+  doBoot <- ( !missing( boot.perform) && boot.perform )
+  doPerm <- ( !missing( perm.perform) && perm.perform )
+  if(!(doBoot || doPerm))
+    return(invisible(coeff))
+
+  if(DEBUG) cat( "PERFORMING RESAMPLING\n" )
+
+  parseText <- function(..., sep="")
+    parse(text = paste(..., sep=sep))[[1]]
+
+  # Set up calls to bootstrap and permutationTest
+  # Set up both calls, even though we may use only one of them.
+
+  if(!identical(substitute(boot.group), substitute(perm.group)))
+    warning("The input for Strata should be the same for the bootstrap and permutation tests; I'll use the bootstrap version.")
+  # Below, "boot.group" is used for both bootstrap and perm
+
+  # Look for group in data, if data is a matrix or data frame
+  # Want to combine boot.group & perm.group
+  if(!is.null(data) && !missing(boot.group)){
+    if(is.data.frame(data)){
+      # This supports simple variable names, not expressions
+      boot.group <- parseText(dataLab, "$", deparse(substitute(boot.group)))
+    }
+    else if(is.matrix(data)){
+      boot.group <- parseText(dataLab, "[,'", deparse(substitute(boot.group)),
+			     "']")
+    }
+    else
+      boot.group <- substitute(boot.group)
+  }
+
+  boot.call <- call( "bootstrap" )
+  perm.call <- call( "permutationTest" )
+  # permute only the first variable
+  if((!missing(variables) &&
+      !is.element(variables[[1]], c("<ALL>", "(All Variables)"))) ||
+     any(dropped.cols)){
+    if(is.element(variables[[1]], c("<ALL>", "(All Variables)")))
+      variables <- names(data)
+    if(is.data.frame(data))
+      subs <- c("[",  "]")
+    else
+      subs <- c("[,", ",drop=F]")
+    boot.call$data <- parseText(dataLab, subs[1], "c('",
+			       paste(variables, collapse="','"),
+			       "')", subs[2])
+  }
+  else
+    boot.call$data <- dataCall
+  perm.call$data <- boot.call$data
+
+  # use resampCor and resampVar instead of cor and var, to get only
+  # elements below (or at and below) the diagonal, and nice names.
+  boot.call$statistic <- as.name(if(statistic == "Correlations") "resampCor"
+				else "resampVar")
+  if(!length(resampleColumns) || resampleColumns == ""){
+    warning("You must permute some but not all of the columns in order",
+	    "to do a permutation test.  I'll permute the first column.")
+    resampleColumns <- 1
+  }
+  else {
+    # Convert "a,b" to c("a","b")
+    resampleColumns <- unlist(unpaste(resampleColumns, ","))
+  }
+  perm.call$resampleColumns <- resampleColumns
+  perm.call$statistic <-
+    parseText(boot.call$statistic, "(",
+	      if(identical(boot.call$data, dataCall)) dataCall else "data",
+	      ", resampleColumns = 999)")
+  perm.call$statistic$resampleColumns <- resampleColumns
+
+  boot.call$B <- boot.B
+  if(boot.B == 1000) boot.call$B <- NULL
+  perm.call$B <- perm.B
+  if(perm.B == 999) perm.call$B <- NULL
+
+  perm.call$alternative <- alternative
+
+  if( !missing( boot.sampler ))
+    boot.call$sampler <- substitute( boot.sampler )
+  if(identical(boot.call$sampler, as.name("samp.bootstrap")))
+    boot.call$sampler <- NULL
+
+  boot.call$seed <- boot.seed
+  perm.call$seed <- perm.seed
+
+  if(!missing(boot.additional.args))
+    boot.call <- resampAddArgumentsToCall(boot.call, boot.additional.args)
+  if(!missing(perm.additional.args))
+    perm.call <- resampAddArgumentsToCall(perm.call, perm.additional.args)
+
+  # If tilting, save indices, unless set explicitly
+  if(boot.summ.tilt && is.null(boot.call$save.indices))
+    boot.call$save.indices <- T
+  # If tilting, add L, unless set explicitly or missing values or trimmed cor
+  if(boot.summ.tilt && is.null(boot.call$L)){
+    boot.call$L <- "choose"
+    # if(!anyMissing(data)) ...
+    # Not yet implemented.  Handle cor & var separately.  Skip if trim.
+    # Would like to pass a derivative function, update derivatives.
+  }
+  # Do not modify trace -- because cor is relatively slow.
+
+  if(doBoot){
+    if(DEBUG){
+      cat( "boot.call:\n" )
+      print(boot.call )
+    }
+
+    #
+    # Call bootstrap (evaluated at top level)
+    if(any(boot.call$trace)) cat("\n\n")
+    boot.obj <- eval( boot.call, local=F )
+    if( !missing( boot.save.obj ) && boot.save.obj != "" )
+      assign( boot.save.obj, boot.obj, where = 1, immediate = T)
+
+    #
+    # Call summary and plot functions
+    summ.obj <- tabSummary.bootstrap(boot.obj, boot.summ.probs,
+				    printSummary = T,
+				    boot.summ.emp, boot.summ.bca,
+				    correlations = F,
+				    boot.summ.tilt, boot.summ.tLimits)
+    tabPlot.resamp(boot.obj, boot.plot.dist, boot.plot.QQ, boot.plot.both )
+  }
+
+  if(doPerm){
+    if(DEBUG && doPerm){
+      cat( "perm.call:\n" )
+      print(perm.call )
+    }
+
+    # Do permutation test
+    if(any(perm.call$trace)) cat("\n\n")
+    perm.obj <- eval( perm.call )
+
+    if( !missing( perm.save.obj ) && perm.save.obj != "" )
+      assign( perm.save.obj, perm.obj, where = 1, immediate = T)
+
+    cat("\n\t*** Permutation Test Results ***\n")
+    print( perm.obj )
+
+    tabPlot.resamp(perm.obj, perm.plot.dist, perm.plot.QQ, perm.plot.both,
+		   # new plot if didn't do bootstrap plots
+		   new = !(doBoot &&
+			   (boot.plot.dist || boot.plot.QQ || boot.plot.both)))
+  }
+  invisible(coeff)
+}
+# save resample results before printing
+
+
+backCorResample <- function(dfp){
+  dfp <- backCor(dfp)
+  dfp <- backResampBootPerm(dfp, "SPropDataX2")
+  if(cbIsNewOrChange(dfp, "SPropDataX2")){
+    # If the dataset changed, start from scratch
+    if(exists(data.name <- cbGetCurrValue(dfp, "SPropDataX2")))
+      Names <- names(get(data.name))
+    else
+      Names <- ""
+    dfp <- cbSetOptionList(dfp, "resamp_permuteCols",
+			  paste(Names, collapse = ","))
+    dfp <- cbSetCurrValue(dfp, "resamp_permuteCols", Names[1])
+  }
+  else if(cbIsChange(dfp, "SPropVariableX2")){
+    # Selected variables have changed;
+    # option list should be the selected variables
+    selected <- cbGetCurrValue(dfp, "SPropVariableX2")
+    dfp <- cbSetOptionList(dfp, "resamp_permuteCols", selected)
+    # select the first of those by default
+    if((n <- regexpr(",", selected)) > 1)
+      dfp <- cbSetCurrValue(dfp, "resamp_permuteCols",
+			   substring(selected, 1, n-1))
+    else
+      dfp <- cbSetCurrValue(dfp, "resamp_permuteCols", "")
+  }
+  dfp
+}
+
+
+createMenuCorResample <- function() {
+  menu.name <- "SPlusMenuBar$Statistics$DataSummaries"
+
+  guiCreate( "MenuItem",
+            Name = paste(menu.name,"$CorResample", sep=""),
+            Type = "MenuItem",
+            Action = "Function",
+            MenuItemText = "Correlations/Resample",
+            Command = "menuCorResample",
+	    Overwrite = F,
+            Index = "5")
+  invisible()
+}
+
+removeMenuCorResample <- function() {
+  menu.item.name <- "SPlusMenuBar$Statistics$DataSummaries$CorResample"
+  if(is.element(menu.item.name, guiGetObjectNames("MenuItem")))
+    guiRemove("MenuItem",Name=menu.item.name )
+  invisible()
+}
+
+
+"Done with Cor.ssc" # for script file input

@@ -1,0 +1,297 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>lm</s-topic>
+   <s-topic>lm.default</s-topic>
+</s-topics>
+<s-title>
+Fit Linear Regression Model 
+</s-title>
+<s-description>
+Returns an object of class <code>lm</code> or <code>mlm</code> 
+that represents a fit 
+of a linear model. The <code>lm</code> function is generic (see Methods); method 
+functions can be written to handle specific classes of 
+data. Classes which already have methods for this function include: 
+<br>
+<code>model.list</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+lm(formula, data=&lt;&lt;see below&gt;&gt;, weights, subset, na.action, 
+   method="qr", model=F, x=F, y=F, contrasts=NULL, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a formula object, with the response on the left of a <code>~</code> operator, 
+and the terms, separated by <code>+</code> operators, on the right. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data">
+a 
+<s-function name="data.frame.sgm">data.frame</s-function> 
+in which to interpret the variables named in the 
+formula, or in the <code>subset</code> and the <code>weights</code> argument. 
+If this is missing, then the variables in the formula should be on the 
+search list. 
+This may also be a single number to handle some special cases -- see 
+below for details. 
+</s-arg>
+<s-arg name="weights">
+vector of observation weights; if supplied, 
+the algorithm fits to minimize the sum 
+of the weights multiplied into the squared residuals. 
+The length of <code>weights</code> must be the same as the number of observations. 
+The weights must be nonnegative and it is strongly recommended that they 
+be strictly positive, since zero weights are ambiguous, compared to use 
+of the <code>subset</code> argument. 
+</s-arg>
+<s-arg name="subset">
+expression saying which subset of the rows of the data 
+should be used in the fit. 
+This can be a logical vector (which is replicated to have length equal 
+to the number of observations), or a numeric vector indicating which 
+observation numbers are to be included, or a character vector of the 
+row names to be included. 
+All observations are included by default. 
+</s-arg>
+<s-arg name="na.action">
+a function to filter missing data. 
+This is applied to the 
+<s-function name="model.frame.sgm">model.frame</s-function> 
+after any <code>subset</code> argument has been used. 
+The default (with <code>na.fail</code>) is to create an error 
+if any missing values are found. 
+A possible alternative is <code>na.omit</code>, which deletes observations 
+that contain one or more missing values. 
+</s-arg>
+<s-arg name="method">
+character string or character string vector of length two. 
+May indicate the least squares fitting method to be used; the default 
+is <code>"qr"</code>.  Or may indicate that a data structure is to be returned 
+before fitting. The method <code>"model.frame"</code> 
+simply returns the model 
+frame, and <code>"model.list"</code> returns the model list.  In this latter case, 
+the fitting method may included as well, in case the model list is to 
+be fit later (by a call to 
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>). 
+For example, 
+<code>c("model.list", "svd")</code> (the order is not important). This is the only case in 
+which a vector is recognized. 
+</s-arg>
+<s-arg name="model">
+logical flag: if <code>TRUE</code>, the model frame is returned in component <code>model</code>. 
+</s-arg>
+<s-arg name="x">
+logical flag: if <code>TRUE</code>, the model matrix is returned in component <code>x</code>. 
+</s-arg>
+<s-arg name="y">
+logical flag: if <code>TRUE</code>, the response is returned in component <code>y</code>. 
+</s-arg>
+<s-arg name="qr">
+logical flag: if <code>TRUE</code>, the QR decomposition of the model matrix is returned 
+in component <code>qr</code>. 
+</s-arg>
+<s-arg name="contrasts">
+a list giving contrasts for some or all of the factors 
+appearing in the model formula. 
+The elements of the list should have the same name as the variable 
+and should be either a contrast matrix (specifically, any full-rank 
+matrix with as many rows as there are levels in the factor), 
+or else a function to compute such a matrix given the number of levels. 
+</s-arg>
+<s-arg name="...">
+additional arguments for the fitting routines (see 
+<s-function name="lm.fit.sgm">lm.fit</s-function> 
+and the functions it calls). 
+Two possibilities are <code>singular.ok=T</code> to instruct the fitting to 
+continue in the presence of over-determined models, 
+and <code>tolerance</code> (default 1e-07) to change the tolerance for determining 
+when models are over-determined. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>"lm"</code> or <code>"mlm"</code> 
+representing the fit, or of class <code>"model.frame"</code> 
+or <code>"model.list"</code> if signalled by the <code>method</code> argument. 
+See 
+<s-function name="lm.object.sgm">lm.object</s-function>, 
+<s-function name="model.frame.sgm">model.frame</s-function>, 
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>, 
+and 
+<s-function name="model.list.object.sgm">model.list.object</s-function> 
+for details. 
+</s-value>
+<s-details>
+The <code>formula</code> argument is passed around 
+<it>unevaluated ;</it>that is, the variables mentioned in the formula will be defined when 
+the model frame is computed, not when <code>lm</code> is initially called. 
+In particular, if <code>data</code> is given, all these names should generally 
+be defined as variables in that data frame. 
+<p>
+The <code>subset</code> argument, like the terms in <code>formula</code>, is evaluated in the context 
+of the data frame, if present. 
+The specific action of the argument is as follows:  the model frame, 
+including weights and subset, is computed on 
+<it>all</it>the rows, and then the appropriate subset is extracted. 
+A variety of special cases  make such an interpretation 
+desirable (e.g., the use of <code>lag</code> or other functions that may need 
+more than the data used in the fit to be fully defined). 
+On the other hand, if you meant the subset to avoid computing 
+undefined values or to escape warning messages, you may be surprised. 
+For example, 
+<br>
+<code>lm(y ~ log(x), mydata, subset = x &gt; 0)</code> 
+<br>
+will still generate warnings from <code>log</code>.  If this is a problem, do 
+the subsetting on the data frame directly: 
+<br>
+<code>lm(y ~ log(x), mydata[mydata$x &gt; 0, ])</code> 
+<br>
+<p>
+Generic functions such as 
+<s-function name="print.sgm">print</s-function> 
+and 
+<s-function name="summary.sgm">summary</s-function> 
+have methods to 
+show the results of the fit. 
+See 
+<s-function name="lm.object.sgm">lm.object</s-function> 
+for 
+the components of the fit, but the functions 
+<s-function name="residuals.sgm">residuals</s-function>, 
+<s-function name="coefficients.sgm">coefficients</s-function>, 
+and 
+<s-function name="effects.sgm">effects</s-function> 
+should be used 
+rather than extracting the components directly, since these 
+functions take correct account of special circumstances, such as 
+overdetermined models. 
+<p>
+The response may be a single numeric variable or a matrix. 
+In the latter case, 
+<s-function name="coefficients.sgm">coefficients</s-function>, 
+<s-function name="residuals.sgm">residuals</s-function>, 
+and 
+<s-function name="effects.sgm">effects</s-function> 
+will also be 
+matrices, with columns corresponding to the response variables. 
+In either case, the object inherits from class <code>"lm"</code>. 
+For multivariate response, the first element of the class is <code>"mlm"</code>. 
+<p>
+NAMES. 
+Variables occurring in a formula are evaluated differently from 
+arguments to S-PLUS functions, because the formula is an object 
+that is passed around unevaluated from one function to another. 
+The functions such as <code>lm</code> that finally arrange to evaluate the 
+variables in the formula try to establish a context based on the 
+<code>data</code> argument. 
+(More precisely, the function 
+<s-function name="model.frame.default.sgm">model.frame.default</s-function> 
+does the actual evaluation, assuming that its caller behaves in 
+the way described here.) 
+If the <code>data</code> argument to <code>lm</code> 
+is missing or is an object (typically, a data frame), 
+then the local context for 
+variable names is the frame of the function that called <code>lm</code>, or the top-level 
+expression frame if you called <code>lm</code> directly. 
+Names in the formula can refer to variables in the local context as well 
+as global variables or variables in the <code>data</code> object. 
+<p>
+The <code>data</code> argument can also be a number, in which case that number defines 
+the local context. 
+This can arise, for example, if a function is written to call <code>lm</code>, perhaps 
+in a loop, but the local context is definitely 
+<it>not</it>that function. 
+In this case, the function can set <code>data</code> to <code>sys.parent()</code>, and the local 
+context will be the next function up the calling stack. 
+See the third example below. 
+A numeric value for <code>data</code> can also be supplied if a local context 
+is being explicitly created by a call to <code>new.frame</code>. 
+Notice that supplying <code>data</code> as a number implies that this is the 
+<it>only</it>local context; local variables in any other function will not be 
+available when the model frame is evaluated. 
+This is potentially subtle. 
+Fortunately, it 
+is not something the ordinary user of <code>lm</code> needs to worry about. 
+It is relevant for those writing functions that call <code>lm</code> or other 
+such model-fitting functions. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Belsley, D. A., Kuh, E. and Welsch, R. E. (1980), 
+<it>Regression Diagnostics,</it>
+Wiley, New York. 
+<p>
+Draper, N. R. and Smith, H. (1981), 
+<it>Applied Regression Analysis,</it>
+(second edition). Wiley, New York. 
+<p>
+Myers, R. H. (1986), 
+<it>Classical and Modern Regression with Applications,</it>
+Duxbury, Boston. 
+<p>
+Rousseeuw, P. J. and Leroy, A. (1987), 
+<it>Robust Regression and Outlier Detection,</it>
+Wiley, New York. 
+<p>
+Seber, G. A. F. (1977), 
+<it>Linear Regression Analysis,</it>
+Wiley, New York. 
+<p>
+Weisberg, S. (1985), 
+<it>Applied Linear Regression,</it>
+Second Edition, 
+Wiley, New York. 
+<p>
+There is a vast literature on regression, the references above are just 
+a small sample of what is available. 
+The book by Myers is an introductory text that includes a discussion 
+of much of the recent advances in regression technology. 
+The Seber book is at a higher mathematical level 
+and covers much of the classical theory of least squares. 
+</s-section>
+<s-see>
+
+<s-function name="lm.object.sgm">lm.object</s-function>,  
+<s-function name="model.matrix.sgm">model.matrix</s-function>,  
+<s-function name="glm.sgm">glm</s-function>,  
+<s-function name="gam.sgm">gam</s-function>,  
+<s-function name="loess.sgm">loess</s-function>,  
+<s-function name="tree.sgm">tree</s-function>,  
+<s-function name="lm.fit.sgm">lm.fit</s-function>,  
+<s-function name="lm.model.frame.sgm">lm.model.frame</s-function>,  
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>,  
+<s-function name="model.list.object.sgm">model.list.object</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+lm(Fuel ~ . , fuel.frame) 
+ 
+lm(cost ~ age + type + car.age, claims, 
+    weights = number, na.action = na.omit) 
+ 
+lm(freeny.y ~ freeny.x) 
+ 
+# myfit calls lm, using the caller to myfit 
+# as the local context for variables in the formula 
+# (see aov for an actual example) 
+myfit <- function(formula, data = sys.parent(), ...) { 
+    .. .. 
+    fit <- lm(formula, data, ...) 
+    .. .. 
+} 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>models</s-keyword>
+<s-keyword>regression</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

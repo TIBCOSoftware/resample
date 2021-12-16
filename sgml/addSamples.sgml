@@ -1,0 +1,133 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>addSamples</s-topic>
+   <s-topic>addSamples.bootstrap</s-topic>
+   <s-topic>addSamples.bootstrap2</s-topic>
+   <s-topic>addSamples.parametricBootstrap</s-topic>
+   <s-topic>addSamples.smoothedBootstrap</s-topic>
+</s-topics>
+<s-title>
+Add New Replicates to a Bootstrap Object 
+</s-title>
+<s-description>
+Add replicates to a bootstrap object. 
+This is a generic function; methods currently exist for 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>, 
+and 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+addSamples.bootstrap(object, B.add = 100, sampler.prob = NULL, ..., 
+                     frame.eval = &lt;&lt;see below&gt;&gt;) 
+addSamples.parametricBootstrap(object, B.add = 100, ..., frame.eval = &lt;&lt;see below&gt;&gt;) 
+addSamples.smoothedBootstrap(object, B.add = 100, ..., frame.eval = &lt;&lt;see below&gt;&gt;) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="object">
+bootstrap object, of class 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>, 
+or 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="B.add">
+number of additional replicates to construct.  This may be a vector; 
+see the <code>B</code> argument in 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>. 
+</s-arg>
+<s-arg name="sampler.prob">
+list of length equal to <code>length(B.add)</code>;  probabilities to be used for 
+importance sampling. See 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function> 
+for more information. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>object</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+object like <code>object</code>, with additional replicates. 
+The component <code>B</code> of the result is the sum of the total previous 
+samples (component <code>B</code> of the old object) 
+and the sum of elements of <code>B.add</code>. 
+The component <code>call$B</code> of the result is a vector concatenating the 
+previous <code>call$B</code> and <code>B.add</code>.   
+</s-value>
+<s-details>
+If the original call (to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>, 
+or 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function> 
+) was interrupted, 
+incomplete results (e.g. saved in <code>.bootstrap.partial.results</code>) 
+may be extended with <code>addSamples</code>, but 
+you must manually change the <code>seed.end</code> component 
+to a legal <code>seed</code> argument first. 
+<p>
+If <code>object</code> is a bootstrap object, 
+components <code>L</code> and <code>Lstar</code> of the result are the same as for <code>object</code>:   
+they are not updated to reflect the new samples.  
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>,  
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>,  
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+bfit <- bootstrap(stack.loss, median, B = 1000) 
+bfit2 <- addSamples(bfit, B.add = 400) 
+bfit2    # The call has "B = c(1000, 400)" 
+ 
+#   Demonstrate adding samples after an interrupt 
+# interrupt this next call after 200 replications or so 
+bfit3 <- bootstrap(stack.loss, median, seed = bfit$seed.start) 
+bfit3 <- .bootstrap.partial.results 
+set.seed(bfit$seed.start) 
+dummy <- samp.bootstrap(bfit3$n, bfit3$B)   # to update .Random.seed 
+bfit3$seed.end <- .Random.seed     # manually change seed.end 
+bfit4 <- addSamples(bfit3, B.add = 1400-bfit3$B) 
+all.equal(bfit2, bfit4)            # same except for call, actual.calls 
+all.equal.excluding(bfit2, bfit4, excluding= c("call", "actual.calls")) # T 
+ 
+# parametricBootstrap 
+bfit <- parametricBootstrap(iris[,1,1], mean, rsampler = rnorm, 
+         args.rsampler = list(mean = mean(iris[,1,1]), 
+         sd = sqrt(var(iris[,1,1]))), B = 600) 
+bfit2 <- addSamples(bfit, B.add = c(300,100)) 
+bfit3 <- update(bfit, B=c(600, 300, 100), seed=bfit$seed.start) 
+all.equal(bfit2, bfit3)            # same except for call, actual.calls 
+all.equal.excluding(bfit2, bfit3, excluding= c("call", "actual.calls")) # T 
+ 
+# smoothedBootstrap 
+bfit <- smoothedBootstrap(stack.loss, mean, B = 600) 
+bfit2 <- addSamples(bfit, B.add = c(300,100)) 
+bfit3 <- smoothedBootstrap(stack.loss, mean, seed = bfit$seed.start, B = 1000) 
+all.equal(bfit2, bfit3)            # same except for call, actual.calls 
+all.equal.excluding(bfit2, bfit3, excluding= c("call", "actual.calls")) # T 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

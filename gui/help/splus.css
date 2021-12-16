@@ -1,0 +1,121 @@
+
+ /* $MVD$:fontset("Untitled Font Set 14","Arial","SansSerif") */
+ /* $MVD$:fontset("Arial","Arial") */
+ /* $MVD$:fontset("Courier New","Courier New") */
+ BODY { font-family : "Arial", "SansSerif";
+        font-size : 10.0pt;
+        background-color : white;}
+ .mvd-BODY { font-family : "Arial", "SansSerif";
+             font-size : 10.0pt;
+             background-color : white;}
+ H1 { font-family : "Arial";
+      font-weight : bold;
+      font-size : 16.0pt;}
+ .mvd-H1 { font-family : "Arial";
+           font-weight : bold;
+           font-size : 16.0pt;}
+ SAMP { font-family : ier New", Monospaced ;
+                                                                font-size : small;;;;;;;;}
+ .mvd-SAMP { font-family : ier New", Monospaced ;
+                                                                     font-size : small;;;;;;;;}
+ CODE { font-family : ier New", Monospaced ;;;;;;;;}
+ .mvd-CODE { font-family : ier New", Monospaced ;;;;;;;;}
+ TT { font-family : ier New", Monospaced ;;;;;;;;}
+ .mvd-TT { font-family : ier New", Monospaced ;;;;;;;;}
+ PRE { font-family : ier New", Monospaced ;
+                                                        margin-top : 5.0;
+                                                        margin-bottom : 5.0;;;;;;;;}
+ .mvd-PRE { font-family : ier New", Monospaced ;
+                                                             margin-top : 5.0;
+                                                             margin-bottom : 5.0;;;;;;;;}
+ CITE.expandspot { font-style : normal;
+                   color : green;
+                   cursor: hand;}
+ .mvd-CITE-expandspot { font-style : normal;
+                        color : green;
+                        cursor: hand;}
+ DFN.collapsed { font-style : italic;
+                 font-weight : normal;
+                 display :         'none';
+                 color : red;}
+ .mvd-DFN-collapsed { font-style : italic;
+                      font-weight : normal;
+                      display :         'none';
+                      color : red;}
+ DFN.expanded { font-style : italic;
+                font-weight : normal;
+                color : red;}
+ .mvd-DFN-expanded { font-style : italic;
+                     font-weight : normal;
+                     color : red;}
+ EM.dropspot { color : green;
+               cursor: hand;}
+ .mvd-EM-dropspot { color : green;
+                    cursor: hand;}
+ CITE.glossterm { font-style : normal;
+                  color : maroon;
+                  cursor: hand;}
+ .mvd-CITE-glossterm { font-style : normal;
+                       color : maroon;
+                       cursor: hand;}
+ DFN.glosscollapsed { font-style : italic;
+                      font-weight : normal;
+                      display :         'none';
+                      color : blue;}
+ .mvd-DFN-glosscollapsed { font-style : italic;
+                           font-weight : normal;
+                           display :         'none';
+                           color : blue;}
+ DFN.glossexpanded { font-style : italic;
+                     font-weight : normal;
+                     color : blue;}
+ .mvd-DFN-glossexpanded { font-style : italic;
+                          font-weight : normal;
+                          color : blue;}
+ P.ms-body { font-family : "Arial";
+             font-style : normal;
+             font-weight : normal;
+             font-size : 10.0pt;
+             background-color : white;
+             color : black;}
+ .mvd-P-ms-body { font-family : "Arial";
+                  font-style : normal;
+                  font-weight : normal;
+                  font-size : 10.0pt;
+                  background-color : white;
+                  color : black;}
+ P.ms-section-2X { font-family : "Arial";
+                   font-weight : bold;
+                   font-size : 18.0pt;}
+ .mvd-P-ms-section-2X { font-family : "Arial";
+                        font-weight : bold;
+                        font-size : 18.0pt;}
+ P.ms-section-4 { font-family : "Arial";
+                  font-weight : bold;
+                  font-size : 14.0pt;}
+ .mvd-P-ms-section-4 { font-family : "Arial";
+                       font-weight : bold;
+                       font-size : 14.0pt;}
+ P.ms-section-1 { font-family : "Arial";
+                  font-weight : bold;
+                  font-size : 16.0pt;}
+ .mvd-P-ms-section-1 { font-family : "Arial";
+                       font-weight : bold;
+                       font-size : 16.0pt;}
+ P.ms-program-code { font-family : "Courier New";
+                     font-weight : bold;
+                     font-size : 10.0pt;
+                     color : blue;}
+ .mvd-P-ms-program-code { font-family : "Courier New";
+                          font-weight : bold;
+                          font-size : 10.0pt;
+                          color : blue;}
+ P.ms-program-1 { font-family : "Courier New";
+                  font-weight : bold;
+                  font-size : 10.0pt;
+                  color : blue;}
+ .mvd-P-ms-program-1 { font-family : "Courier New";
+                       font-weight : bold;
+                       font-size : 10.0pt;
+                       color : blue;}
+ 

@@ -1,0 +1,74 @@
+# In this file
+#   updateObjectExplorerClasses : experimental function to add resample objects
+#                               to the object explorer
+#   class info definitions
+#   context menu creation
+
+
+# This function is experimental, not currently used automatically
+updateObjectExplorerClasses <- function(){
+  # This requires that the object explorer be open
+  # Rename the object explorer - avoid spaces in the name
+  guiModify("ObjectBrowser", Name = "Object Explorer",
+            NewName = "ObjectExplorer")
+  guiModify("BrowserPage", Name = "ObjectExplorer$Page 1",
+            NewName = "Page1")
+  # Add resample classes
+  guiModify( "Folder", Name = "ObjectExplorer$Page1$Data",
+            ClassFilter=paste(guiGetPropertyValue( "Folder",
+              Name = "ObjectExplorer$Page1$Data")[6],
+              paste(get("oldClasses", where="resample", meta=1), collapse=","),
+              sep=","))
+  # Revert to original names - "Object Explorer" and "Page 1"
+  guiModify("ObjectBrowser", Name = "ObjectExplorer",
+            NewName = "Object Explorer")
+  guiModify("BrowserPage", Name = "Object Explorer$Page1",
+            NewName = "Page 1")
+}
+
+newClassInfo("bootstrap", action = )
+newClassInfo("bootstrap2")
+newClassInfo("concomitants.bootstrap")
+newClassInfo("controlVariates.bootstrap")
+newClassInfo("influence")
+newClassInfo("jackknife")
+newClassInfo("limits.abc")
+newClassInfo("parametricBootstrap")
+newClassInfo("parametricBootstrapTest")
+newClassInfo("permutationTest")
+newClassInfo("permutationTest2")
+newClassInfo("permutationTestMeans")
+newClassInfo("resamp")
+newClassInfo("reweight")
+newClassInfo("smoothedBootstrap")
+# Context menus not needed for:
+#  "htest.saddlepoint"
+#  "compressIndices"
+
+newContextMenuItem("resamp", "plot", "Plot")
+newContextMenuItem("resamp", "print", "Print")
+newContextMenuItem("resamp", "summary", "Summary")
+newContextMenuItem("resamp", "qqnorm", "Normal QQ plot")
+# newContextMenuItem("resamp", "pairs", "Pairwise scatterplots")
+# newContextMenuItem("resamp", "boxplot" "Box plot")
+# newContextMenuItem("resamp", "quantile", "Quantiles")
+# newContextMenuItem("resamp", "scatterPlot", "ScatterPlot")
+
+
+# Try creating a few context menu items; then will do build,
+# and what is the effect, if any, on the object explorer
+
+newContextMenuItem("limits.abc", "print", "Print")
+newContextMenuItem("influence", "print", "Print")
+newContextMenuItem("parametricBootstrap", "summary", "Summary")
+
+#newContextMenuItem("reweight", "print", "Print")
+# See if that is needed after a build
+
+# newContextMenuItem("resamp", "limits.abc", "ABC confidence interval")
+# Do that for some classes, but not resamp
+
+#newContextMenuItem("bootstrap", "limits.bca", "BCa confidence interval")
+# That should be in contextBootstrap.ssc
+
+"Done with context.ssc" # for script file input

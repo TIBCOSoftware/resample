@@ -1,0 +1,93 @@
+<HTML>
+ <!-- guitopic GUI Single Mean: t Test, Resample -->
+ <!-- s-keyword guiresamp -->
+
+<HEAD>
+<!-- $MVD$:fontset("Courier New","Courier New") -->
+<LINK rel="StyleSheet" href="splus.css">
+<TITLE>Single Mean: t Test, Resample</TITLE>
+<META NAME="generator" CONTENT="RoboHELP by Blue Sky Software www.blue-sky.com Classic Edition">
+<META NAME="MS-HAID" CONTENT="function_menuTTest1resample">
+
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+</HEAD>
+
+
+<BODY onLoad="BSSCOnLoad();" onClick="BSSCOnClick();" onUnLoad="BSSCOnUnload();">
+
+<table width="100%" border="0" cellspacing="0"
+cellpadding="0" bgcolor="#CCCCCC" >
+<tr>
+<td width="50%"><tt></tt></td>
+<td width="50%"><div align="right"><font face="Times New Roman, Times, serif">S+Resample GUI Reference</font></div>
+</td></tr></table>
+
+<P class="ms-section-1" >Single Mean: t Test, Resample</P>
+<P class="ms-body" >A one-sample t-test is used to test whether the mean for a variable has a particular value. The main assumption in a t-test is that the data comes from a Gaussian (normal) distribution. If this is not the case, then a nonparametric test, such as the Wilcoxon signed-rank test, may be a more appropriate test of location, and bootstrapping more appropriate for confidence intervals.</P>
+<P class="ms-body" >The resampling methods support stratified sampling.</P>
+
+
+<P class="ms-section-4" >To perform one-sample t test</P>
+<P class="ms-body" >Choose <span style="font-weight:bold; ">Statistics</span> <IMG src="arrow5.gif"> <span style="font-weight:bold; ">Compare Samples</span> <IMG src="arrow5.gif"> <span style="font-weight:bold; ">One Sample/Resample</span> <IMG src="arrow5.gif"> <span style="font-weight:bold; ">t Test</span>. The dialog shown below appears. </P>
+
+
+<P CLASS="ms-section-4">t Test Page</P>
+<P class="ms-body" ><IMG src="FINGER.gif"> <span style="font-size:12pt; font-weight:bold; font-style:italic; ">Click individual fields in the dialog below for more specific information.</span></P>
+<P class="ms-body"><IMG src="TTEST_resamp.gif" usemap="#AreaMap0" height=392 width=426>
+
+
+<P CLASS="ms-section-4">Bootstrap Page</P>
+<P class="ms-body" ><IMG src="FINGER.gif"> <span style="font-size:12pt; font-weight:bold; font-style:italic; ">Click individual fields in the dialog below for more specific information.</span></P>
+<P CLASS="ms-body"><IMG SRC="TTEST_boot.gif" width=426 height=392 USEMAP="#AreaMap1"></P>
+
+
+<MAP name="AreaMap0">
+<AREA coords="9,63,209,83" href="javascript:BSSCPopup('Data_Set.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+<AREA coords="9,91,209,101" href="javascript:BSSCPopup('Variable_Compare_Samples_dialogs.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+<AREA coords="9,123,209,225" href="javascript:BSSCPopup('Hypotheses.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+<AREA coords="217,50,417,90" href="javascript:BSSCPopup('Confidence_Level_Comp_Samp.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+<AREA coords="217,110,417,130" href="javascript:BSSCPopup('Save_As_General.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+<AREA coords="217,135,304,157" href="javascript:BSSCPopup('Print_Results.htm');" onMouseOver="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event);;">
+</MAP></P>
+
+
+<MAP NAME="AreaMap1">
+<AREA COORDS="9,55,209,89" HREF="javascript:BSSCPopup('resamp_performBoot.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,114,209,148" HREF="javascript:BSSCPopup('resamp_B.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,155,209,175" HREF="javascript:BSSCPopup('resamp_sampler.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,181,209,201" HREF="javascript:BSSCPopup('resamp_strata7.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,207,209,227" HREF="javascript:BSSCPopup('resamp_seed.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,238,209,272" HREF="javascript:BSSCPopup('resamp_SaveAs.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,310,417,348" HREF="javascript:BSSCPopup('resampGroup_Additional.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,48,417,141" HREF="javascript:BSSCPopup('resampGroup_Plots.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,162,417,182" HREF="javascript:BSSCPopup('resamp_Percentiles.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,189,417,208" HREF="javascript:BSSCPopup('resamp_BCa.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,214,417,234" HREF="javascript:BSSCPopup('resamp_Tilting.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,240,417,260" HREF="javascript:BSSCPopup('resamp_tLimits.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,266,417,290" HREF="javascript:BSSCPopup('resamp_Levels.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+
+<P class="ms-section-4" >Related <span style="font-variant:small-caps; ">S-Plus</span> language functions:</P>
+<P class="ms-program-code" >t.test</P>
+
+<P CLASS="ms-section-4">Resampling functions:</P>
+<P class="ms-program-code" >
+<a href="bootstrap.html">bootstrap</a>,
+<a href="bootstrap2.html">bootstrap2</a>,
+<a href="plot.resamp.html">plot.resamp</a>,
+<a href="qqnorm.resamp.html">qqnorm.resamp</a>,
+<a href="summary.resamp.html">summary.resamp</a>,
+<a href="limits.percentile.html">limits.percentile</a>,
+<a href="limits.bca.html">limits.bca</a>,
+<a href="limits.tilt.html">limits.tilt</a>,
+<a href="limits.t.html">limits.t</a>.
+
+
+<script language="javascript"><!--
+BSSCCreatePopupDiv();
+//-->
+</script>
+</BODY>
+</HTML>

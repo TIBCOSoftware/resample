@@ -1,0 +1,85 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>qqnorm.resamp</s-topic>
+</s-topics>
+<s-title>
+Quantile-Quantile Plots for Resample Objects 
+</s-title>
+<s-description>
+Produces quantile-quantile plots of the columns of <code>replicates</code> against the 
+appropriate quantiles of the normal distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+qqnorm.resamp(x, nrow=NULL, grid.layout=T, lines=T,  
+              subset.statistic = 1:p, ..., main) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class <code>resamp</code>.  Such objects are created by 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="nrow">
+number of rows of plots on the screen.  If <code>nrow</code> is NULL and <code>x</code> has a 
+<code>dim.obs</code> component, it is used to determine <code>nrow</code>.  Otherwise, two rows are 
+used unless there is only a single parameter. 
+</s-arg>
+<s-arg name="grid.layout">
+logical flag indicating whether to display plots in a single grid or as 
+separate plots when the resampled statistic is a vector. 
+</s-arg>
+<s-arg name="lines">
+logical flag indicating whether to add a 
+<s-function name="qqline.sgm">qqline</s-function> 
+to each plot.  This line passes through the first and third quartiles of 
+the data, and the corresponding quantiles of the standard normal distribution. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic has 
+length greater than 1, use this to request plots for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="...">
+other arguments passed down to <code>qqnorm</code>. 
+</s-arg>
+<s-arg name="main">
+character, if supplied is used as the main title; otherwise a default 
+title is used.  Use <code>main=""</code> to avoid a title. 
+</s-arg>
+</s-args-optional>
+<s-value>
+no value is returned. 
+</s-value>
+<s-side-effects>
+Produces the abovementioned plot. 
+</s-side-effects>
+<s-see>
+
+<s-function name="qqnorm.default.sgm">qqnorm.default</s-function>,  
+<s-function name="qqline.sgm">qqline</s-function>,  
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+temp <- bootstrap(stack.loss,var) 
+qqnorm(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,112 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+  <TITLE>Data and Statistic Details</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<h2>Data and Statistic Details</h2>
+
+This page gives details for the <b>Data</b> and
+<b>Statistic</b> fields
+as well as how to pass additional arguments to the statistic
+The fields are found on the "Model"
+tab for the <b>Bootstrap</b>, 
+<b>Jackknife and Influence</b>, 
+and <b>Permutation Test</b> menus.
+
+
+<H3>Data Set</H3>
+<p>
+Specify the data to resample. This may be a vector, 
+matrix, or data frame.
+<p>
+It may also be a model object, e.g. created by a call to
+<code>lm</code>.  The object must contain a <code>call</code>
+component that indicates the name of the data originally used
+to create the object.
+
+<H3>Statistic to Estimate</H3>
+<P>
+In the
+<b>Expression</b> field, specify
+the expression describing the statistic to be resampled.
+this may be a function that accepts data as the first 
+argument,
+or an expression that calculates the statistic.
+<p>
+The statistic should normally return a numerical object, a vector
+or matrix.  However, it may return NULL, when resampling for graphics
+rather than for numerical calculations.
+
+<h4>Function</h4>
+One choice is to give the name of a function,
+such as <code>mean</code> or <code>colMeans</code>.
+<p>
+If the <b>Data Set</b> is a model object, then the statistic
+should be a function like <code>coef</code> that operates on the
+model object.
+<p>
+If you need to pass arguments to the statistic, pass them using
+<code>args.statistics</code> in the <b>Additional Arguments</b> field.
+For example,
+<br>
+<code>args.statistics=list(trim=.1)</code>
+<br>
+If you want to resample a function for which the data is the
+second argument, then pass the first argument using
+<code>args.statistics</code>; the data is passed as the first
+first argument that is not passed by name using <code>args.statistics</code>.
+
+<h4>Expression</h4>
+Often it is more convenient to give an expression that calculates
+the statistic.  For example, 
+<br>
+<code>mean(x, trim = .1)</code>
+<br>
+calculates the trimmed mean of <code>x</code>.
+<p>
+Using an expression is particularly convenient when the data is
+a data frame, because you can refer to variables by name, without
+explicitly subscripting them.
+For example, if the data is <code>fuel.frame</code>, then you may
+use e.g.
+<br>
+<code>mean(Fuel, trim = .1)</code>
+<br>
+which is actually a shortcut for
+<br>
+<code>mean(fuel.frame$Fuel, trim = .1)</code>
+<br>
+
+<p>If the <b>Data Set</b> is given by name, e.g.
+<code>lottery.payoff</code>, then just use its name, e.g.
+<br>
+<code>mean(lottery.payoff, trim = .1)</code>
+<br>
+However, if the <b>Data Set</b> is given as an expression that
+computes a data set, e.g.
+<code>ethanol[1:45, "NOx"]</code>, then use the name
+<code>data</code> to refer to the data, e.g.
+<br>
+<code>mean(data, trim = .1)</code>
+<br>
+
+
+
+<h3>See also</h3>
+For additional documentation and examples, see the help files
+for
+  <a href="bootstrap.html">bootstrap</a>,  
+  <a href="bootstrap.args.html">bootstrap.args</a>.
+</BODY>
+</HTML>

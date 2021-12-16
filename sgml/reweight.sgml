@@ -1,0 +1,173 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>reweight</s-topic>
+</s-topics>
+<s-title>
+Reweight a bootstrap distribution 
+</s-title>
+<s-description>
+Diagnostic procedure, estimate how a bootstrap distribution would change 
+if sampling had been from a different distribution (with the same values, 
+but different probabilities on those values). 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+reweight(boot.obj, data.weights, 
+         probs, L, tau, tilt="exponential", subset.statistic, 
+         subjectDivide = F, modifiedStatistic = NULL, 
+         frame.eval = boot.obj$parent.frame) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="boot.obj">
+a bootstrap object, produced by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data.weights">
+a vector of length equal to the number of observations (or subjects) in 
+the original sample.  If the sampling was by subject, 
+these may be observation weights or subject weights.  In the latter 
+case, the vector may be named, in which case the names must correspond to 
+the unique values of the <code>subject</code> argument from <code>boot.obj</code>.  Otherwise the 
+weights are taken to be ordered with respect to the sorted values of 
+<code>subject</code>.  The default implies equal weights. 
+<p>
+In place of <code>data.weights</code>, one of <code>tau</code> or <code>probs</code> may be supplied, 
+and will be used with <code>L</code> to calculate <code>data.weights</code> using tilting. 
+If <code>data.weights</code> and <code>L</code> are both missing, <code>L</code> will be computed from 
+<code>boot.obj</code> using   
+<s-function name="resampGetL.sgm">resampGetL</s-function>. 
+</s-arg>
+<s-arg name="probs">
+scalar, between 0 and 1; 
+if supplied then <code>tau</code> is chosen to reweight the bootstrap 
+distribution to approximately satisfy the hypothesis that the 
+true parameter is equal to the <code>probs</code> quantile of the unweighted 
+bootstrap distribution. 
+</s-arg>
+<s-arg name="L">
+vector of values of length <code>n</code>, to be used for computing probabilities 
+by exponential or maximum likelihood tilting.   
+</s-arg>
+<s-arg name="tau">
+scalar, tilting parameter 
+</s-arg>
+<s-arg name="tilt">
+tilting method: one of "exponential" or "ml" 
+</s-arg>
+<s-arg name="subset.statistic">
+scalar integer, which column of <code>L</code> to use for tilting; default <code>1</code>. 
+</s-arg>
+<s-arg name="subjectDivide">
+logical flag, meaningful only if the sampling in <code>boot.obj</code> was by 
+subject.  Internal calculations involve assigning weights to subjects; 
+if <code>TRUE</code> then the weight for each subject is divided among observations 
+for that subject before calculating the statistic; 
+if <code>FALSE</code> the subject weight is replicated to observations for that subject. 
+Also, if <code>TRUE</code> and <code>data.weights</code> contains observation weights,  
+then initial subject weights will be the sums of weights for the 
+observations.  
+</s-arg>
+<s-arg name="modifiedStatistic">
+if the bootstrap statistic is an expression that calls a function 
+with a "hidden" <code>weights</code> argument, then pass this to indicate how to 
+call your function.  
+See below. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>boot.obj</code> 
+can be found.  
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>"reweight"</code> which inherits from <code>"resamp"</code>. 
+This is similar to the original 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+object except that the 
+<code>observed</code> value has been recomputed using the weighted empirical 
+distribution with probabilities <code>data.weights</code>, and the bootstrap 
+distribution now has unequal weights to reflect the sampling 
+probabilities. 
+</s-value>
+<s-details>
+No new sampling is performed; instead the weights are calculated 
+using importance sampling identities. 
+<p>
+The name <code>"Splus.resamp.weights"</code> is reserved for internal use by 
+<code>reweight</code>.  To avoid naming conflicts, that name can not be used as 
+a variable name in the <code>data</code> argument to <code>boot.obj</code>, if <code>data</code> 
+is a data frame.  
+<p>
+When the bootstrap statistic is an expression, for example 
+<code>mean(x)</code>, a modified expression 
+<code>mean(x, weights = Splus.resamp.weights)</code> is created. 
+Only calls to functions that have an argument named <code>weights</code> 
+are modified; e.g. <code>sum(x)/length(x)</code> would fail because <code>sum</code> 
+does not have a <code>weights</code> argument. 
+If the expression calls a function with a "hidden" weights argument, 
+e.g. you may pass weights as part of the <code>...</code> list, then 
+use the <code>modifiedStatistic</code> argument to specify that, e.g. 
+<code>modifiedStatistic = myFun(x, weights = Splus.resamp.weights)</code>. 
+(You must use the name <code>Splus.resamp.weights</code> in <code>modifiedStatistic</code>.) 
+An expression such as 
+<code>mean(y[a==1])</code> is converted to 
+<code>mean(y[a==1], weights = Splus.resamp.weights)</code> 
+which will fail because the weights vector was not subscripted along 
+with <code>y</code>. 
+In cases such as these pass a function that performs the desired 
+calculations, or use 
+<br>
+<code>modifiedStatistic = mean(y[a==1], weights = Splus.resamp.weights[a==1])</code> 
+<p>
+An error occurs if the bootstrap statistic can not be successfully 
+modified to accomodate weights and <code>modifiedStatistic</code> is not provided.   
+<p>
+The bootstrap statistic 
+should be <code>"functional"</code>; that is, the observed value of the statistic 
+should be equal to the value computed with equal weights.  A warning 
+occurs if this is not the case.  
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. (2001), 
+"Bootstrap Tilting Diagnostics" 
+<it>Proceedings of the Statistical Computing Section,</it>
+American Statistical Association (CD-ROM) 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- rexp(30) 
+bfit <- bootstrap(x, mean, save.indices=T) 
+rfit <- reweight(bfit, L=x, probs=.2) 
+bfit 
+rfit 
+plot(bfit) 
+plot(rfit) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

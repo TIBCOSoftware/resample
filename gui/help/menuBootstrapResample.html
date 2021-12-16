@@ -1,0 +1,186 @@
+<HTML>
+ <!-- guitopic GUI Bootstrap Inference -->
+ <!-- s-keyword guiresamp -->
+<head>
+<style type="text/css">
+  body { font-size: 10pt ; font-family: Arial, SansSerif }
+  h1   { font-size: 150% }
+  h2   { font-size: 120% }
+  samp { font-size: small; font-family: "Courier New", Monospaced }
+  code { font-family: "Courier New", Monospaced }
+  tt   { font-family: "Courier New", Monospaced }
+  pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+ </head>
+  <body bgcolor='#FFFFFF'>
+<TITLE>Bootstrap Inference</TITLE>
+  <SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+ </SCRIPT>
+
+<table width="100%" border="0" cellspacing="0"
+cellpadding="0" bgcolor="#CCCCCC" >
+<tr>
+<td width="50%"><tt></tt></td>
+<td width="50%"><div align="right"><font face="Times New Roman, Times, serif">S+Resample GUI Reference</font></div>
+</td></tr></table>
+
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H1>Bootstrap Inference</H1>
+
+<P CLASS="ms-body">
+In statistical analysis, the researcher is usually interested in
+obtaining not only a point estimate of a statistic but also an
+estimate of the variation in this point estimate and a confidence
+interval for the true value of the parameter. For example, a
+researcher may calculate not only a sample mean but also the standard
+error of the mean and a confidence interval for the mean.</P>
+
+<P CLASS="ms-body">
+The traditional methods for calculating
+confidence intervals generally rely upon a statistic, or some known
+transformation of it, being normally distributed. If
+this normality assumption does not hold, the traditional methods may
+be inaccurate.
+They also require standard errors, which may be difficult to obtain.</P>
+
+<P CLASS="ms-body">
+The bootstrap provides
+estimates of the standard error, confidence intervals, and
+distributions for (almost) any statistic. 
+To use these procedures, you must supply the name of the data set
+under examination and an S-PLUS function or expression that calculates
+the statistic of interest.</P>
+
+<P CLASS="ms-body">
+The <SPAN STYLE="font-weight : bold;">Bootstrap</SPAN>
+dialog performs bootstrap inferences for a specified statistic and
+data set. 
+See the 
+<SPAN STYLE="font-style : italic;">S-PLUS Resample Library User's Guide</SPAN>
+and
+<SPAN STYLE="font-style : italic;">Guide to Statistics</SPAN>
+for details.</P>
+
+<P CLASS="ms-body">
+To perform bootstrap inference,
+<br>
+choose 
+<SPAN STYLE="font-weight : bold;">Statistics </SPAN>
+<IMG SRC="arrow5.gif">
+<SPAN STYLE="font-weight : bold;">Resample</SPAN>
+<IMG SRC="arrow5.gif">
+<SPAN STYLE="font-weight : bold;"> Bootstrap</SPAN>.
+The dialog shown below appears.</P>
+
+
+<P CLASS="ms-section-4">Model page</P>
+
+<P CLASS="ms-body">
+<IMG SRC="FINGER.gif">
+<SPAN STYLE="font-style : italic;font-weight : bold;font-size : 12.0pt;">Click
+individual fields in the dialog below for more specific information.</SPAN></P>
+
+<P CLASS="ms-body">
+<IMG SRC="bootPage_Model.gif" width=426 height=334 USEMAP="#AreaMap0"></P>
+
+<P CLASS="ms-body">
+For additional details on the <b>Data</b> and <b>Statistic</b> fields
+see
+<a href="resamp_DataStatistic.html">Data and Statistic Details</a>.</p>
+
+
+<P CLASS="ms-section-4">Options page</P>
+
+<P CLASS="ms-body">
+<IMG SRC="FINGER.gif">
+<SPAN STYLE="font-style : italic;font-weight : bold;font-size : 12.0pt;">Click
+individual fields in the dialog below for more specific information.</SPAN></P>
+
+<P CLASS="ms-body">
+<IMG SRC="bootPage_Options.gif" width=426 height=334 USEMAP="#AreaMap1"></P>
+
+
+<P CLASS="ms-section-4">Results page</P>
+
+<P CLASS="ms-body">
+<IMG SRC="FINGER.gif">
+<SPAN STYLE="font-style : italic;font-weight : bold;font-size : 12.0pt;">Click
+individual fields in the dialog below for more specific information.</SPAN></P>
+
+<P CLASS="ms-body">
+<IMG SRC="bootPage_Results.gif" width=426 height=334 USEMAP="#AreaMap2"></P>
+
+
+<P CLASS="ms-section-4">Diagnostic page</P>
+
+<P CLASS="ms-body">
+<IMG SRC="FINGER.gif">
+<SPAN STYLE="font-style : italic;font-weight : bold;font-size : 12.0pt;">Click
+individual fields in the dialog below for more specific information.</SPAN></P>
+
+<P CLASS="ms-body">
+<IMG SRC="bootPage_Diagnostics.gif" width=426 height=334 USEMAP="#AreaMap3"></P>
+
+
+<P CLASS="ms-section-4">Related programming language functions:</P>
+
+<P CLASS="ms-program-1">
+<a href="bootstrap.html">bootstrap</a>,
+<a href="influence.html">influence</a>,
+<a href="jackknifeAfterBootstrap.html">jackknifeAfterBootstrap</a>
+<a href="limits.bca.html">limits.bca</a>,
+<a href="limits.t.html">limits.t</a>,
+<a href="limits.tilt.html">limits.tilt</a>,
+<a href="plot.resamp.html">plot.resamp</a>,
+<a href="qqnorm.resamp.html">qqnorm.resamp</a>,
+<a href="resampGetL.html">resampGetL</a>,
+<a href="summary.bootstrap.html">summary.bootstrap</a>,
+<a href="tiltAfterBootstrap.html">tiltAfterBootstrap</a>
+</P>
+
+<MAP NAME="AreaMap0">
+<AREA COORDS="9,50,209,90" HREF="javascript:BSSCPopup('resamp_Data.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,96,417,136" HREF="javascript:BSSCPopup('resampGroup_Statistic.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,141,417,181" HREF="javascript:BSSCPopup('resampGroup_Additional.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,187,209,252" HREF="javascript:BSSCPopup('resampGroup_Data2.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,233,417,273" HREF="javascript:BSSCPopup('resamp_SaveAs.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+<MAP NAME="AreaMap1">
+<AREA COORDS="9,65,209,102" HREF="javascript:BSSCPopup('resamp_B.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,110,209,130" HREF="javascript:BSSCPopup('resamp_sampler.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,136,209,156" HREF="javascript:BSSCPopup('resamp_strata.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,162,209,182" HREF="javascript:BSSCPopup('resamp_subject.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,188,209,208" HREF="javascript:BSSCPopup('resamp_seed.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,214,209,232" HREF="javascript:BSSCPopup('resamp_trace.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,240,209,260" HREF="javascript:BSSCPopup('resamp_assignFrame1.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,50,417,114" HREF="javascript:BSSCPopup('bootGroup_LinearApprox.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+<MAP NAME="AreaMap2">
+<AREA COORDS="9,64,209,84" HREF="javascript:BSSCPopup('resamp_SummaryStats.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,89,209,109" HREF="javascript:BSSCPopup('resamp_Percentiles.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,115,209,135" HREF="javascript:BSSCPopup('resamp_BCa.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,142,209,162" HREF="javascript:BSSCPopup('resamp_Tilting.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,166,209,186" HREF="javascript:BSSCPopup('resamp_tLimits.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,190,209,217" HREF="javascript:BSSCPopup('resamp_Levels.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,221,209,241" HREF="javascript:BSSCPopup('resamp_Correlation.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,251,209,290" HREF="javascript:BSSCPopup('resamp_SaveSummary.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,64,417,135" HREF="javascript:BSSCPopup('resampGroup_Plots.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+<MAP NAME="AreaMap3">
+<AREA COORDS="9,49,209,89" HREF="javascript:BSSCPopup('bootGroup_DiagnosticsFunctional.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="9,94,209,186" HREF="javascript:BSSCPopup('bootGroup_DiagnosticsJAB.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+<AREA COORDS="217,49,417,145" HREF="javascript:BSSCPopup('bootGroup_DiagnosticsTAB.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+</MAP>
+
+<script>
+<!--
+BSSCCreatePopupDiv();
+//-->
+  </script></BODY>
+</HTML>
+<object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+<param name="ALink Name" value="function_menuBootstrapResample">
+</object>

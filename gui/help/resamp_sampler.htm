@@ -1,0 +1,54 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Sampler</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Sampler</H3>
+<P>
+Select the sampling method.
+The default, <code>samp.bootstrap</code>, does ordinary bootstrap sampling.
+<p>
+Some of the sampling methods have optional or required arguments; the latter
+are indicated in the drop-down list by a "?".
+One common optional argument is <code>size</code>, which allows you
+to specify that resamples should be a different size than the original number
+of observations.
+
+<h4>Sampling with replacement</h4>
+A number of functions do bootstrap sampling, with some variations:
+<br>
+<code>samp.boot.bal</code> is useful if your goal is to estimate bias.
+<br>
+<code>samp.bootknife</code> gives better bootstrap standard errors--the
+ordinary bootstrap estimate of the squared standard error (variance of
+a statistic) is biased downward by a factor of <it>(n-1)/n</it>,
+where <it>n</it> is the sample size.
+Another way to avoid this bias is to use <code>samp.bootstrap</code>
+and set <code>size</code> = <it>n-1</it>.
+<br>
+<code>samp.finite</code> is for bootstrapping from finite populations;
+set <code>N</code> to the population size.
+<br>
+<code>samp.blockBootstrap</code> samples consecutive blocks of observations,
+rather than individual observations.  This is a quick-and-dirty way
+to resample time series.
+
+<h4>Sampling without replacement</h4>
+<code>samp.permute</code> does sampling without replacement.
+When <code>size</code> = <it>n</it> this gives permutations.
+<br>
+<code>samp.combinations</code> does all possible permutations
+or combinations.
+</BODY>
+</HTML>

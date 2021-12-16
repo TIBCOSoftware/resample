@@ -1,0 +1,45 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Tilt After Bootstrap</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Tilt After Bootstrap</H3>
+<P>
+Tilt-after-bootstrap (TAB) is a technique applied to the results of a 
+bootstrap analysis, to determine how sensitive the bootstrap estimates
+are to the original random sample of data, and in particular, whether
+there is a relationship between the statistic value and the bootstrap estimate.
+<p>
+Suppose, for example, that the Functional is "SE" (standard error).
+In other words, one of the things estimated from bootstrap sampling
+is the standard error of your statistic.  Is there a relationship
+between the estimated standard error, and the true parameter (what the statistic
+is estimating)?
+<p>
+Consider a simple example--estimating a single proportion from a random sample.
+The standard error is sqrt(<em>P</em> (1-<em>P</em>)/<em>n</em>) 
+(that is the usual standard error formula;
+your bootstrap standard error will differ slightly due to random sampling),
+where <em>P</em> is the estimated proportion from the sample.
+Note the relationship between <em>P</em> and the standard error.
+<p>
+Bootstrap tilting estimates such relationships in a nonparametric way.
+<p>
+If there is a relationship between standard error and the statistic,
+then symmetric confidence intervals for the statistic are inaccurate
+(because they assume that the standard error is constant, not related
+to the statistic), and BCa or tilting confidence intervals
+should be more accurate.
+</BODY>
+</HTML>

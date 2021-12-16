@@ -1,0 +1,85 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+  <TITLE>xxxTitlexxx</TITLE>
+  <BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+  <H3>
+   xxxTitlexxx</H3>
+  <P>
+   xxxTextxxx
+
+<code>xxxCodexxx</code> 
+
+See the language help for <b>bootstrap</b> or <b>jackknife</b> for details.
+
+---------
+Bootstrap_Inference.html gets considerably more complicated.
+
+  <P CLASS="ms-body">
+Text
+
+  <P CLASS="ms-section-4"> Headings</P>
+
+Menu choices:
+   Choose 
+	<SPAN STYLE="font-weight : bold;">Statistics </SPAN>
+	<IMG SRC="arrow5.gif" WIDTH="14" HEIGHT="15" VSPACE="0" HSPACE="0" ALT="image\arrow5.gif" BORDER="0"> 
+	<SPAN STYLE="font-weight : bold;">Resample</SPAN>
+	<IMG SRC="arrow5.gif" WIDTH="14" HEIGHT="15" VSPACE="0" HSPACE="0" ALT="image\arrow5.gif" BORDER="0">
+	<SPAN STYLE="font-weight : bold;"> Bootstrap</SPAN>.
+
+Hand:
+	<P CLASS="ms-body">
+	<IMG SRC="FINGER.gif" WIDTH="29" HEIGHT="35" VSPACE="0" HSPACE="0" ALT="image\FINGER.gif" BORDER="0"> 
+	<SPAN STYLE="font-style : italic;font-weight : bold;font-size : 12.0pt;">
+	Click individual fields in the dialog below for more specific information.</SPAN>
+	</P>
+
+Screen shot:
+	<P CLASS="ms-body">
+	<IMG SRC="bootmodel.gif" WIDTH="426" HEIGHT="374" VSPACE="0" HSPACE="0" ALT="image\BOOT1_shg.gif" BORDER="0" USEMAP="#AreaMap0">
+	</P>
+
+Later, sub-areas in that gui are set to pop-ups.
+Note that #AreaMap0 corresponds to the map below.
+
+
+Related:
+  <P CLASS="ms-section-4">
+   Related programming language functions:</P>
+  <P CLASS="ms-program-1">
+  <a href="bootstrap.html">bootstrap</a>,  
+  <a href="influence.html">influence</a>,  
+  ...
+However, these show up as blue, not links in the .chm
+
+
+for pop-ups:
+  <MAP NAME="AreaMap0">
+   <AREA SHAPE="RECT" COORDS="8,49,205,91" HREF="javascript:BSSCPopup('Data_Set_Boot.htm');" ONMOUSEOVER="if (parseInt(navigator.appVersion) >= 4) BSPSPopupOnMouseOver(event)" CLASS="BSSCPopup">
+(many more) areas
+  </MAP>
+
+repeat with "AreaMap1", etc.
+
+ </BODY>
+</HTML>
+
+
+In case of Bootstrap_Inference.html, add this after the html has ended
+
+<object type="application/x-oleobject" 
+        classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+<param name="ALink Name" value="function_menuBootstrapNEW">
+</object>

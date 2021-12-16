@@ -1,0 +1,78 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>indexMeans</s-topic>
+   <s-topic>indexProducts</s-topic>
+   <s-topic>indexSums</s-topic>
+   <s-topic>indexVars</s-topic>
+</s-topics>
+<s-title>
+Summary statistics for bootstrap samples 
+</s-title>
+<s-description>
+Compute means, products, sums, or variances for 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+samples 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+indexMeans(x, indices, group = NULL) 
+indexProducts(x, indices) 
+indexSums(x, indices) 
+indexVars(x, indices) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+numeric vector or matrix with <code>n</code> rows and <code>p</code> columns. 
+The columns represent variables, each consisting of <code>n</code> observations. 
+</s-arg>
+<s-arg name="indices">
+numeric vector or matrix with <code>m</code> rows and <code>B</code> columns , containing 
+integer values between 1 and <code>n</code>. <code>B</code> is the number of bootstrap 
+samples and <code>m</code> is the number of observations per sample. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="group">
+vector of length equal to number of rows of <code>x</code>, dividing <code>x</code> into groups. 
+If supplied, then the return values correspond to the sum (across groups) 
+of group means. 
+</s-arg>
+</s-args-optional>
+<s-value>
+<code>B</code> x <code>p</code> matrix, with <code>i,j</code>th element equal to 
+<br>
+<code>mean(x[indices[,i],j])</code> 
+<br>
+(or product, sum, or variance). 
+</s-value>
+<s-see>
+
+<s-function name="apply.sgm">apply</s-function>,  
+<s-function name="bootstrap.sgm">bootstrap</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+data <- cancer.vet[,c("age","survival")] 
+obj <- bootstrap(data, mean, B=300, save.indices=T) 
+indexMeans(data, obj$indices) 
+ 
+# Linear approximation for a robust location estimate 
+set.seed(1); x <- rcauchy(40) 
+obj <- bootstrap(x, location.m, B=200, save.indices=T) 
+L <- resampGetL(obj) 
+plot(x, L)               # outliers have less influence 
+plot(indexMeans(L, obj$indices), obj$replicates) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

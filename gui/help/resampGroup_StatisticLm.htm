@@ -1,0 +1,46 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Statistic</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Statistic</H3>
+<P>
+Specify
+the statistic to be resampled.
+The statistic should normally return a numerical object, a vector
+or matrix.  However, it may return NULL, when resampling for graphics
+rather than for numerical calculations.
+<p>
+This may be a <b>function</b> that accepts an <code>lm</code>
+(linear regression) object as the first 
+argument, e.g.
+<br>
+<code>
+coef
+</code>
+pulls the coefficients out of an <code>lm</code> object.
+
+<p>
+Or it may be an <b>expression</b> that calculates the statistic, e.g.
+if you want only the second (slope) coefficient,
+<br>
+<code>coef(fit)[2]</code>
+
+<p>
+In the case of an expression, if you saved the <code>lm</code> object
+on the Model page, use that name here.  
+For example I used "fit" just above.
+Otherwise use the name "data" in place of "fit".
+</BODY>
+</HTML>

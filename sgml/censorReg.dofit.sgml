@@ -1,0 +1,46 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>censorReg.dofit</s-topic>
+</s-topics>
+<s-title>
+Function called by <code>censorReg</code> to perform the fit. 
+</s-title>
+<s-description>
+This function is called internally by 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+as part of the fitting process. It is not intended to be called directly. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+censorReg.dofit(...) 
+</s-old-style-usage>
+</s-usage>
+<s-details>
+This routine was added to facilitate the addition of a <code>model.list</code> method for 
+<s-function name="censorReg.sgm">censorReg</s-function>. 
+Function <code>censorReg.dofit</code> isolates the essential 
+fitting portion of 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+from the data preparation portion. 
+<p>
+See 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+for more details. 
+</s-details>
+<s-see>
+
+<s-function name="censorReg.sgm">censorReg</s-function>,  
+<s-function name="censorReg.model.list.sgm">censorReg.model.list</s-function>.  </s-see>
+<s-keywords>
+<s-keyword>models</s-keyword>
+<s-keyword>regression</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

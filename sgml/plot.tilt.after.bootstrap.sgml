@@ -1,0 +1,111 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>plot.tiltAfterBootstrap</s-topic>
+</s-topics>
+<s-title>
+Plots for tiltAfterBootstrap 
+</s-title>
+<s-description>
+Selection of plots related to tilting-after-bootstrap 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plot.tiltAfterBootstrap(x, plots=NULL, ...,  
+    omit = TRUE, minimumB=100) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+an object of class <code>"tiltAfterBootstrap"</code> 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="plots">
+character vector, containing one or more of  
+<code>"fs"</code> = plot functional vs statistic 
+<br>
+<code>"fp"</code> = functional vs probabilities, 
+<br>
+<code>"sp"</code> = statistic vs probabilities 
+<br>
+<code>"pairs"</code> = pairwise scatterplots of many quantities. 
+The default is <code>"fs"</code> if <code>x</code> contains statistics, 
+else <code>"pairs"</code>. 
+</s-arg>
+<s-arg name="...">
+additional arguments to pass to plotting commands  
+<s-function name="matplot.sgm">matplot</s-function>, 
+<s-function name="plot.sgm">plot</s-function>, 
+and 
+<s-function name="pairs.sgm">pairs</s-function>. 
+</s-arg>
+<s-arg name="omit">
+if <code>TRUE</code> (the default), then points with effective sample size 
+smaller than <code>minimumB</code> are omitted from the plots. 
+</s-arg>
+<s-arg name="minimumB">
+integer, minimum acceptable bootstrap sample size; points that 
+fail to meet this are not plotted. 
+</s-arg>
+</s-args-optional>
+<s-side-effects>
+This creates plots on the current graphics device. 
+</s-side-effects>
+<s-details>
+Suppose one were to modify the original empirical distribution by 
+placing unequal weights on the observations.  As the weights change, 
+both the statistic calculated from the weighted distribution, and 
+the bootstrap distribution obtained by sampling with probabilities 
+equal to those weights, change.  Bootstrap tilting looks at the relationships 
+between the statistic and summaries ("functionals") of the bootstrap 
+distribution, as the weights change.  In particular, the weights 
+are selected by exponential or maximum likelihood tilting; 
+these approximately maximize the change in the statistic given the 
+distance (forward or backward Kullback-Leibler distance) between 
+the weights and the original equal weights. 
+<p>
+Assuming that the weighted statistic can be calculated, the most 
+generally useful plot is of the functional (such as quantiles of 
+the weighted bootstrap distribution) against the weighted statistics. 
+<p>
+For example, when considering use of a inference procedure such as 
+t-tests or confidence intervals that assumes that standard errors are 
+independent of the statistic, it is useful to check that assumption by 
+plotting either "Centered Quantiles" or "SE" (standard error) against 
+the statistic. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. (2001), 
+"Bootstrap Tilting Diagnostics" 
+</s-section>
+<s-see>
+The objects are created by 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  operating on an object created by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>.  The underlying plot functions are 
+<s-function name="matplot.sgm">matplot</s-function>,  
+<s-function name="plot.sgm">plot</s-function>,  and 
+<s-function name="pairs.sgm">pairs</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- qgamma(ppoints(19), shape = 0.5)  # artificial skewed data 
+boot <- bootstrap(x, mean) 
+tab <- tiltAfterBootstrap(boot) 
+plot(tab) 
+plot(tab, plots = "probs") 
+plot(tab, plots = "pairs") 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

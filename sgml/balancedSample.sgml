@@ -1,0 +1,109 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>balancedSample</s-topic>
+</s-topics>
+<s-title>
+Generate Random Sample or Permutation 
+</s-title>
+<s-description>
+Produces a random balanced sample, with minimal replacement 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+balancedSample(n, size = n, prob = NULL, full.partition = "none") 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="n">
+population size. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="size">
+sample size. 
+A sample of size <code>size</code> is generated from values <code>1:n</code>. 
+</s-arg>
+<s-arg name="prob">
+vector of probabilities of length <code>n</code>, or <code>NULL</code> (indicating equal 
+probabilities). 
+The vector is normalized internally to sum to one. 
+Index <code>i</code> is chosen with probability <code>size*prob[i]</code>. 
+</s-arg>
+<s-arg name="full.partition">
+character, one of <code>"first"</code>, <code>"last"</code>, or <code>"none"</code>; Return the initial 
+(if <code>"first"</code>) or final  (if <code>"last"</code>) <code>size</code> elements of a full 
+sample of size <code>n</code>.  If <code>"none"</code>, do not generate a full sample. Valid 
+only if <code>size &lt; n</code>; ignored otherwise.  See below.   
+</s-arg>
+</s-args-optional>
+<s-value>
+vector of length <code>size</code> of indices drawn without replacement 
+if possible, i.e. if <code>size&lt;=n</code> and <code>size*max(prob)&lt;=1</code>. 
+In particular, the default values <code>size=n</code>, <code>prob=NULL</code> 
+generate a simple permutation of <code>1:n</code>. 
+<p>
+Otherwise samples are with as little replacement as possible -- actual 
+frequencies are rounded up or down from the goal <code>size/n</code> or <code>size*prob</code>, 
+and the probability that <code>result[i]=j</code> is 
+<code>1/n</code> or <code>prob[j]</code>. 
+</s-value>
+<s-side-effects>
+This function causes creation of the object <code>.Random.seed</code> 
+if it does not already exist.  Otherwise its value is updated. 
+</s-side-effects>
+<s-details>
+The algorithm when <code>prob</code> is supplied uses a random permutation, 
+systematic sampling, and a final random permutation. 
+<code>prob</code> is randomly permuted, together with the indices <code>1:n</code>. 
+The interval (0,1) is divided into <code>n</code> subintervals <code>I[i]</code> with 
+<code>length(I[i])</code> proportional to <code>prob[i]</code>. 
+Next, <code>size</code> values <code>u[j]</code> are generated uniform on the interval 
+(0,1) using systematic sampling. 
+Let <code>u[1]</code> be random uniform on <code>(0,1/size)</code> and 
+<code>u[j] = u[j-1] + 1/size</code>, for <code>j</code> in <code>2:size</code>. Thus the 
+<code>u[j]</code> all lie in (0,1) and are equally spaced. 
+If <code>u[j]</code> is in interval <code>I[i]</code> then the <code>j</code>th component of 
+a temporary result is the <code>i</code>th permuted index. 
+At this point, if <code>I[i]</code> has length greater than <code>k/size</code> then 
+there are <code>k</code> or more consecutive copies of the <code>i</code>th permuted index in 
+the temporary result. 
+A final random permutation of the result 
+ensures that repeats do not always appear together. 
+<p>
+Calling <code>balancedSample</code> with <code>full.partition = "first", size = m</code> and then 
+(after re-setting the seed) <code>full.partition = "last",  size = n-m</code> produces 
+complementary indices which, when concatenated together, produce 
+results equivalent to calling <code>balancedSample</code> with <code>size = n</code>:  with 
+<code>probs</code> present, the concatenated results are the same, up to a 
+permutation, as the results with <code>size = n</code>; with no <code>probs</code>, the 
+concatenated results are identical to the results with <code>size = n</code>. 
+</s-details>
+<s-see>
+
+<s-function name="samp.permute.sgm">samp.permute</s-function>  returns multiple samples using the same algorithm, 
+<s-function name="randomSample.sgm">randomSample</s-function>  uses this to sample a vector, matrix or data frame, 
+<s-function name="sample.sgm">sample</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+balancedSample(4)    # random permutation 
+balancedSample(4, 2) # two observations chosen without replacement 
+balancedSample(4, 6) # each observation once, two observations twice 
+balancedSample(4, 8) # each observation twice 
+balancedSample(4, 8, prob=(1:4)) # expected frequencies .8, 1.6, 2.4, 3.2 
+ 
+# These are equivalent (in the long run; they vary randomly) 
+balancedSample(5, 100) 
+sample(rep(1:5, length=100), 100, replace=F) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

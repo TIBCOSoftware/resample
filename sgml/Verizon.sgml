@@ -1,0 +1,130 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>Verizon</s-topic>
+   <s-topic>ILEC</s-topic>
+   <s-topic>CLEC</s-topic>
+</s-topics>
+<s-title>
+Repair time data 
+</s-title>
+<s-section name=" SUMMARY">
+
+The <code>Verizon</code> data frame has 1687 rows and 2 columns: 
+<code>Time</code> (repair times) and <code>Group</code> (either <code>ILEC</code> or <code>CLEC</code>). 
+The <code>ILEC</code> and <code>CLEC</code> data frames have 1664 and 23 rows, respectively, 
+and a single variable <code>Time</code>. 
+</s-section>
+<s-section name=" DATA DESCRIPTION">
+
+This data frame contains the following columns: 
+</s-section>
+<s-args>
+<s-arg name="Time">
+Repair times 
+</s-arg>
+<s-arg name="Group">
+Either <code>ILEC</code> or <code>CLEC</code> 
+</s-arg>
+</s-args>
+<s-section name=" SOURCE">
+
+Courtesy of Verizon Corp.  The data are repair times; 
+under supervision of the New York Public Utilities Commission, thousands 
+of permutation tests are performed on data such as this one, to test 
+whether repairs are made as quickly for CLEC customers as for ILEC 
+customers.  If substantially more than 1% of the tests reject 
+the null hypothesis of equal means at the 1% level, then action is taken. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+##### Look at the raw data 
+qq1 <- qqnorm(ILEC$Time, plot=F) 
+qq2 <- qqnorm(CLEC$Time, plot=F) 
+plot(type="n", 
+     range(qq1$x), range(c(qq1$y, qq2$y)), 
+     xlab="Quantiles of standard normal", 
+     ylab="Quantiles of data") 
+points(qq1, col=2, pch=".") 
+points(qq2, col=3, pch=1) 
+key(text= c("ILEC", "CLEC"), corner=c(0,1), 
+    points=list(col=2:3, pch=list(".",1))) 
+mtext(side=3, outer=T, "ILEC and CLEC repair times", line=.5, cex=1.2) 
+ 
+ 
+##### One-sample bootstraps 
+bootILEC.mean <- bootstrap(ILEC$Time, mean) 
+bootCLEC.mean <- bootstrap(CLEC$Time, mean) 
+plot(bootILEC.mean) 
+plot(bootCLEC.mean) 
+qqnorm(bootILEC.mean) 
+qqnorm(bootCLEC.mean) 
+bootILEC.mean 
+bootCLEC.mean 
+summary(bootILEC.mean) 
+summary(bootCLEC.mean) 
+# Note that the bootstrap distribution for ILEC mean is much 
+# narrower (due to larger sample size) and more normal than 
+# is the distribution for the CLEC mean. 
+ 
+# Alternative statistic -- trimmed mean 
+bootCLEC.trim <- bootstrap(CLEC$Time, mean(data, trim=.25)) 
+plot(bootCLEC.trim) 
+qqnorm(bootCLEC.trim) 
+bootCLEC.trim 
+ 
+# The bootstrap function lets you refer to the data in three ways: 
+# "data" - when the data argument isn't just a name 
+bootstrap(CLEC$Time, mean( data , trim = .25)) 
+# "object name" - when the data argument is just a name 
+x = CLEC$Time 
+bootstrap(x, mean( x , trim = .25)) 
+# "variable name" (specific to data frames) 
+bootstrap(CLEC, mean( Time , trim = .25)) 
+ 
+ 
+##### Two-sample bootstrap 
+bootVerizon.mean <- bootstrap2(Verizon$Time, mean, 
+                               treatment = Verizon$Group) 
+plot(bootVerizon.mean) 
+bootVerizon.mean 
+summary(bootVerizon.mean) 
+ 
+# Confidence limits 
+limits.percentile(bootVerizon.mean) 
+limits.bca(bootILEC.mean) 
+limits.tilt(bootILEC.mean) 
+ 
+ 
+##### Permutation test 
+permVerizon.mean <- permutationTestMeans(Verizon$Time, 
+                                         treatment = Verizon$Group, 
+                                         B = 9999, 
+                                         alternative = "less") 
+plot(permVerizon.mean) 
+permVerizon.mean 
+ 
+# Compare to t test 
+t.test(ILEC$Time, y=CLEC$Time, alternative="less", equal.var=F) 
+t.test(ILEC$Time, y=CLEC$Time, alternative="less", equal.var=T) 
+# Note that the t tests are very inaccurate -- they assume normality, 
+# which is violated here. 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>sysdata</s-keyword>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

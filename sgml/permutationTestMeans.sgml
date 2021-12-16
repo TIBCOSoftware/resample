@@ -1,0 +1,275 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+<s-topic>permutationTestMeans</s-topic>
+</s-topics>
+<s-title>
+Permutation Test for Comparing Means of Two Samples 
+</s-title>
+<s-description>
+Permutation test for comparing means of two samples,
+for one or more variables. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+permutationTestMeans(data, treatment, data2, B = 999, 
+    alternative = "two.sided",  
+    ratio = F, 
+    paired = F, group = NULL, 
+    combine = NULL, combineGroup = F, 
+    combinationFunction = combinePValues.Fisher, 
+    seed = .Random.seed, diffMeans = T, 
+    label, statisticNames) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+numerical vector or matrix, or data frame. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="treatment">
+vector with as many observations as <code>data</code>. 
+If <code>data</code> is a data frame and the name of <code>treatment</code> is a column 
+in <code>data</code>, then <code>treatment</code> is extracted from the data frame. 
+This must have two unique values, which determine two samples to 
+be compared. 
+One of <code>treatment</code> or <code>data2</code> (but not both) must be used. 
+</s-arg>
+<s-arg name="data2">
+numerical vector or matrix, or data frame, like 
+<code>data</code>.  Observations in <code>data</code> are taken 
+to be one sample, and those in <code>data2</code> are taken to be the other.  If 
+<code>data2</code> is a matrix or data frame, it must have the same number of 
+columns, and column names, if any, as <code>data</code>.   
+One of <code>treatment</code> or <code>data2</code> (but not both) must be used. 
+</s-arg>
+<s-arg name="B">
+integer, number of random permutations to use.  With the default value 
+of <code>B=999</code>, p-values are multiples of 1/1000. 
+</s-arg>
+<s-arg name="alternative">
+character, one of 
+<code>"two.sided"</code>, <code>"greater"</code>, or <code>"less"</code> (may be abbreviated), 
+indicating the type 
+of hypotheses test to perform.  This may be a vector with length equal 
+to the number of variables in <code>data</code>. 
+</s-arg>
+<s-arg name="ratio">
+logical value, if <code>FALSE</code> (the default) then resample the 
+difference in means between the two samples; if <code>TRUE</code> 
+then resample the ratio. 
+</s-arg>
+<s-arg name="paired">
+logical, if <code>TRUE</code> then observations are paired, and observations 
+within each pair are randomly permuted.  This is equivalent 
+to supplying <code>group</code> as a vector with a different value for each pair 
+of observations.  If <code>paired</code> is supplied then argument <code>group</code> 
+is ignored. 
+</s-arg>
+<s-arg name="group">
+vector of length equal to the number of observations in <code>data</code>, for 
+stratified sampling or multiple-sample problems. 
+Random permutations are drawn separately for each group 
+(determined by unique values of this vector). 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or expression involving such variables. 
+<br>
+If <code>data</code> is a data frame and the name of <code>group</code> is a column 
+in <code>data</code>, then <code>group</code> is extracted from the data frame. 
+</s-arg>
+<s-arg name="combine">
+numerical, logical, or character vector, indicating which variables 
+to use for computing combined p-values. 
+Or this may be a list, each of whose elements indicate a set of 
+variables to use. 
+</s-arg>
+<s-arg name="combineGroup">
+logical; if <code>T</code>, combine p-values for individual groups. 
+See return component <code>"group$combineGroup-p-values"</code> below. 
+</s-arg>
+<s-arg name="combinationFunction">
+a function which combines p-values; see 
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function> 
+for specifications. 
+</s-arg>
+<s-arg name="seed">
+seed for generating resampling indices. May be a legal random 
+number seed or an integer between 0 and 1023 which is 
+passed to <code>set.seed</code>. 
+</s-arg>
+<s-arg name="diffMeans">
+logical flag, if <code>TRUE</code> (the default) then the statistic calculated 
+is the difference in means between the two groups determined by 
+the <code>treatment</code> argument.  If <code>FALSE</code> the statistic is the sum 
+of the first group.  The p-values are the same either way. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+</s-args-optional>
+<s-value>
+An object of class <code>permutationTestMeans</code> 
+which inherits from <code>resamp</code>.  This has components 
+<code>call</code>, 
+<code>observed</code>, 
+<code>replicates</code>, 
+<code>estimate</code>, 
+<code>B</code>, 
+<code>n</code>, 
+<code>dim.obs</code>, 
+<code>p-value</code>, 
+<code>parent.frame</code>, 
+<code>label</code> (if supplied), 
+<code>defaultLabel</code>, 
+<code>combined-p-value</code> (only if p-values are combined), 
+<code>group</code> (only if sampling by <code>group</code>), 
+<code>seed.start</code>, and 
+<code>seed.end</code>. 
+See help for <code>resamp.object</code> for a description of most components. 
+Components particularly relevant are: 
+<s-return-component name="observed">
+vector of length <code>p</code>, containing the difference in means 
+for the two samples determined by the <code>treatment</code> vector, for the 
+original data. 
+</s-return-component>
+<s-return-component name="replicates">
+matrix with dimensions <code>B</code> by <code>p</code>, containing the differences 
+in means between the two samples in each permutation samples. 
+</s-return-component>
+<s-return-component name="estimate">
+data.frame with <code>p</code> rows and columns <code>"alternative"</code> and <code>"p-value"</code>, 
+where <code>p</code> is the number of variables (excluding <code>treatment</code> and <code>group</code>). 
+</s-return-component>
+<s-return-component name="combined-p-value">
+vector of combined p-values, of length equal to the number of combinations 
+requested by argument <code>combine</code>. 
+</s-return-component>
+<s-return-component name="group">
+a list, with components 
+</s-return-component>
+<s-return-component name="group$p-value">
+matrix of p-values with <code>K</code> rows and <code>p</code> columns 
+(where <code>K</code> is the number of groups). 
+</s-return-component>
+<s-return-component name="group$combined-p-value">
+this is present only if p-values are combined across variables: 
+matrix of combined p-values, 
+one row for each combination and <code>p</code> columns. 
+</s-return-component>
+<s-return-component name="group$combineGroup-p-values">
+this is present only if <code>combineGroup=T</code>: vector of length <code>p</code>; 
+p-values for each variable obtained by a nonparametric combination 
+across the individual-group p-values for that variable. 
+This is more heavily influenced by the results in small groups 
+or results from groups with small standard deviations than is 
+the <code>"p-value"</code> column in <code>estimate</code>.  This calculation is currently 
+slow. 
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+The function <code>permutationTestMeans</code> 
+causes creation of the dataset <code>.Random.seed</code> if it does 
+not already exist, otherwise its value is updated. 
+</s-side-effects>
+<s-details>
+If <code>diffMeans=FALSE</code>, then the <code>observed</code> and <code>replicates</code> 
+return components contain the sum of the first sample  
+(observations with <code>treatment==treatment[1]</code>) 
+rather than the difference between samples. 
+This does not affect p-values. 
+<p>
+If <code>treatment</code> and/or <code>group</code> are extracted from <code>data</code>, those 
+columns are deleted.  Numerical or logical subscripts in 
+<code>combine</code> should refer to remaining columns of <code>data</code>, 
+and the length of 
+<code>alternative</code> should match the number of remaining columns. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Pesarin, F. (2001), 
+<it> Multivariate Permutation Tests with Applications to 
+Biostatistics: Nonparametric Combination Methodology, </it> 
+Wiley, Chichester, UK. 
+(Describes nonparametric combination methodology.) 
+<br>
+We wish to thank Dr. Luigi Salmaso for help designing and testing 
+this function. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="permutationTest.sgm">permutationTest</s-function>,  
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>,
+
+More details on many arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.
+
+Combination of p-values for multivariate statistics,
+or across groups in the case of 
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>:  
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function>,  
+<s-function name="combinePValues.Liptak.sgm">combinePValues.Liptak</s-function>,  
+<s-function name="combinePValues.chisquare.sgm">combinePValues.chisquare</s-function>,  
+<s-function name="combinePValues.halfnormal.sgm">combinePValues.halfnormal</s-function>.
+
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,
+
+Description of a "permutationTestMeans" object, extract parts: 
+<s-function name="permutationTestMeans.object.sgm">permutationTestMeans.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+Modify a "permutationTestMeans" object: 
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package,
+including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+set.seed(0) 
+x <- matrix(rnorm(15*3), 15) 
+treatment <- rep(1:2, length=15) 
+result <- permutationTestMeans(x, treatment = treatment, seed=1) 
+result 
+summary(result) 
+plot(result) 
+ 
+# two combinations 
+update(result, combine = list(1:3, 1:2)) 
+ 
+# three groups 
+update(result, group = rep(c("a","b","c"), each=5), combineGroup = T) 
+ 
+# Example using two sets of data instead of treatment vector 
+y <- x + rnorm(length(x)) 
+permutationTestMeans(x, data2=y) 
+ 
+# Paired permutation test 
+permutationTestMeans(x, data2=y, paired = T) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

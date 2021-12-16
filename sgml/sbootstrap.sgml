@@ -1,0 +1,221 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>smoothedBootstrap</s-topic>
+</s-topics>
+<s-title>
+Smoothed Bootstrapping 
+</s-title>
+<s-description>
+Performs smoothed bootstrap resampling of observations from specified data, 
+for specified statistics, and summarizes the bootstrap distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+smoothedBootstrap(data, statistic, B = 1000,  
+           args.stat, sampler = samp.bootstrap,  
+           seed = .Random.seed, smoother = rmvnorm, 
+           args.smoother = list(cov = as.matrix(var(data))/numRows(data),  
+                                d = numCols(data)), 
+           label, statisticNames, 
+           block.size = min(100, B), trace = resampleOptions()$trace, 
+           assign.frame1 = F, save.samples = F, 
+           statistic.is.random, seed.statistic = 500) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data to be bootstrapped.  May be a vector, matrix, or data frame. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that returns a vector or matrix. 
+It may be a function which accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression. 
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="B">
+number of bootstrap resamples to be drawn.  This may be a vector, whose 
+sum is the total number of resamples. 
+</s-arg>
+<s-arg name="args.stat">
+list of other arguments, if any, passed to <code>statistic</code> when calculating 
+the statistic on the resamples. 
+</s-arg>
+<s-arg name="sampler">
+function which generates resampling indices.  The 
+<s-function name="samp.bootstrap.sgm">samp.bootstrap</s-function> 
+function generates simple bootstrap resamples. 
+See 
+<s-function name="samp.bootstrap.sgm">samp.bootstrap</s-function> 
+for other existing samplers, 
+and for details on writing your own sampler. 
+</s-arg>
+<s-arg name="seed">
+seed for generating resamples.  May be a legal random number seed 
+or an integer between 0 and 1023 which is passed to <code>set.seed</code>. 
+</s-arg>
+<s-arg name="smoother">
+function which generates random variates from a (continuous, symmetric, 
+mean zero) multivariate distribution; 
+these variates are added to the resampled original data values (chosen 
+using <code>sampler</code>), in effect sampling from a smoothed empirical distribution. 
+</s-arg>
+<s-arg name="args.smoother">
+list of other arguments, if any, passed to <code>smoother</code> when performing the 
+smoothing of the resamples. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+<s-arg name="block.size">
+control variable specifying the number of resamples to calculate at once. 
+<code>smoothedBootstrap</code> calls 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>, 
+which uses nested <code>for()</code> loops; 
+generally, the inner loop runs <code>block.size</code> times. 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether the algorithm should print a message indicating 
+which set of replicates is currently being drawn. 
+The default is determined by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before evaluating the statistic. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="save.samples">
+logical flag indicating whether to save the resampled data.  Note that this 
+may require a large quantity of memory. 
+</s-arg>
+<s-arg name="statistic.is.random">
+logical flag indicating whether the statistic itself performs randomization, 
+in which case we need to keep track of two parallel seeds, one for the 
+sampling and one for the statistic.  If this argument is missing, the algorithm 
+attempts to determine if the statistic involves randomization by 
+evaluating it and checking whether the random seed has changed. 
+</s-arg>
+<s-arg name="seed.statistic">
+random number seed to be used for the statistic if it uses randomization. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>smoothedBootstrap</code> which inherits from <code>resamp</code>.  This has 
+components <code>call</code>, <code>observed</code>, <code>replicates</code>, <code>estimate</code>, <code>B</code>, <code>n</code>, <code>dim.obs</code>, 
+<code>seed.start</code>, <code>seed.end</code>, 
+<code>parent.frame</code>, <code>defaultLabel</code>, 
+and possibly 
+<code>label</code>. 
+The data frame <code>estimate</code> has 
+three columns containing the bootstrap estimates of <code>Bias</code>, <code>Mean</code>, and <code>SE</code>. 
+See 
+<s-function name="parametricBootstrap.object.sgm">parametricBootstrap.object</s-function> 
+for a description of many components. 
+</s-value>
+<s-side-effects>
+If <code>assign.frame1=T</code>, you must be sure that this assignment does not 
+overwrite some quantity of interest stored in frame 1. 
+<p>
+If the function is interrupted it saves current results 
+(all complete sets of <code>block.size</code> replicates) 
+to <code>.smoothedBootstrap.partial.results</code> 
+(and also over-writes <code>.parametricBootstrap.partial.results</code>). 
+This object is nearly the same as if 
+<code>smoothedBootstrap</code> were called with a smaller value of <code>B</code>. 
+</s-side-effects>
+<s-details>
+Performs smoothed bootstrapping for a wide range of 
+statistics and expressions.  Observations are first selected, with 
+replacement, from the original data.  This is done using the 
+<code>sampler</code> function, in the same way as is done in <code>bootstrap</code>. 
+Observations are then smoothed by adding a random variable 
+generated by the <code>smoother</code>. 
+This corresponds to convolving the empirical distribution 
+function with a kernel corresponding to <code>smoother</code>. 
+This is implemented by creating a composite sampling function 
+which is passed to 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>. 
+<p>
+This version uses a lot of memory, and time. 
+It may at some point be replaced by a version 
+which calls <code>bootstrap</code>, with a front end that modifies the 
+statistic to add the right amount of noise to the data before 
+calculating the real statistic.  However, many of the functions that 
+currently accept <code>"bootstrap"</code> objects as input should not be used 
+in that case, because they require that the statistic be (nearly) 
+deterministic. 
+<p>
+Data sets (arrays) of dimension higher than 2 may not be passed to 
+<code>smoothedBootstrap</code>. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Hesterberg, T.C. (2004), 
+"Unbiasing the Bootstrap - Bootknife Sampling vs. Smoothing", 
+<it>Proceedings of the Section on Statistics and the Environment,</it>
+American Statistical Association, pp. 2924-2930. 
+</s-section>
+<s-see>
+
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>,  
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="parametricBootstrapTest.sgm">parametricBootstrapTest</s-function>.  <p>
+More details on some arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.smoothedBootstrap.sgm">summary.smoothedBootstrap</s-function>,  
+<s-function name="print.summary.smoothedBootstrap.sgm">print.summary.smoothedBootstrap</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of an "smoothedBootstrap" object, extract parts: 
+<s-function name="smoothedBootstrap.object.sgm">smoothedBootstrap.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>.  <p>
+Confidence intervals: 
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>.  <p>
+Modify an "smoothedBootstrap" object: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# compare the cdf of the smoothedBootstrap replicates to that of 
+# the bootstrap replicates -- smoothedBootstrap's is smooth 
+# by comparison 
+boot.stack <- bootstrap(stack.loss, median) 
+sboot.stack <- smoothedBootstrap(stack.loss, median) 
+cdf.compare(boot.stack$replicates, sboot.stack$replicates) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

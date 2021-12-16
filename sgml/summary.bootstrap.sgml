@@ -1,0 +1,112 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>summary.bootstrap</s-topic>
+</s-topics>
+<s-title>
+Summary Method for Bootstrap Objects 
+</s-title>
+<s-description>
+Produces a summary for <code>bootstrap</code> objects. 
+This calculates percentiles and BCa confidence limits 
+for the bootstrap distributions of parameters, and correlations of 
+parameter replicates if applicable.  The print method displays the same 
+results as <code>print.resamp</code>, plus these quantities. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+summary.bootstrap(object, probs=c(0.025, 0.05, 0.95, 0.975), 
+                  frame.eval = &lt;&lt;see below&gt;&gt;, narrow = F, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="object">
+object of class 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="probs">
+probability levels at which to calculate percentiles and confidence limits. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>object</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+<s-arg name="narrow">
+logical, determines how quantiles are computed.  If <code>narrow=FALSE</code> 
+(the default), then intervals are wider and coverage probabilities 
+are usually more accurate than with <code>narrow=TRUE</code>. 
+</s-arg>
+<s-arg name="...">
+optional arguments to pass 
+to 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+(for example, <code>z0</code>, <code>acceleration</code>, and <code>group.size</code>),  or 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function> 
+(for example, <code>t.adjustment</code>, <code>initial</code>).  
+</s-arg>
+</s-args-optional>
+<s-value>
+a list containing selected components of <code>object</code> (<code>call</code>, <code>B</code>, 
+<code>observed</code>, <code>estimate</code>), plus percentiles  
+<code>limits.emp</code>, 
+BCa confidence intervals 
+<s-function name="limits.bca.sgm">limits.bca</s-function>, 
+and (if <code>observed</code> has more than one element) 
+the correlation matrix <code>correlation</code> for the bootstrap replicates. 
+<p>
+Tilting limits,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>, 
+are also computed, if the bootstrap statistic is <code>"functional"</code> (the 
+observed value is the same as the value computed with equal weights) 
+and if either the bootstrap object contains component <code>L</code> (empirical 
+influence values) or if the size of the original bootstrap sample is 
+less than 100.  
+</s-value>
+<s-details>
+The print method 
+<s-function name="print.summary.bootstrap.sgm">print.summary.bootstrap</s-function> 
+prints the results in a nicely formatted manner. 
+<br>
+To get percentiles of the bootstrap distribution without computing 
+BCa confidence intervals, call 
+<s-function name="limits.percentile.sgm">limits.percentile</s-function> 
+rather than <code>summary</code>. 
+</s-details>
+<s-section name=" NOTE">
+
+If <code>acceleration</code> is estimated using <code>jackknife</code>,  
+the statistic must allow samples of reduced size; see 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="print.summary.bootstrap.sgm">print.summary.bootstrap</s-function>,  
+<s-function name="frame.eval.sgm">frame.eval</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# statistic is not functional, tilting limits not computed 
+summary(bootstrap(stack.loss, var))   
+# statistic is functional, tilting limits are computed 
+summary(bootstrap(stack.loss, var(stack.loss, unbiased = F)))  
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

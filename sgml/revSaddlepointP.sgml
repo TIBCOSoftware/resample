@@ -1,0 +1,286 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>revSaddlepointP</s-topic>
+   <s-topic>revSaddlepointPSolve</s-topic>
+</s-topics>
+<s-title>
+Reverse saddlepoint calculations 
+</s-title>
+<s-description>
+Calculate saddlepoint approximations for a tilted discrete distribution, 
+or solve for the tilting parameter given a desired tail probability. 
+This is an approximation to bootstrap tilting inferences. 
+<p>
+Consider a discrete distribution with (possibly equal) probabilities 
+<code>weights</code> on observations <code>L</code> (both vectors of the same length <code>n</code>). 
+Now tilt this distribution 
+using tilting parameter <code>tau</code>, to obtain a new weighted distribution, 
+with probabilities <code>w</code> on observations <code>L</code>; 
+e.g. for exponential tilting <code>w</code> is proportional to 
+<code>exp(tau * L) * weights</code> 
+and for maximum likelihood tilting 
+<code>w</code> is proportional to <code>weights / (1 - tau * L)</code>, 
+after <code>L</code> is 
+centered, i.e. <code>L</code> is replaced by <code>(L - mean(L, weights))</code>. 
+<p>
+<code>revSaddlepointP</code> returns the saddlepoint estimate of 
+<code>P(Y &gt; Q)</code>, where <code>Y</code> is the sample mean of <code>n</code> observations chosen 
+from <code>L</code> with probabilities <code>w</code> and <code>Q</code> is a specified critical value. 
+<p>
+<code>revSaddlepointPSolve</code> finds the value of <code>tau</code> (and implicitly finds <code>w</code>) 
+that makes 
+<code>P(Y &gt; Q) = probs</code>. 
+<p>
+The internal saddlepoint calculations perform a second round of tilting, 
+finding <code>tau2</code> or <code>Q</code> 
+so that the weighted mean of <code>L</code> with weights proportional to 
+<code>w * exp(tau2 * L)</code> equals <code>Q</code>.  You may supply either <code>tau2</code> or <code>Q</code>; 
+the default value of <code>Q</code> is the original weighted mean of <code>L</code>. 
+<p>
+Either exponential or ML tilting (see 
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>) 
+can be used for the first round of tilting (using <code>tau</code>), 
+but the saddlepoint calculations always use exponential 
+tilting.  If the first round uses exponential tilting, and 
+<code>Q</code> is its default, then <code>tau2 = -tau</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+revSaddlepointP(     tau,   L, tilt = "exponential", weights = NULL, 
+           group = NULL, Q = &lt;&lt;see below&gt;&gt;, tau2 = NULL) 
+revSaddlepointPSolve(probs, L, tilt = "exponential", weights = NULL, 
+           group = NULL, Q = &lt;&lt;see below&gt;&gt;,  
+           initial = NULL, initial.tau2 = NULL, useExpForInit = T, 
+           tol = 1E-6, tol.tau = tol, maxiter = 100) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="tau">
+vector of tilting parameters. 
+</s-arg>
+<s-arg name="probs">
+vector of desired tail probabilities.  Must be in the range [0,1].  
+</s-arg>
+<s-arg name="L">
+vector of values which determine a discrete distribution. 
+Often these are linear approximation values, produced by 
+<s-function name="resampGetL.sgm">resampGetL</s-function> 
+or 
+<s-function name="influence.sgm">influence</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="tilt">
+character string to indicate which method of tilting: <code>"exponential"</code>, 
+or <code>"ml"</code>. Default is <code>"exponential"</code> tilting. 
+</s-arg>
+<s-arg name="weights">
+vector of probabilities for the discrete distribution; 
+<code>NULL</code> indicates equal probabilities on all observations (the 
+default). 
+</s-arg>
+<s-arg name="group">
+vector the same length as the number of rows of <code>L</code> indicating 
+stratified sampling or multiple-group problems; unique values 
+of this vector determine the groups.   
+This is not currently supported for <code>revSaddlepointPSolve</code> 
+with <code>tilt="ml"</code>.  
+</s-arg>
+<s-arg name="Q">
+scalar; desired critical value. 
+Default is <code>mean(L, weights=weights)</code>. 
+<code>Q</code> is ignored if <code>tau2</code> is supplied. 
+</s-arg>
+<s-arg name="tau2">
+vector the same length as <code>tau</code>.  By default this is chosen 
+to match the critical value <code>Q</code>. 
+</s-arg>
+<s-arg name="initial">
+vector the same length as <code>probs</code>; initial values used in iteratively 
+solving for <code>tau</code>.  For <code>tilt = "ml"</code>, you must provide both <code>initial</code> 
+and <code>initial.tau2</code> (or neither).   
+</s-arg>
+<s-arg name="initial.tau2">
+vector the same length as <code>probs</code>; initial values used in iteratively 
+solving for <code>tau2</code>.  This is used only for <code>tilt="ml"</code>, and then only 
+if <code>useExpForInit=F</code>.   
+</s-arg>
+<s-arg name="useExpForInit">
+logical value; used only when <code>tilt="ml"</code>.  If <code>TRUE</code> then find <code>tau</code> 
+and <code>tau2</code> for exponential tilting (using <code>initial</code> values, if 
+provided), and use those as initial values for solving the "ml" case. 
+If <code>FALSE</code>, proceed directly to solving for the "ml" case, using 
+<code>initial</code> and <code>initial.tau2</code>, if provided.  
+</s-arg>
+<s-arg name="tol">
+tolerance for solving for <code>tau</code> on the scale of <code>probs</code> and <code>Q</code>. <code>tau</code> 
+and <code>tau2</code> are solved for  
+iteratively.  Values <code>tau</code> and <code>tau2</code> uniquely determine (with 
+<code>L</code>) a tilted mean <code>q</code> and probability <code>P</code>.  Iterations will 
+stop if the values of <code>q</code> and <code>P</code> for  
+given iteration values of <code>tau</code> and <code>tau2</code> are both within <code>tol</code> of 
+<code>Q</code> and <code>probs</code>, respectively.   
+<p>
+Iterations stop when either of the convergence criteria determined by <code>tol</code> or 
+<code>tol.tau</code> are met.  If you want just one of the criteria to apply, set 
+the other tolerance to zero.  
+</s-arg>
+<s-arg name="tol.tau">
+tolerance for solving for <code>tau</code> on the scale of <code>tau</code>. 
+<code>tau</code> and <code>tau2</code> are solved for 
+iteratively.  Let the differences between successive guesses at each 
+step be <code>dtau</code> and <code>dtau2</code>.  Then  
+iterations stop if both <code>dtau</code> and <code>dtau2</code> are smaller in 
+absolute value than <code>tol.tau</code>. 
+</s-arg>
+<s-arg name="maxiter">
+maximum number of iterations allowed for finding values of tau which 
+bracket the solution for each p (after the root is bracketed additional 
+iterations may be performed).  
+</s-arg>
+</s-args-optional>
+<s-value>
+For <code>revSaddlepointP</code>, a matrix with <code>length(tau)</code> rows 
+and three columns <code>tau</code>, <code>tau2</code>, and <code>probs</code>, the latter containing the 
+calculated tail probabilities. 
+<p>
+For <code>revSaddlepointPSolve</code>, a matrix with <code>length(probs)</code> rows 
+and three columns <code>probs</code>, <code>tau</code>, and <code>tau2</code>. 
+</s-value>
+<s-details>
+If <code>tau</code> or <code>probs</code> is a vector, results are equivalent 
+to calling the function separately for each element of the vector 
+(the explanation at the top, where we wrote <code>exp(tau * L)</code>, assumes 
+that <code>tau</code> is a scalar). 
+Typically <code>probs</code> is a vector of desired probabilities for 
+confidence intervals, e.g. <code>c(0.025, 0.975)</code>. 
+<p>
+These functions are useful as non-sampling approximations to 
+bootstrap tilting inferences for a sample mean. 
+To help understand the concept, consider exact confidence intervals 
+for a binomial proportion; 
+given an observed proportion <code>phat</code>, 
+the one-sided 95% upper confidence interval by finding the value <code>p</code> 
+such that 
+<code>pbinom(phat, n, p) = .95</code>. 
+Probability calculations are under a "tilted distribution" 
+with parameter <code>p</code> (which corresponds probability calculations under 
+the tilted distribution with parameter <code>tau</code> and weights <code>w</code>), 
+rather than with parameter <code>phat</code> 
+(which corresponds to the original data, before tilting). 
+The corresponding bootstrap tilting (and reverse saddlepoint) 
+intervals would use <code>revSaddlepointPSolve</code> -- see the example below. 
+<p>
+In contrast, 
+<s-function name="pDiscreteMean.sgm">pDiscreteMean</s-function> 
+calculates saddlepoint estimates of <code>P(Y &lt; q)</code> 
+when <code>Y</code> is the sample mean of observations drawn from the untilted 
+distribution. 
+<p>
+In the group case, <code>L</code> is centered by subtracting the group 
+mean from each group. Results are normalized to sum to 1 within each 
+group.  
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. (1994), 
+"Saddlepoint Quantiles and Distribution Curves, with Bootstrap Applications," 
+<it>Computational Statistics,</it>
+<bf>9</bf>(3), 207-212. 
+<p>
+Kolassa, J.E. (1997). 
+<it>Series Approximation Methods in Statistics.</it>
+Second edition; Springer-Verlag, Lecture Notes in Statistics, no. 88. 
+</s-section>
+<s-see>
+
+<s-function name="saddlepointP.sgm">saddlepointP</s-function>,  
+<s-function name="saddlepointD.sgm">saddlepointD</s-function>,  
+<s-function name="saddlepointPSolve.sgm">saddlepointPSolve</s-function>,  
+<s-function name="pDiscreteMean.sgm">pDiscreteMean</s-function>,  
+<s-function name="dDiscreteMean.sgm">dDiscreteMean</s-function>,  
+<s-function name="qDiscreteMean.sgm">qDiscreteMean</s-function>,  
+<s-function name="tiltMean.sgm">tiltMean</s-function>,  
+<s-function name="tiltMeanSolve.sgm">tiltMeanSolve</s-function>,  
+<s-function name="saddlepoint.test.sgm">saddlepoint.test</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# Uses these input data: 
+set.seed(1) 
+x <- rexp(30) 
+saddlepoint.test(x, mu=1) 
+ 
+tau <- revSaddlepointPSolve(c(0.025, 0.975), x)[,2] 
+tiltMean(tau, x)$q 
+# match above t-test 95% bootstrap tilting confidence interval. 
+ 
+saddlepoint.test(x, mu=1, alternative="greater") 
+tau <- tiltMeanSolve(1, x)$tau.exp 
+revSaddlepointP(tau, x)[,3]  # match above t-test tilting p-value. 
+ 
+# input data for the following tests 
+set.seed(1) 
+xx <- rnorm(30) 
+set.seed(1) 
+ww <- rexp(30) 
+tau.in <- seq(-.04, .04, .01) 
+ 
+# Test exponential tilting: 
+pp <- revSaddlepointP(tau.in, L=xx, weights= ww, Q= .8)[,3] 
+tau.out <- revSaddlepointPSolve(pp, L=xx, weights=ww, Q=.8)[,2] 
+all.equal(tau.in, tau.out, tol= 1e-4)   # T 
+ 
+# Test maximum likelihood tilting: 
+ppM <- revSaddlepointP(tau.in, L=xx, weights= ww, Q= .8, tilt= "ml")[,3] 
+tauM.out <- revSaddlepointPSolve(ppM, L=xx, weights=ww, Q=.8, tilt= "ml")[,2] 
+all.equal(tau.in, tauM.out, tol= 1e-4)  # T 
+ 
+## Test when `useExpForInit = F' is necessary: 
+#  revSaddlepointPSolve, exponential tilting 
+revSaddlepointPSolve(.999, L=xx, weights=ww, Q=.8, tilt= "exp") 
+#    probs      tau       tau2 
+#    0.999  1.799083  -0.8119742 
+# 
+#  revSaddlepointPSolve, maximum likelihood tilting, `useExpForInit = T' 
+revSaddlepointPSolve(.999, L=xx, weights=ww, Q=.8, tilt= "ml") 
+#  probs tau tau2 
+#  0.999  NA   NA 
+# 
+# This failed because the initial value of `tau' = 1.799083 resulted in 
+# negative maximum likelihood weights. 
+# 
+# Use a different initial value. 
+revSaddlepointPSolve(.999, L=xx, weights=ww, Q=.8, tilt= "ml", initial= 0.7, 
+                     useExpForInit = F) 
+#  probs        tau      tau2 
+#  0.999  0.7120254  -0.6980718 
+# 
+# Check if the result is correct: 
+revSaddlepointP(0.7120254, L=xx, weights=ww, Q=.8, tilt= "ml") 
+#  tau        tau2       probs 
+# 0.7120254  -0.6980718  0.999 
+ 
+## Exact binomial confidence interval, and saddlepoint approximation 
+L <- rep(0:1, c(13, 7))  # 7 successes in 20 tries 
+uniroot(function(p) {pbinom(7, 20, p) - .05}, lower=.35, upper=.8)$root 
+# 
+# Exact one-sided interval is (-infinity, 0.558)  (or (0, 0.558)) 
+tau <- revSaddlepointP(.95, L)[1] 
+tiltMean(tau, L)$q 
+# Saddlepoint approximation is .5820 -- differs because no continuity 
+# correction and because saddlepoint estimates are not exact. 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

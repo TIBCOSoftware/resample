@@ -1,0 +1,119 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>lm.model.list</s-topic>
+   <s-topic>glm.model.list</s-topic>
+   <s-topic>censorReg.model.list</s-topic>
+</s-topics>
+<s-title>
+Fit Model From a Model List. 
+</s-title>
+<s-description>
+Returns a fitted model, based on an object of class <code>model.list</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+lm.model.list(formula, ...) 
+glm.model.list(formula, ...) 
+censorReg.model.list(formula, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a <code>"model.list"</code> object, typically created by a call to the modeling 
+function using <code>"method=model.list"</code>.  See 
+<s-function name="model.list.object.sgm">model.list.object</s-function> 
+for a description of the <code>model.list</code> object. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+Remaining arguments are the same as for the default methods and are 
+usually not needed, since the data they represent are  
+embedded in the model list.  If extra arguments are provided, however, 
+the model is refit using the original arguments used to create the 
+model list, superceded by those provided in this call. (See 
+<code>"Examples"</code> for an example of this.)  
+</s-args-optional>
+<s-value>
+a fitted model object of class 
+<s-function name="lm.sgm">lm</s-function>, 
+<s-function name="glm.sgm">glm</s-function>, 
+<s-function name="censorReg.sgm">censorReg</s-function>, 
+or <code>censorRegList</code> representing the fit.  See 
+<s-function name="lm.object.sgm">lm.object</s-function>, 
+etc. for details. 
+</s-value>
+<s-details>
+These routines are designed to support the 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+function, which 
+may call modeling functions hundreds of times.  The construction of a 
+fitted model object from scratch follows three basic steps:  construction of the model 
+frame from the data; combining the relevant pieces 
+from the model frame and fitting parameters into the model list; and 
+fitting the results.  The first two 
+steps are redundant from the point of view of 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+Therefore, modeling functions 
+<s-function name="lm.sgm">lm</s-function>, 
+<s-function name="glm.sgm">glm</s-function> 
+and 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+provide the option of returning the model list (without fitting) via the 
+<code>method</code> argument. 
+Functions  <code>lm.model.list</code>, etc. (which are called repeatedly by 
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>, 
+etc.) then perform the fit given the model list. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>,  
+<s-function name="lm.sgm">lm</s-function>,  
+<s-function name="glm.sgm">glm</s-function>,  
+<s-function name="censorReg.sgm">censorReg</s-function>,  
+<s-function name="model.list.object.sgm">model.list.object</s-function>,  
+<s-function name="model.frame.sgm">model.frame</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+# Equivalent ways of making an lm object. 
+weights <- runif(60) 
+fitform <- Mileage~Weight+Fuel 
+fit1 <- lm(fitform,fuel.frame,weights=weights) 
+ml <- lm(fitform,fuel.frame,weights=weights,method="model.list") 
+fit2 <- lm(ml)  # calls lm.model.list 
+ 
+# All equal but the calls 
+all.equal(fit1[names(fit1)!="call"], fit2[names(fit2)!="call"])  # T 
+ 
+## Using lm with bootstrap 
+# slow 
+wdata <- data.frame(fuel.frame,weights) 
+b1 <- bootstrap(wdata, coef(lm(fitform, data=wdata, weights=weights)), 
+                B=200, seed=0) 
+# fast: calls lm.model.list 
+b2 <- bootstrap(ml, coef(lm(ml)), B=200, seed=0) 
+# also fast: dispatches to bootstrap.lm, which calls lm.model.list 
+b3 <- bootstrap(fit1, coef, B=200, seed=0) 
+all.equal(b1[names(b1)!="call"], b2[names(b2)!="call"])  # T 
+all.equal(b2[names(b2)!="call"], b3[names(b3)!="call"])  # T 
+# 
+# Use lm.model.list to add weights 
+# 
+ml <- lm(fitform, fuel.frame, method = "model.list") 
+fit3 <- lm(ml, weights = weights)  # same as fit2, except for call 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>models</s-keyword>
+<s-keyword>regression</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

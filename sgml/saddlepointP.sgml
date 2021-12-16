@@ -1,0 +1,279 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>saddlepointP</s-topic>
+   <s-topic>saddlepointD</s-topic>
+   <s-topic>saddlepointPSolve</s-topic>
+   <s-topic>pDiscreteMean</s-topic>
+   <s-topic>qDiscreteMean</s-topic>
+   <s-topic>dDiscreteMean</s-topic>
+</s-topics>
+<s-title>
+Saddlepoint calculations 
+</s-title>
+<s-description>
+Saddlepoint approximation to distribution of 
+the mean of observations from a discrete distribution, 
+or linear combination of multiple group means. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+pDiscreteMean(q, values, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, conv.factor = 0, ...) 
+qDiscreteMean(p, values, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, conv.factor = 0, ...) 
+dDiscreteMean(x, values, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, conv.factor = 0, ...) 
+saddlepointP(tau, L, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, mean = T, conv.factor = 0) 
+saddlepointD(tau, L, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, mean = T, conv.factor = 0) 
+saddlepointPSolve(p, L, size = &lt;&lt;see below&gt;&gt;, weights = NULL, 
+             group = NULL, mean = T, conv.factor = 0,  
+             initial, tol = 1E-6, tol.tau = tol, maxiter = 100) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="p">
+vector of probabilities 
+</s-arg>
+<s-arg name="q">
+vector of quantiles 
+</s-arg>
+<s-arg name="x">
+vector of quantiles 
+</s-arg>
+<s-arg name="tau">
+vector of tilting parameters 
+</s-arg>
+<s-arg name="L,values">
+vector of possible values; these functions calculate the distribution 
+of a sample mean for observations chosen with replacement from these 
+values. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="size">
+sample size;  The default value is <code>n</code> (the length of <code>L</code>). 
+See "DETAILS", below. 
+</s-arg>
+<s-arg name="weights">
+vector of probabilities of length <code>n</code>; if supplied then 
+sampling is with these (unequal) probabilities on the values in <code>L</code>. 
+</s-arg>
+<s-arg name="group">
+vector of length <code>n</code> indicating stratified sampling or 
+multiple-group problems; unique 
+values of this vector determine the groups. 
+In the current implementation, only one of <code>group</code> and <code>size</code> may be supplied. 
+</s-arg>
+<s-arg name="mean">
+logical, if <code>TRUE</code> then calculations are for the sample mean, or 
+sum of sample means for groups.  If <code>FALSE</code>, then calculations 
+are for the sample sum or sum of group sample sums. 
+</s-arg>
+<s-arg name="conv.factor">
+convolution factor; see "DETAILS", below. 
+</s-arg>
+<s-arg name="initial">
+vector the same length as <code>p</code>; 
+initial values used in iteratively solving for tau. 
+</s-arg>
+<s-arg name="tol">
+tolerance for solving for <code>tau</code> on the scale of <code>p</code>. 
+</s-arg>
+<s-arg name="tol.tau">
+tolerance for solving for <code>tau</code> on the scale of <code>tau</code>. 
+</s-arg>
+<s-arg name="maxiter">
+maximum number of iterations allowed for finding values of <code>tau</code> which 
+bracket the solution for each <code>p</code> (after the root is bracketed additional 
+iterations may be performed). 
+</s-arg>
+<s-arg name="...">
+arguments to control numerical convergence.  For <code>pDiscreteMean</code> 
+and <code>dDiscreteMean</code> these are any other arguments acceptable to 
+<code>tiltMeanSolve</code>.  For <code>qDiscreteMean</code>, these are any other arguments 
+acceptable to <code>saddlepointPSolve</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+density (<code>dDiscreteMean</code> and <code>saddlepointD</code>), 
+probability (<code>pDiscreteMean</code> and <code>saddlepointP</code>), 
+quantile (<code>qDiscreteMean</code>), 
+or 
+saddlepoint tilting parameter (<code>saddlepointPSolve</code>) 
+for the mean or sum of random values from a discrete distribution. 
+<p>
+The output is a vector as the same length as the primary input 
+(<code>p</code>, <code>q</code>, <code>x</code>, or <code>tau</code>). 
+<p>
+"density" is a misnomer, as the distribution is not continuous. 
+However, if the values in the discrete distribution are themselves 
+drawn from a continuous distribution, then this distribution 
+is practically continuous (Hall 1986); 
+the "density" is the density for 
+a continuous approximation to the distribution. 
+</s-value>
+<s-details>
+Suppose that Y is the mean of <code>size</code> observations sampled with 
+replacement from <code>L</code>.  Then 
+<br>
+      <code>(tiltMean(tau, L), saddlepointP(tau, L, size))</code> 
+<br>
+are parametric equations in <code>tau</code> that trace the saddlepoint estimate of the 
+cumulative distribution function of Y. 
+<p>
+If <code>group</code> is supplied, then calculations are for the distribution 
+of the sum of group means, or sum of group sums. 
+Arbitrary sample sizes within groups are not supported. 
+In the sum of group means case, the tilting parameter used for 
+group <code>g</code> is <code>tau / (n[g]/n)</code>, which is consistent with <code>tiltMean</code>. 
+<p>
+The standard saddlepoint estimate for density is due to Daniels (see 
+also Kolassa 1997). The cumulative distribution function 
+estimate used here is formula (3.8) in Barndorff-Nielsen (1986), 
+often referred to as the "r*" approximation in the literature. 
+This is similar to the Lugannani and Rice 
+saddlepoint approximation (see Kolassa). 
+The cdf approximation is modified to avoid numerical problems in the center. 
+<p>
+These estimates are for continuous distributions, though here they 
+are applied to discrete distributions.  If the sample is reasonably 
+large and observations (<code>L</code>) are not lattice-valued this should not 
+matter, but for small samples the estimates may break down, and for 
+lattice-valued observations (e.g. integers) the estimates do not 
+reflect the discrete steps in the actual cdf. 
+<p>
+The <code>conv.factor</code> argument convolves the distribution of the sum (or 
+mean) of <code>size</code> observations (chosen from <code>L</code> with probabilities 
+<code>weights</code>) with a single normally distributed observation with 
+variance <code>conv.factor*var(L,weights,unbiased=F)</code>.  This serves three 
+purposes.  First, it provides some smoothing. 
+<br>
+Second, it inflates the variance of the distribution, and may be used 
+to get (nearly) unbiased variances.  Recall that the usual estimate of 
+sample variance (<code>var(x,unbiased=T)</code>) uses a denominator of <code>(n-1)</code> 
+rather than <code>n</code>, where <code>n</code> is the sample size; this corresponds to a 
+variance inflation factor of <code>n/(n-1)</code>.  Here the expected value of 
+the variance for the mean of <code>size</code> independent observations without 
+weights from a distribution with variance <code>sigma^2</code> is (n-1)/n 
+sigma^2 (size+conv.factor)/size^2.  With <code>size=n</code> and 
+<code>conv.factor=n/(n-1)</code> that simplifies to <code>sigma^2/n</code>. 
+<br>
+Third, the argument makes estimates reliable in extreme cases, when 
+<code>size</code> is very small and <code>L</code> or <code>weights</code> is skewed (see 
+"EXAMPLES"). Saddlepoint density and distribution estimates break down 
+in the tails for all discrete distributions when <code>size</code> is fixed: the 
+density approximation approaches infinity as tau approaches plus or 
+minus infinity; the r* cdf approximation approaches 0 as tau 
+approaches infinity and 1 as tau approaches negative infinity 
+(the 
+Lugannani-Rice approximation approaches negative infinity as tau 
+approaches positive infinity and positive infinity as tau approaches 
+negative infinity). On most examples, however, the approximations fail 
+only in extreme regions of the tails, and may not fail at all up to 
+machine precision. In case of questionable results, set <code>conv.factor</code> 
+to a small positive value, say <code>0.1</code>, to get the correct tail 
+behavior. 
+<p>
+<code>saddlepointP</code> produces a warning if the cdf approximation is 
+decreasing at any <code>tau</code> value. 
+<p>
+<code>pDiscreteMean</code> calls <code>tiltMeanSolve</code> to calculate <code>tau</code> for given quantiles, 
+then calls <code>saddlepointP</code>.  <code>dDiscreteMean</code> calls 
+<code>tiltMeanSolve</code>, then <code>saddlepointD</code>, and <code>qDiscreteMean</code> calls 
+<code>saddlepointPSolve</code>, then <code>tiltMean</code>. 
+<p>
+<code>saddlepointPSolve</code> uses a bracketed secant method to iteratively 
+solve for <code>tau</code> 
+</s-details>
+<s-section name=" REFERENCES">
+
+Barndorff-Nielsen, O. E. (1986), 
+"Inference on full or partial parameters based on the standardized signed log likelihood ratio", 
+<it>Biometrika,</it>
+<bf>73</bf>, 307-322. 
+<p>
+Daniels, H.E. (1954), 
+"Saddlepoint approximations in statistics," 
+<it>Ann. Math. Statist.,</it>
+<bf>25</bf>, 631-650. 
+<p>
+Hall, P. (1986), 
+"On the number of bootstrap simulations required to construct a  
+Confidence Interval", 
+<it>Annals of Statistics</it>
+<bf>14</bf>, 1453-1462. 
+<p>
+Hesterberg, T.C. (1994), 
+"Saddlepoint Quantiles and Distribution Curves, with Bootstrap Applications," 
+<it>Computational Statistics,</it>
+<bf>9</bf>(3), 207-212. 
+<p>
+Kolassa, J.E. (1997). 
+<it>Series Approximation Methods in Statistics.</it>
+Second edition; Springer-Verlag, Lecture Notes in Statistics, no. 88. 
+</s-section>
+<s-see>
+
+<s-function name="tiltMean.sgm">tiltMean</s-function>,  
+<s-function name="tiltMeanSolve.sgm">tiltMeanSolve</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+set.seed(0) 
+x <- rexp(30) 
+p <- c(.01, .025, .05, .5, .95, .975, .99) 
+tau <- saddlepointPSolve(p, x) 
+plot(tiltMean(tau, x)$q, p)  # saddlepoint distribution curve 
+tau2 <- seq(min(tau), max(tau), length = 200) 
+lines(tiltMean(tau2, x)$q, saddlepointP(tau2, x)) 
+ 
+# variance decreases as sample size increases (use qDiscreteMean) 
+points(qDiscreteMean(p, x, size = 50), p, col = 3) 
+p2 <- seq(.01, .99, by = .005) 
+lines(qDiscreteMean(p2, x, size = 50), p2, col = 3) 
+ 
+# Find the saddlepoint cdf and density estimates at a particular x value 
+q <- 1:40/20 # quantile values .05, .1, ..., 2 
+plot(q, dDiscreteMean(q, x), type = "l") # density 
+lines(q, pDiscreteMean(q, x), col = 2)   # cdf 
+ 
+# Stratified sampling 
+set.seed(0) 
+gs <- c(10, 20, 10) 
+L1 <- rnorm(gs[1], mean = 0, sd = 1) 
+L2 <- rnorm(gs[2], mean = 1, sd = 1) 
+L3 <- rnorm(gs[3], mean = 2, sd = 3) 
+L <- c(L1, L2, L3) 
+group <- rep(1:3, gs) 
+p <- 1:9/10 
+plot(qDiscreteMean(p, L = L, group = group), p) 
+p2 <- seq(.1, .9, by = .01) 
+lines(qDiscreteMean(p2, L = L, group = group), p2) 
+ 
+# An example showing failure of the approximations in the tails 
+L <- c(0,3,6,10) 
+taup <- c(seq(-4,-1,length=10),seq(-1,1,length=50),seq(1,4,length=10)) 
+taud <- seq(-3,3,length=100) 
+plot(taup, saddlepointP(taup, L), type = "l") # density: warning messages 
+lines(taud, saddlepointD(taud, L), col = 3)   # cdf 
+ 
+# Improve with a convolution 
+plot(taup, saddlepointP(taup, L, conv.factor = .1), type = "l") # density 
+lines(taud, saddlepointD(taud, L, conv.factor = .1), col = 3)   # cdf 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

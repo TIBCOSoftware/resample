@@ -1,0 +1,40 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Jackknife After Bootstrap</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Jackknife After Bootstrap</H3>
+<P>
+Jackknife-after-bootstrap (JAB) is a technique applied to the results of a 
+bootstrap analysis, to determine how sensitive the bootstrap estimates
+are to the original random sample of data.
+<p>
+Suppose, for example, that the Functional is "SE" (standard error).
+In other words, one of the things estimated from bootstrap sampling
+is the standard error of your statistic.  JAB lets you investigate
+the following things about the estimated standard error:
+<li> <b>sensitivity</b>:  how sensitive is the estimated standard
+error to each of the observations in your original data set?
+<li> <b>bias</b> and <b>standard error</b>:  provides estimates of
+the bias and standard error, due to random sampling, of the
+estimated standard error of your statistic.
+<li> <b>correlation</b>:  is there correlation between the original
+statistic (calculated leaving out one original observation at a time)
+and the functional (calculated from a bootstrap distribution leaving
+out one original observation at a time).
+Nonzero correlation between the functional "SE" and the statistic suggests
+a relationship between the statistic and its standard error,
+so that symmetric confidence intervals would be inaccurate.
+</BODY>
+</HTML>

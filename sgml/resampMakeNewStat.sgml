@@ -1,0 +1,83 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampMakeNewStat</s-topic>
+</s-topics>
+<s-title>
+Construct New Statistic When Resampling Fitted Models 
+</s-title>
+<s-description>
+This function forms a new 
+statistic expression from an original statistic and a new argument for 
+that statistic. This is a utility function that is called 
+internally by various resampling functions and their methods, and is 
+not intended to be called directly. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampMakeNewStat(statistic, newstatarg, args.stat, frame.eval)
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="statistic">
+a statistic.  See 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+for a description of this argument. 
+</s-arg>
+<s-arg name="newstatarg">
+new argument to <code>statistic</code>. 
+</s-arg>
+<s-arg name="frame.eval">
+the frame where the objects occuring in <code>statistic</code> can be found.  See 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="args.stat">
+additional arguments or objects for <code>statistic</code>.  See 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+for a description of this argument. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an expression with <code>statistic</code> acting on argument <code>newstatarg</code>, and 
+possibly other arguments from <code>args.stat</code>. 
+</s-value>
+<s-details>
+This is part of a suite of functions that allows 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+to recognize the syntax 
+<p>
+# 
+<br>
+bootstrap(fit, ...) 
+<br>
+# 
+<p>
+where <code>fit</code> is the output from a modeling function. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="jackknife.lm.sgm">jackknife.lm</s-function>,  
+<s-function name="jackknife.glm.sgm">jackknife.glm</s-function>,  
+<s-function name="jackknife.censorReg.sgm">jackknife.censorReg</s-function>,  
+<s-function name="resampMakeFitObjResults.sgm">resampMakeFitObjResults</s-function>,  
+<s-function name="resampMakeFitObjResults.censorReg.sgm">resampMakeFitObjResults.censorReg</s-function>  </s-see>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

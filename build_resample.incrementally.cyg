@@ -1,0 +1,123 @@
+#! /bin/sh
+
+## NOTE: this file may be out of date.  See instructions below, and compare
+## with the current version of build_resample.cyg
+##
+## This builds just the src directory for resample.  Convenient if you want 
+## to quickly edit a C file, compile it (with this script) and test it 
+## in Splus.
+##
+## To do so, you'll need to attach/detach the library in modules/builds by 
+## typing in S+
+##
+##   > library("resample", lib.loc = "../../../../modules/builds", first = T)
+##
+## and
+##
+##   > deatch("resample")
+##
+## Edit the C function file in directory 
+##
+## 	modules/builds/resample/src
+## 
+## using Visual Studio.  Detach the library and run this script from a 
+## cygwin window:
+##   
+## 	$ build_resample.incrementally.cyg
+##   
+## Then re-attach the library and the changes will be in effect. 
+##
+## This script was copied from 
+## moduletools/example_scripts/build_garch.incrementally
+
+
+##
+## This script is an example of compiling the files needed to build 
+## in place, or to simply build the dll in place.
+## This is useful if you are developing your source files and only want to 
+## rebuild the changed source files or you don't want to do the tedious copying
+## of your entire tree.
+##
+## It only makes sense to do the incremental build for your *.c files
+## that are typically in the "src" directory.  Source files that have not
+## changed will not be recompiled.  If you build from the root, all other
+## directories are rebuilt and there have been some problems with the script
+## in building from the root so it may fail anyway.
+##
+## To test your build fire up Splus and use your build directory 
+## as your startup directory.  Do not use the staging or loading scripts
+## as they depend on variables being set when builds are done
+## from the root.
+##
+## NOTE: Splus CANNOT be running when you do this build.
+
+
+## ----------------------------------------------------------------
+## Set the name of the module you are building
+
+MODULE=resample
+
+
+## ----------------------------------------------------------------
+## Set the version
+
+MOD_VERSION="Version 2.0 Beta 9"
+
+
+## ----------------------------------------------------------------
+## Set path to cygwin/bin
+## This path must be in cygwin format (notice "cygdrive/d/" for "d:/").
+
+PATH="/cygdrive/d/cygwin/bin:$PATH"
+
+
+## ----------------------------------------------------------------
+## If you are compiling fortran code, you must set the path
+## to Visual Studio Fortran bin.  This path must be before 
+## the cygwin/bin path because both bins contain a fortran compiler
+## named "df.exe".  You want to pick up the Visual Studio Fortran compiler.
+## This path must be in cygwin format (notice "cygdrive/d/" for "d:/") 
+## and the entire path must be in quotes, because of possible spaces.
+
+PATH="/cygdrive/d/Program Files/Microsoft Visual Studio/DF98/BIN:$PATH"
+export PATH
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing your buildtools with forward slashes.
+
+BLDTOOLS=D:/modules/moduletools/buildtools
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing module source code with forward slashes.
+## All three variables must be set.  
+## BLDHOME is the parent directory of your module root directory.
+## MODHOME is the module root directory.
+## BLD_DIR is the root directory from which you want to start building.
+## If you want to rebuild the entire module, set BLD_DIR=$MODHOME
+## If you want to build just the dll, set BLD_DIR=$MODHOME/src
+## Or you can set BLD_DIR to any sub-directory from which you want to start the build.
+
+BLDHOME=D:/modules/builds
+MODHOME=$BLDHOME/resample
+BLD_DIR=$MODHOME/src
+
+
+## ----------------------------------------------------------------
+## Set the path to the root directory of splus6 with forward slashes.
+## Splus must reside in a path that contains no spaces.
+
+SHOME=D:/Insightful/splus6
+
+
+## ----------------------------------------------------------------
+## Do the builds incrementally in $BLD_DIR
+
+echo 
+echo ... BUILDING $MODULE INCREMENTALLY in $BLD_DIR ...
+echo 
+echo $BLDTOOLS/build_incrementally $MODULE $BLD_DIR $SHOME $BLDTOOLS
+     $BLDTOOLS/build_incrementally $MODULE $BLD_DIR $SHOME $BLDTOOLS || exit 1
+
+

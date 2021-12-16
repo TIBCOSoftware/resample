@@ -1,0 +1,260 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>glm</s-topic>
+</s-topics>
+<s-title>
+Fit a Generalized Linear Model 
+</s-title>
+<s-description>
+Produces an object of class <code>glm</code> which is a generalized linear 
+fit of the data.  The <code>glm</code> function is generic (see Methods); method 
+functions can be written to handle specific classes of data.  Classes 
+which already have methods for this function include: 
+<br>
+<code>model.list</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+glm(formula, family = gaussian, data=&lt;&lt;see below&gt;&gt;, 
+    weights, subset=&lt;&lt;see below&gt;&gt;, na.action, 
+    start, control, method = "glm.fit", model = F, x = F, y = T, 
+    contrasts = NULL, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a formula expression as for other regression models, of the form 
+<code>response ~ predictors</code>. See the documentation of 
+<s-function name="lm.sgm">lm</s-function> 
+and 
+<s-function name="formula.sgm">formula</s-function> 
+for details. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="family">
+a family object -- a list of functions and expressions 
+for defining the <code>link</code> and <code>variance</code> functions, initialization 
+and iterative weights. Families supported are 
+<s-function name="gaussian.sgm">gaussian</s-function>, 
+<s-function name="binomial.sgm">binomial</s-function>, 
+<s-function name="poisson.sgm">poisson</s-function>, 
+<s-function name="Gamma.sgm">Gamma</s-function>, 
+<s-function name="inverse.gaussian.sgm">inverse.gaussian</s-function> 
+and 
+<s-function name="quasi.sgm">quasi</s-function>. 
+Functions like 
+<s-function name="binomial.sgm">binomial</s-function> 
+produce a family object, 
+but can be given without the parentheses. Family functions can take arguments, 
+as in <code>binomial(link=probit)</code>. 
+</s-arg>
+<s-arg name="data">
+a 
+<s-function name="data.frame.sgm">data.frame</s-function> 
+in which to interpret the variables named in the 
+formula, or in the <code>subset</code> and the <code>weights</code> argument. 
+If this is missing, then the variables in the formula should be on the 
+search list. 
+This may also be a single number to handle some special cases -- see 
+below for details. 
+</s-arg>
+<s-arg name="weights">
+the optional weights for the fitting criterion. 
+</s-arg>
+<s-arg name="subset">
+expression saying which subset of the rows of the data 
+should be used in the fit. 
+This can be a logical vector (which is replicated to have length equal 
+to the number of observations), or a numeric vector indicating which 
+observation numbers are to be included, or a character vector of the 
+row names to be included. 
+All observations are included by default. 
+</s-arg>
+<s-arg name="na.action">
+a function to filter missing data. 
+This is applied to the 
+<s-function name="model.frame.sgm">model.frame</s-function> 
+after any <code>subset</code> argument has been used. 
+The default (with <code>na.fail</code>) is to create an error 
+if any missing values are found. 
+A possible alternative is <code>na.omit</code>, which deletes observations 
+that contain one or more missing values. 
+</s-arg>
+<s-arg name="start">
+a vector of initial values on the scale of the linear predictor. 
+</s-arg>
+<s-arg name="control">
+a list of iteration and algorithmic constants. 
+See 
+<s-function name="glm.control.sgm">glm.control</s-function> 
+for their names and default values. 
+These can also be set as arguments to <code>glm</code> itself. 
+</s-arg>
+<s-arg name="method">
+character. 
+May indicate the fitting method to be used; the default (and only 
+option, currently) is <code>"glm.fit"</code>. 
+Or may indicate that a data structure is to be returned 
+before fitting. The method <code>"model.frame"</code> 
+returns the model frame, and <code>"model.list"</code> returns the model list; 
+in either case 
+there is no fitting.  If <code>method="model.list"</code> the fitting method may be 
+included as well, in case the model list is to 
+be fit later (by a call to 
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>). 
+For example, 
+<code>c("model.list", "glm.fit")</code> (the order is not important). This is the 
+only case in 
+which a vector is recognized. 
+</s-arg>
+<s-arg name="model">
+if <code>TRUE</code>, the 
+<s-function name="model.frame.sgm">model.frame</s-function> 
+is returned in component <code>model</code>. 
+If this argument is itself  a 
+<s-function name="model.frame.sgm">model.frame</s-function>, 
+then the <code>formula</code> 
+and <code>data</code> arguments are ignored, and <code>model</code> is used to define the model. 
+</s-arg>
+<s-arg name="x">
+logical flag: if <code>TRUE</code>, the 
+<s-function name="model.matrix.sgm">model.matrix</s-function> 
+is returned in component <code>x</code>. 
+</s-arg>
+<s-arg name="y">
+logical flag: if <code>TRUE</code>, the response variable is returned in 
+component <code>y</code> (default is <code>TRUE</code>). 
+</s-arg>
+<s-arg name="contrasts">
+a list of contrasts to be used for some or all of the factors 
+appearing as variables in the model formula. 
+The names of the list should be the names of the corresponding variables, 
+and the elements should either be contrast-type matrices (matrices with 
+as many rows as levels of the factor and with columns linearly independent 
+of each other and of a column of one's), or else they should 
+be functions that compute such contrast matrices. 
+</s-arg>
+<s-arg name="...">
+control arguments may be given directly; see the <code>control</code> argument. 
+May also pass additional arguments for the fitting routines (see 
+<s-function name="glm.fit.sgm">glm.fit</s-function>). 
+One possibility is <code>qr=TRUE</code>, in which case the QR 
+decomposition of the model.matrix is returned in component <code>qr</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>"glm"</code> 
+representing the fit, or of class <code>"model.frame"</code> 
+or <code>"model.list"</code> if signalled by the <code>method</code> argument. See 
+<s-function name="glm.object.sgm">glm.object</s-function>, 
+<s-function name="model.frame.sgm">model.frame</s-function>, 
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>, 
+and 
+<s-function name="model.list.object.sgm">model.list.object</s-function> 
+for details. 
+</s-value>
+<s-details>
+The output can be examined by 
+<s-function name="print.sgm">print</s-function>, 
+<s-function name="summary.sgm">summary</s-function>, 
+<s-function name="plot.sgm">plot</s-function>, 
+and 
+<s-function name="anova.sgm">anova</s-function>. 
+Components can be extracted using <code>predict</code>, <code>fitted</code>, 
+<code>residuals</code>, <code>deviance</code>, <code>formula</code>, and <code>family</code>. 
+It can be modified using 
+<s-function name="update.sgm">update</s-function>. 
+It has all the components of an 
+<s-function name="lm.sgm">lm</s-function> 
+object, with a few more. 
+Other generic functions that have methods for <code>glm</code> objects are <code>drop1</code>, 
+<code>add1</code>, <code>step</code> and <code>preplot</code>. Use 
+<s-function name="glm.object.sgm">glm.object</s-function> 
+for further details. 
+<p>
+The response variable must conform with the definition of <code>family</code>, for example 
+factor or binary data if <code>family=binomial</code> is declared. 
+<p>
+The model is fit using 
+<it>Iterative Reweighted Least Squares</it>(IRLS). The working response and iterative weights are computed using the functions contained in the <code>family</code> object. 
+GLM models can also be fit using the function 
+<s-function name="gam.sgm">gam</s-function>. 
+The workhorse of <code>glm</code> is the function 
+<s-function name="glm.fit.sgm">glm.fit</s-function> 
+which expects an <code>x</code> and <code>y</code> argument rather than a formula. 
+<p>
+NAMES. 
+Variables occurring in a formula are evaluated differently from 
+arguments to S-PLUS functions, because the formula is an object 
+that is passed around unevaluated from one function to another. 
+The functions such as <code>glm</code> that finally arrange to evaluate the 
+variables in the formula try to establish a context based on the 
+<code>data</code> argument. 
+(More precisely, the function 
+<s-function name="model.frame.default.sgm">model.frame.default</s-function> 
+does the 
+actual evaluation, assuming that its caller behaves in 
+the way described here.) 
+If the <code>data</code> argument to <code>glm</code> 
+is missing or is an object (typically, a data frame), 
+then the local context for 
+variable names is the frame of the function that called <code>glm</code>, or the top-level 
+expression frame if you called <code>glm</code> directly. 
+Names in the formula can refer to variables in the local context as well 
+as global variables or variables in the <code>data</code> object. 
+<p>
+The <code>data</code> argument can also be a number, in which case that number defines 
+the local context. 
+This can arise, for example, if a function is written to call <code>glm</code>, perhaps 
+in a loop, but the local context is definitely 
+<it>not</it>that function. 
+In this case, the function can set <code>data</code> to <code>sys.parent()</code>, and the local 
+context will be the next function up the calling stack. 
+A numeric value for <code>data</code> can also be supplied if a local context 
+is being explicitly created by a call to <code>new.frame</code>. 
+Notice that supplying <code>data</code> as a number implies that this is the 
+<it>only</it>local context; local variables in any other function will not be 
+available when the model frame is evaluated. 
+This is potentially subtle. 
+Fortunately, it 
+is not something the ordinary user of <code>glm</code> needs to worry about. 
+It is relevant for those writing functions that call <code>glm</code> or other 
+such model-fitting functions. 
+</s-details>
+<s-section name=" REFERENCES">
+
+McCullagh, P. and Nelder, J. A. (1983), 
+<it>Generalized Linear Models,</it>
+Chapman and Hall, London. 
+</s-section>
+<s-see>
+
+<s-function name="family.sgm">family</s-function>,  
+<s-function name="gam.sgm">gam</s-function>,  
+<s-function name="glm.control.sgm">glm.control</s-function>,  
+<s-function name="glm.object.sgm">glm.object</s-function>,  
+<s-function name="lm.sgm">lm</s-function>,  
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>,  
+<s-function name="model.list.object.sgm">model.list.object</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+glm(skips ~ ., family = poisson, data = solder.balance) 
+glm(Kyphosis ~ poly(Age, 2) + (Number > 5)*Start, 
+    family = binomial, data = kyphosis) 
+glm(ozone^(1/3) ~ bs(radiation, 5) + poly(wind, temperature, degree = 2), 
+    data = air) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>models</s-keyword>
+<s-keyword>regression</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

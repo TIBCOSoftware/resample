@@ -1,0 +1,130 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>tiltWeights</s-topic>
+</s-topics>
+<s-title>
+Calculate tilting weights 
+</s-title>
+<s-description>
+Given a tilting parameter and discrete distribution values, calculate 
+weights (probabilities) for exponential or maximum likelihood tilting. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+tiltWeights(tau, L, tilt="exponential", weights=NULL, group=NULL, 
+    lambda = NULL, details = F, tol = 1e-6, maxiter = 50) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="tau">
+scalar or vector; tilting parameters. 
+</s-arg>
+<s-arg name="L">
+vector of values which determine a discrete distribution. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="tilt">
+one of <code>"exponential"</code> or <code>"ml"</code>, for exponential or maximum likelihood 
+tilting, respectively 
+</s-arg>
+<s-arg name="weights">
+vector the same length as <code>L</code>, 
+if the discrete distribution has unequal probabilities 
+on the values (before tilting). 
+</s-arg>
+<s-arg name="group">
+vector the same length as <code>L</code>; unique values of this vector determine 
+groups, for multiple-sample applications or stratified sampling. 
+</s-arg>
+<s-arg name="lambda">
+matrix with one row for each group and one column for each 
+value of <code>tau</code> containing normalizing constants for maximum 
+likelihood tilting with multiple groups (see DETAILS below, and 
+<s-function name="tiltDetails.sgm">tiltDetails</s-function>). 
+These are computed if not provided. 
+</s-arg>
+<s-arg name="details">
+if <code>TRUE</code> return values of <code>lambda</code> as well as tilting weights; if 
+<code>FALSE</code> return tilting weights only.   
+Ignored except for multiple-group <code>"ml"</code> tilting. 
+</s-arg>
+<s-arg name="tol">
+Find <code>lambda</code> values such 
+that tilting weights sum within each group to within <code>tol</code> of 1. 
+Used only for multiple-group <code>"ml"</code> tilting. 
+</s-arg>
+<s-arg name="maxiter">
+Maximum number of iterations in solving for <code>lambda</code>. 
+Used only for multiple-group <code>"ml"</code> tilting. 
+</s-arg>
+</s-args-optional>
+<s-value>
+tilting weights; a vector of the same length as the number of rows of 
+<code>L</code>, giving probabilities for the discrete distribution after tilting. 
+If <code>details=TRUE</code> and maximum likelihood tilting is 
+used with multiple groups, return a list with components  
+<code>tau</code> (the input), 
+<code>w</code> (tilting weights), and <code>lambda</code>.   
+</s-value>
+<s-details>
+In the univariate case (<code>L</code> a vector and <code>tau</code> a scalar) with only one 
+group, exponential 
+tilting places probability proportional to  
+<verb>
+    weights * exp((L-Lbar) * tau) 
+</verb>
+on the values in <code>L</code>, where <code>Lbar</code> is the weighted mean of <code>L</code>. 
+Maximum likelihood tilting places probabilities proportional to 
+<verb>
+    weights / (1 - (L-Lbar) * tau) 
+</verb>
+For further details, and formulae in the group case (multiple samples, 
+or stratified sampling), see 
+<s-function name="tiltDetails.sgm">tiltDetails</s-function>. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. (2003), 
+"Tilting Calculations for Resampling Inferences and Approximations", 
+Research Report No. 103, Research Department, Insightful Corp., 
+1700 Westlake Ave. N., Suite 500, Seattle, WA 98109. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="tiltMean.sgm">tiltMean</s-function>,  
+<s-function name="tiltMeanSolve.sgm">tiltMeanSolve</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="saddlepointPSolve.sgm">saddlepointPSolve</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# Determine weights for importance sampling in bootstrapping. 
+x <- rnorm(20) 
+L <- influence(x, mean)$L 
+wt1 <- tiltWeights( saddlepointPSolve(.05, L=x), L=x) 
+wt2 <- tiltWeights( saddlepointPSolve(.95, L=x), L=x) 
+bfit <- bootstrap(x, mean, B = c(200, 100, 100), 
+                  sampler.prob = list(NULL, wt1, wt2)) 
+plot(bfit) 
+ 
+# Determine weights for which the weighted mean of x is 0 
+tau <- tiltMeanSolve(q = 0, L=x)$tau.exp 
+wt <- tiltWeights(tau, L) 
+plot(x, wt) 
+mean(x, weights=wt) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

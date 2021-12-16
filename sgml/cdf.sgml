@@ -1,0 +1,75 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>cdf</s-topic>
+</s-topics>
+<s-title>
+Cumulative Distribution Function 
+</s-title>
+<s-description>
+Empirical cumulative distribution function. 
+This is a generic function; there currently exists a method for 
+<code>resamp</code> objects, described separately. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+cdf(x, q, weights=NULL, na.rm=F, normalize=T) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+numerical data. 
+</s-arg>
+<s-arg name="q">
+numerical, values at which to compute the distribution function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="weights">
+a vector the same length as <code>x</code>, containing non-negative weights 
+(probabilities) 
+to define a distribution function with unequal jumps. 
+The weights are normalized to sum to 1. 
+</s-arg>
+<s-arg name="na.rm">
+if <code>TRUE</code>, missing values (<code>NA</code>) in <code>x</code> or <code>weights</code> cause 
+the corresponding observations to be removed. 
+If <code>FALSE</code>, missing values in <code>x</code> and <code>weights</code> are an error. 
+</s-arg>
+<s-arg name="normalize">
+if <code>FALSE</code>, then return the number (rather than proportion) 
+of the <code>x</code> values less than or equal to each q, 
+or the sum of the corresponding unnormalized weights. 
+</s-arg>
+</s-args-optional>
+<s-value>
+vector the same length as <code>q</code>, containing F(<code>q</code>), where F is 
+the empirical distribution function defined by data <code>x</code>. 
+Missing values in <code>q</code> cause missing values in the result. 
+</s-value>
+<s-see>
+
+<s-function name="cdf.resamp.sgm">cdf.resamp</s-function>,  
+<s-function name="pdiscrete.sgm">pdiscrete</s-function>,  
+<s-function name="quantile.sgm">quantile</s-function>,  
+<s-function name="plotCDF.sgm">plotCDF</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- rnorm(20) 
+z <- seq(-3,3,by=.1) 
+cdf(x, z) 
+plot(z, cdf(x, z)) 
+cdf(x, z, weights=1:20) 
+pdiscrete(z, x, weights=1:20) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

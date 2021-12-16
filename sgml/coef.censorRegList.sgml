@@ -1,0 +1,30 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>coef.censorRegList</s-topic>
+</s-topics>
+<s-title>
+Use <code>coef()</code> on a <code>censorRegList</code> object 
+</s-title>
+<s-description>
+This is a method for the function <code>coef()</code> for objects of class 
+<code>censorRegList</code>. 
+See 
+<s-function name="coef.sgm">coef</s-function> 
+or 
+<s-function name="coef.default.sgm">coef.default</s-function> 
+for the general behavior of this function 
+and for the interpretation of argument <code>object</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+coef.censorRegList(object) 
+</s-old-style-usage>
+</s-usage>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

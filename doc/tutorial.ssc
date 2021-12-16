@@ -1,0 +1,876 @@
+#	    Tutorial for S+RESAMPLE
+# 
+# This tutorial focuses primarily on certain new capabilities in the
+# Resample package.  Documentation for the resampling software in Spotfire S+
+# now is found in the Spotfire S+ Guide to Statistics, chapter titled
+# "Resampling Techniques, Bootstrap and Jackknife".  A revised and
+# extended version of that chapter is contained in this package.
+# 
+# The code included in S+Resample includes four
+# categories of functions:
+# * New functions and updated versions of various S-PLUS functions.
+# * Replacements for all the existing bootstrap functions in
+#   Spotfire S+.  These replacements add capabilities and fix bugs.
+# * New resampling functions, for permutation tests, cross validation,
+#   bootstrapping prediction errors, parametric and smoothed bootstrapping.
+# * New functions implementing bootstrap tilting methods for
+#   diagnostics and confidence intervals.  These new methods have
+#   some strong advantages over existing bootstrap methods:
+#   + speed -- require 17 or 37 times fewer bootstrap replications
+#     for equivalent accuracy
+#   + statistical properties -- second order accurate, with better
+#     finite-sample performance and/or shorter confidence intervals
+#     than other methods.
+# 
+# This tutorial focuses on:
+# * changes to the existing bootstrap code
+# * bootstrap tilting functionality
+# * prediction error
+# If you are new to the S-PLUS bootstrap and related functions, then
+# I recommend that you read the chapter on "Resampling Techniques:
+# Bootstrap and Jackknife" in the Spotfire S+ Guide to Statistics; this
+# is available on the web site listed above.
+# 
+# This tutorial is fairly long.  If you are familiar with the existing
+# S-PLUS bootstrap code, and just want to try the bootstrap tilting
+# confidence limits, see the help file for limits.tilt.  This tutorial
+# describes other new capabilities that are interesting in their own
+# right, including variance reduction techniques (concomitants and
+# importance sampling) and bootstrap tilting diagnostics, before turning
+# to bootstrap tilting confidence intervals.  The earlier material
+# does help in understanding tilting limits.
+# 
+# 
+##################################################
+# CHAPTER 0:  Getting started
+##################################################
+# 
+# To load the package, do one of:
+
+library("resample")  # if the package is in the standard location
+
+##################################################
+# CHAPTER 1:  Non-tilting bootstrap methods
+##################################################
+# 
+# The basic workhorse for bootstrapping in Spotfire S+ is the
+# `bootstrap' function.  You pass it your data, and either a function
+# or an expression for the statistic you want to bootstrap:
+
+set.seed(3)                   # for reproducibility
+x <- rmvnorm(40, d=2, rho=.5)
+
+# Bootstrap the correlation between two columns of x
+boot <- bootstrap(x, cor(x[,1], x[,2]), save.indices=T)
+
+# Now `boot' is a "bootstrap object", which is available for further
+# processing.  We saved the indices used for selecting bootstrap
+# samples, for further use later.  Many of the examples below
+# use these indices; if they are not present they will be
+# created, but it is more efficient to save them up front.
+
+boot             # prints a quick summary
+summary(boot)    # more information, including BCa confidence intervals
+par(mfrow=c(2,1))
+plot(boot)       # histogram with overlaid density estimate
+qqnorm(boot)     # normal probability plot of the bootstrap correlations
+par(mfrow=c(1,1))
+# The downward curvature indicates that the bootstrap correlation is
+# negatively skewed, which affects the accuracy of some bootstrap methods
+# (not including BCa limits or tilting inferences).
+
+# Unfortunately, some of those answers are not very accurate, with only
+# 1000 replications.  In particular, the BCa confidence limits are not
+# very accurate.  One remedy is to use brute force, to add more
+# replicates:
+
+boot2 <- addSamples(boot, B.add = 4000)  # takes a while, you may skip this
+
+# Other strategies include:
+# * adjusting the values using a linear approximation to the statistic
+# * importance sampling
+# * using non-simulation approximations to some of the quantities
+#   used in calculating the bootstrap limits.
+# We consider these in turn, after first considering basic
+# material on linear approximations that is a prerequisite for
+# all later material.
+
+
+# SECTION 1.1:  Linear approximations
+# 
+# Numerous bootstrap procedures depend on accurate linear
+# approximations to the statistic of interest.  There are a number of
+# ways to get such approximations.  We show four ways here; in practice
+# you need use only one:
+
+L1 <- resampGetL(boot, method="jackknife")
+# That requires n function evaluations
+
+L2 <- resampGetL(boot, method="ace")
+# Does a regression with n coefficients, after applying a nonlinear
+# transformation to the statistic values.  Use this only if
+# the bootstrap samples size B is substantially larger than n.
+
+L3 <- resampGetL(boot, model.mat=cbind(x, x^2, x[,1]*x[,2]))
+# Does a regression on the terms in the design matrix; the result
+# is accurate only if the statistic can be accurately represented
+# in that fashion.  In this example, we assume that the correlation
+# is approximately a linear function of x, y, x^2, x*y, y^2,
+# where "x" and "y" are the two columns of the data.
+
+inf.boot <- influence(x, cor(x[,1], x[,2]))
+L4 <- inf.boot$L
+# Compute the empirical influence function; requires n function
+# evaluations.  By default an additional 2 functions evaluations
+# are performed, providing information useful in computing BCa limits,
+# see below.
+
+# Those procedures all yield a vector of length n, each value
+# corresponding to one of the original data points; points
+# northeast and southwest of the center of the data contributed
+# positively to the correlation, and have positive values of L,
+# while points northwest and southeast have negative L:
+
+plot(x[,1], x[,2], ylim=range(c(x[,2], x[,2] + L1)))
+arrows(x[,1], x[,2], x[,1], x[,2] + L1, rel=T)
+# The two most influential observations are in the lower left,
+# with arrows pointing upward indicating positive influence --
+# increasing the weight assigned to these observations would
+# increase the correlation.  There are other points, above
+# and below the center of the main point cloud, with arrows
+# pointing downward -- increasing the weight on these observations
+# would result in a lower correlation.
+
+# In this case all four methods of obtaining linear approximations
+# give nearly identical results, with correlations near 1:
+
+cor(cbind(L1, L2, L3, L4))
+
+# Now any of the L's provide a linear approximation for our
+# statistic -- the means of bootstrap samples of L are highly
+# correlated with the (correlation) statistic bootstrapped
+# earlier (using the same indices for generating bootstrap
+# samples as before).  We can generate these by bootstrapping
+# from scratch:
+
+temp <- bootstrap(L1, mean, seed=boot$seed.start)
+
+# but it is quicker to use `indexMeans' with the saved indices:
+
+L1star <- indexMeans(L1, boot$indices)
+L2star <- indexMeans(L2, boot$indices)
+L3star <- indexMeans(L3, boot$indices)
+L4star <- indexMeans(L4, boot$indices)
+range(temp$replicates - L1star) # They are the same
+
+
+# Let's compare them visually:
+
+par(mfrow=c(2,2))
+plot(L1star, boot$replicates)
+plot(L2star, boot$replicates)
+plot(L3star, boot$replicates)
+plot(L4star, boot$replicates)
+par(mfrow=c(1,1))
+
+# These plots show high correlation, with some downward curvature.
+# The curvature doesn't matter for any of the methods we discuss below.
+# What is important is that there is a high correlation between Lstar
+# and some smooth nonlinear transformation of the bootstrapped statistic
+# values.
+# 
+# We can find such a transformation by smoothing:
+
+transformed <-
+  predict(smooth.spline(boot$replicates, L1star, df=4),
+          boot$replicates)$y
+pairs(cbind(transformed, boot$replicates, L1star))
+
+# The plot of transformed vs Param shows the transformation; this
+# transformation has upward curvature.  Recall that the earlier
+# normal probability of the bootstrap correlations indicated
+# negative skewness; applying this transformation would tend
+# to remove that skewness.  More important, the plot of transformed
+# vs L1star shows a roughly linear relationship.
+# 
+# Note that all Lstar's are more correlated with the transformed
+# bootstrap correlations than they were with the original correlations:
+
+round(cor(cbind(L1star, L2star, L3star, L4star),
+          cbind(boot$replicates, transformed)), 3)
+
+
+# SECTION 1.2:  Concomitants adjustments
+# 
+# We can now use one of those linear approximations to adjust the
+# bootstrap statistic values, based on the difference between the
+# observed Lstar values and their underlying distribution.
+# (The underlying distribution is estimated using saddlepoint methods.)
+
+boot3 <- concomitants(boot)
+plot(boot$replicates, boot3$replicates)
+abline(0,1, col=2)
+# The adjusted values differ slightly from the original values.
+
+# The adjustments made were relatively minor, but the result can be much
+# more accurate (if the correlation between a nonlinear transformation
+# of the statistic and the Lstar value is high).  This object can be
+# used in many of the same ways the bootstrap object is:
+
+boot3   # prints a quick summary
+summary(boot3)   # like summary(boot), but more accurate numbers
+summary(boot)    # for comparison
+par(mfrow=c(2,1))
+plot(boot3)      # histogram with overlaid density, like plot(boot)
+qqnorm(boot3)    # like qqnorm(boot)
+par(mfrow=c(1,1))
+
+
+# SECTION 1.3:  Importance sampling
+# 
+# Another way to potentially get more accurate bootstrap results is to use
+# importance sampling -- sampling with unequal probabilities, in order
+# to get more observations in the tails of the bootstrap distribution.
+# 
+# A bit of terminology:  the distribution we want estimates for
+# is the "target" distribution, and the distribution actually
+# used to generate the bootstrap samples is the "design" distribution.
+# Denoting these by "f" and "g", respectively, we note that:
+#        E[ t(x) ] = integral( t(x) f(x) dx)
+#     		 = integral( t(x) f(x)/g(x) g(x) dx)
+# In ordinary Monte Carlo sampling, one might sample from f
+# and take the average
+#        (1/B) sum t(x_i)
+# In importance sampling one generates samples from g and takes
+# the average
+#        (1/B) sum t(x_i) f(x_i) / g(x_i)
+# which corresponds to a weighted average.  More generally,
+# we view importance sampling as producing weighted distributions,
+# with weights
+#        W(x_i) = f(x_i) / g(x_i).
+# 
+# We strongly recommend sampling using a defensive
+# mixture design, where some bootstrap samples are
+# generated with equal probabilities, some generated using "exponential
+# tilting" toward the left tail, and some tilted to the right.
+# At least 10% of the observations should be generated with
+# equal probabilities; this ensures that no weight is larger than 10.
+# 
+# In exponential tilting, the sampling probabilities are proportional
+# to
+# 		exp(tau * L)
+# where L is any of L1, L2, L3, L4 above, and tau is a scalar "tilting
+# parameter".
+# 
+# We'll choose tau to approximately center the tilted sampling
+# distributions at the .025 and .975 quantiles; this is designed
+# for central 95% confidence interval, but works well for other tail
+# quantiles too.  We find the tilting parameter tau using saddlepoint
+# methods:
+
+tau <- saddlepointPSolve(probs=c(.025, .975), L1)
+weights1 <- tiltWeights(tau[1], L1)
+weights2 <- tiltWeights(tau[2], L1)
+# Look at the sampling probabilities we'll use
+matplot(L1, cbind(1/nrow(x), weights1, weights2))
+
+# The first set of probabilities are all equal, 1/n (n = sample size)
+# The second set has higher probabilities on the left;
+# sampling with these probabilities will produce more bootstrap
+# samples with small correlations.
+# The third set has higher probabilities on the right, and will
+# give more large correlations.
+# 
+# Now use those sampling weights in bootstrapping:
+
+boot4 <- bootstrap(x, cor(x[,1], x[,2]), save.indices=T,
+                   B=c(100, 200, 200), seed=5,
+                   sampler.prob = list(NULL, weights1, weights2))
+# That does 100 samples with equal probabilities, and 200 each
+# from weights1 and weights2
+plot(boot4, ylim=c(0, 8.4))
+# Demonstrate the three sets of samples (you normally don't need to do this):
+xlim <- range(boot4$replicates)
+lines(density(boot4$replicates[1:100,1], from=xlim[1], to=xlim[2]), col=3)
+lines(density(boot4$replicates[101:300,1], from=xlim[1], to=xlim[2]), col=4)
+lines(density(boot4$replicates[301:500,1], from=xlim[1], to=xlim[2]), col=5)
+
+# The sampling is biased, toward the tails.  That is counteracted
+# by assigning weights to the bootstrap samples; our biased sampling
+# gives more observations in the tails, but each receives smaller weight:
+
+plot(boot4$replicates, boot4$weights)
+# Note that observations in the tails receive smaller weight.
+
+# As a side note, the weights are a function of the linear approximation
+# to the statistic:
+
+plot(indexMeans(L1, boot4$indices), boot4$weights)
+
+# Now we can do the usual printouts and summaries of a bootstrap object:
+
+boot4
+limits.bca(boot4)
+summary(boot4)  # may give a warning, depending on your random seed - see below
+par(mfrow=c(2,1))
+plot(boot4)
+qqnorm(boot4)
+par(mfrow=c(1,1))
+
+# Note -- we plan to make importance sampling more user friendly in
+# later versions of this software.
+
+
+
+
+# SECTION 1.4:  Non-simulation approximations for calculating the
+# bootstrap-BCa interval
+# 
+# Unfortunately, the BCa limits produced using importance sampling are
+# inaccurate.  The BCa uses a "z0" parameter that by default is
+# estimated from the center of the bootstrap distribution.
+# Importance sampling makes the tails of the bootstrap distribution
+# more accurate, but the center is less accurate.  Because of this
+# random variation in the center, you may get a warning:
+#   z0 is outside range (-.25, .25), this indicates extreme bias, assumptions
+# 	underlying BCa interval may be violated in: limits.bca(boot4)
+# when calling "summary(boot4)".
+# 
+# One remedy is to calculate the z0 parameter deterministically.
+# We earlier did:
+
+inf.boot <- influence(x, cor(x[,1], x[,2]))
+
+# In the process of calculating empirical influence function values,
+# this also calculates the acceleration and z0 parameters needed
+# for bootstrap BCa intervals:
+
+inf.boot
+limits.bca(boot4, z0 = inf.boot$estimate$z0,
+           acceleration = inf.boot$estimate$accel)
+
+
+
+##################################################
+# CHAPTER 2:  Bootstrap Tilting Diagnostics
+##################################################
+# 
+# The fundamental bootstrap assumption is that the bootstrap distribution
+# of a statistic is a good approximation for the true distribution of
+# the statistic.
+# 
+# The true distribution could be obtained if we could sample from the
+# underlying distribution of the data:
+#    for(i = 1 to B){
+#      generate data x from F, the underlying distribution of the data
+#      calculate statistic theta(x) or pivotal t(x, F)
+#    }
+# 
+# Because F is unknown, in the (usual nonparametric) bootstrap we sample
+# instead from F.hat, the empirical distribution:
+#    for(i = 1 to B){
+#      generate data x from F.hat, the empirical distribution
+#      calculate statistic theta(x) or pivotal t(x, F.hat)
+#    }
+# 
+# So the fundamental bootstrap assumption boils down to the question
+# of how sensitive the distribution of the statistic or pivotal is
+# to substituting F.hat for F.
+# 
+# One way to check that assumption is to do the sampling using distributions
+# other than F.hat.  If the bootstrap distributions vary substantially,
+# then the fundamental bootstrap assumption is violated.
+# 
+# For example, the jackknife-after-bootstrap procedure looks at
+# the bootstrap distributions obtained when replacing F.hat with
+# a jackknife sample, leaving out one observation from F.hat
+# (and the process is repeated, leaving out one observation at a time).
+# Here we use `jackknifeAfterBootstrap' to look at just one aspect of
+# the bootstrap distribution, its standard deviation:
+
+jackknifeAfterBootstrap(boot, stdev)
+# SE.Func is the estimated standard error of the bootstrap standard deviation.
+
+# Double (iterated) bootstrapping is another diagnostic tool for
+# looking at how bootstrap distributions vary; in this case F.hat
+# is replaced with a bootstrap sample (and the process is repeated
+# many times).
+# 
+# In the new software are two functions which provide general
+# bootstrap diagnostic capabilities, based on replacing F.hat
+# with other distributions with support on the observed data:
+#      reweight
+#      tiltAfterBootstrap
+
+
+# SECTION 2.1  `reweight'
+# 
+# The `reweight' function provides estimates of bootstrap distributions
+# that would be obtained by replacing F.hat with other distributions
+# with the same support -- such distributions are defined
+# by the (unequal) probabilities on the observed data.
+# 
+# For example, compare the original bootstrap distribution with
+# the distribution obtained by leaving out the first two observations,
+# by giving them zero weight:
+
+weights3 <- rep(1, boot$n)
+weights3[1:2] <- 0
+reweight3 <- reweight(boot, data.weights = weights3)
+boot
+reweight3
+
+# Note that the "observed" value has also changed, it is now evaluated
+# using the weighted empirical distribution.
+# 
+# Note that reweight3$replicates is the same as boot$replicates,
+# but different weights are assigned to each of the replicates.
+# In fact, most of the replicates receive a weight of zero -- these
+# correspond to bootstrap samples in which either of the first
+# two observations was present; those observations could never be
+# present when sampling from the distribution obtained by excluding
+# those observations, so those samples receive weights of zero.
+# The other samples are all equally likely.
+
+hist(reweight3$weight)      # most weights are 0, others are 7.78.
+mean(reweight3$weight > 0)  # only 13% are non-zero.
+
+# This procedure is useful only for distributions which are fairly
+# close to the original F.hat.  By excluding only two points from
+# the original F.hat, the effective number of bootstrap replications
+# is already only about 13% of the original 1000.
+
+
+# SECTION 2.1.1  `reweight' with exponential tilting
+# 
+# The `reweight' function has special support for distributions
+# that are obtained by exponential tilting; the following two
+# commands give equivalent results:
+
+reweight1 <- reweight(boot, data.weights = weights1)
+reweight1 <- reweight(boot, L = L1, tau = tau[1])
+
+# Now compare
+par(mfrow=c(2,1))
+plot(boot)        # usual bootstrap distribution
+plot(reweight1)   # reweighted version.
+par(mfrow=c(1,1))
+
+# Since `reweight1' corresponds to sampling from a weighted
+# distribution designed to produce replicates in the lower tail,
+# the center of the bootstrap distribution is lower.
+# 
+# Only the right side of the reweighted distribution is accurate.
+# The left side exhibits considerable random variability.  The reason
+# can be seen by:
+
+par(mfrow=c(2,1))
+plot(reweight1$replicates, reweight1$weights)
+o <- order(reweight1$replicates)
+plot(reweight1$replicates[o],
+     cumsum(reweight1$weights[o])/sum(reweight1$weights), type="S",
+     main = "Reweighted cumulative bootstrap distribution", ylab = "CDF")
+par(mfrow=c(1,1))
+
+# The weights are very small on the right, but very large on the
+# left.  In rough terms, the effective sample size for any region is
+# 1/(typical weights) observed for that region; the effective sample
+# size is very high on the right, but low on the left.
+
+
+# SECTION 2.1.2  Better designs for use with `reweight'
+# 
+# The reweight function actually uses importance sampling,
+# where the target distribution has unequal probabilities, and
+# the design distribution is (in this case) the distribution
+# with unequal probabilities.  The design is very non-robust.
+# We recommend using a defensive mixture design in this example,
+# where some of the bootstrap samples are actually generated using the
+# tilted weights.  The same design used earlier is suitable:
+
+reweight4 <- reweight(boot4, L=L1, tau=tau[1])
+par(mfrow=c(2,2))
+plot(boot)
+plot(reweight4) # this reweighted distribution is accurate everywhere
+#
+plot(reweight4$replicates, reweight4$weights)
+o <- order(reweight4$replicates)
+plot(reweight4$replicates[o],
+     cumsum(reweight4$weights[o])/sum(reweight4$weights), type="S",
+     main = "Reweighted cumulative bootstrap distribution", ylab="CDF")
+par(mfrow=c(1,1))
+
+# Note that the weights are now bounded above.
+# The reweighted distribution is extremely accurate on the right,
+# and not too bad on the left.
+
+
+# SECTION 2.1.3  `reweight' and maximum likelihood tilting
+# 
+# The `reweight' function has special support for distributions
+# that are obtained by "maximum likelihood tilting", where the
+# probabilities are proportional to:
+#        1 / (1 - tau * (L - mean(L)))
+# These probabilities are very similar to those obtained by
+# exponential tilting (not with the same values of tau).
+# 
+# The tilting methods are particularly useful in inferential
+# contexts.  In a hypothesis testing context, we may choose
+# tau to satisfy the null hypothesis, i.e.
+#     theta(weighted version of F.hat) = theta0
+# With the right L (see "updating L" below), the resulting weighted
+# distribution is in fact the nonparametric maximum likelihood estimate
+# of the underlying distribution.  It is particularly appropriate to
+# compare the bootstrap distribution under F.hat with this maximum
+# likelihood distribution; if they differ greatly, then the bootstrap
+# distribution is probably a poor approximation for the desired sampling
+# distribution.
+# 
+# In a confidence interval context, we compare the original
+# bootstrap distribution with the distribution obtained by
+# tilting to approximately a desired confidence level.  The
+# `reweight' function has special support for this:
+
+reweight4b <- reweight(boot4, L=L1, probs = .05)
+par(mfrow=c(2,2))
+plot(boot)
+plot(reweight4b) # reweighted, tilted to center to .05
+#
+plot(reweight4b$replicates, reweight4b$weights)
+o <- order(reweight4b$replicates)
+plot(reweight4b$replicates[o],
+     cumsum(reweight4b$weights[o])/sum(reweight4b$weights), type="s",
+     main = "Reweighted cumulative bootstrap distribution")
+par(mfrow=c(1,1))
+
+# In this case the design was not a true defensive mixture -- the
+# tilted distribution corresponding to probs = 0.05 was not one of
+# the components in the design.  But because the design included two
+# components which bracketed the target distribution (probs = .025,
+# and the equal-weight distribution which corresponds roughly to
+# probs = 0.5), the results are perfectly acceptable.
+# 
+# The results obtained with maximum likelihood tilting are similar,
+# though in general with slightly larger variance:
+
+reweight4c <- reweight(boot4, L=L1, probs = .05, tilt="ml")
+par(mfrow=c(2,1))
+plot(reweight4b)
+plot(reweight4c)
+par(mfrow=c(1,1))
+
+# (If your results are markedly different, you may be using an
+# older version of `reweight' that fails to adjust tau for the
+# difference between exponential and maximum likelihood tilting.)
+
+
+# SECTION 2.2  `tiltAfterBootstrap'
+# 
+# The `tiltAfterBootstrap' function operates on the same
+# principles as `reweight', but:
+# * supports only tilting, not arbitrary vectors of probabilities on
+#   the observed data
+# * allows `tau' or `probs' to be vector-valued
+# * rather than return a complete bootstrap distribution for each
+#   value of `tau' or `probs', it returns only a summary of the
+#   distribution.
+# 
+
+# By default, the function calculates quantiles of the bootstrap
+# distribution.
+rw4a <- tiltAfterBootstrap(boot4, L=L1)
+plot(rw4a, xlab = "Weighted correlation")
+# Note that
+# (1) As the weighted statistic increases, so do all quantiles of the
+#     bootstrap distributions.  This isn't surprising - bootstrap
+#     distributions are usually centered about the observed value,
+#     so reweighting to move the observed value up or down also affects
+#     the bootstrap distributions.
+# (2) As the weighted statistic increases, the bootstrap distributions
+#     get narrower.
+
+# For reference, show the weighted correlation
+abline(0,1,lty=2)
+# Note that the median of the bootstrap distribution is close
+# to the weighted observed value, indicating there is little median bias.
+# However, the lower quantiles are farther from the observed value
+# than are the upper quantiles, so there is probably ordinary bias.
+
+# The original observed value, and functional of the original bootstrap
+# distribution, are stored in the result:
+points(rep(rw4a$observed,5), rw4a$Func)
+# Similarly, the weighted observed values, and matrix of functionals
+# for the weighted bootstrap distributions, are stored.  Here the
+# third column contains the medians:
+points(rw4a$statistic, rw4a$Func.replicates[,3])
+
+# There are other options for what summary is calculated.  For example,
+# we may calculate estimates of bias and standard error:
+rw4b <- tiltAfterBootstrap(boot4, L=L1, functional = "Bias&SE")
+plot(rw4b$statistic, rw4b$Func.replicates[,2],
+     ylab="Standard Error of Bootstrap Distn",
+     xlab = "Weighted correlation")
+# The standard error drops as the correlation gets closer to 1.0
+# (the standard error would be zero when the correlation hits 1.0 - once
+# all points are on a line, bootstrap samples would also have their points
+# on the same line).
+# It is well-known that the sample correlation has non-constant
+# variance.
+
+
+# We can also look at ordinary bias.
+# Recall that the original bootstrap distribution estimates that
+# there is bias:
+boot4
+# Bias estimate is -0.006
+# Now estimate how the bias depends on the parameter
+plot(rw4b$statistic, rw4b$Func.replicates[,1], ylab="Bias of Bootstrap Distn",
+     xlab = "Weighted correlation", ylim = c(-.007, 0))
+# This plot suggests that that bias varies a bit as correlation changes.
+# I wouldn't make too much of the differences in bias estimates - that
+# may be just due to randomness.
+
+# Argument `functional' may be one of the character strings:
+# "Quantiles" (the default), "Centered Quantiles", "Standardized Quantiles",
+# "Mean", "Bias", "SE", "Bias&SE", "Mean&SE"
+# It may be also a function that takes the bootstrap statistic values
+# (replicates) as its first argument and has a `weights' argument
+# (this must be a named argument).
+#
+# You can also supply your own functional, a function
+# that takes the matrix of bootstrap replicates as its first argument;
+# possibly the `observed' values as the second argument (e.g. this
+# is needed for bias but not for standard error), and `weights' as
+# the next argument.  See:
+resampFunctionalList$se
+resampFunctionalList$bias
+help(tiltAfterBootstrap)
+
+# We recommend using a mixture design, using design points that
+# bracket or nearly bracket the target distributions.
+# If the target distributions are very dissimilar then more than
+# three components in the mixture design may be useful.
+
+
+##################################################
+# CHAPTER 3:  Bootstrap Tilting Inference
+##################################################
+# 
+# A common practice in hypothesis testing outside the bootstrap world
+# is to determine p-values using a null-distribution -- the
+# distribution of a parameter or test statistic when sampling from
+# a distribution which is consistent with the null hypothesis.
+# In contrast, in the bootstrap world the more common practice
+# is to sample from the unweighted empirical distribution, which
+# is more convenient.
+# 
+# Bootstrap tilting inferences combine the best of both worlds.
+# When implemented using importance sampling, the bootstrap samples
+# can be generated from the unweighted distribution, but inferences
+# are with respect to sampling from a weighted distribution that
+# satisfies the null hypothesis.  Furthermore, by a fortunate
+# coincidence, sampling from the unweighted empirical distribution
+# is a nearly-optimal design distribution for all significance levels
+# and all components of a multivariate statistic.  Bootstrap tilting
+# inferences require 1/17 as many bootstrap replications as bootstrap
+# empirical limits for comparable accuracy for a 95% two-sided
+# confidence interval, and only 1/37 as many replications as for the BCa
+# limits (if z0 is estimated from the bootstrap distribution rather than
+# calculated using analytical approximations).  We do suggest that a
+# mixture design be used, with at least 10% of the observations generated
+# from the corresponding tail.
+
+
+# SECTION 3.1   `limits.tilt'
+# 
+# The `limits.tilt' function provides bootstrap tilting
+# confidence intervals.  
+
+limits.tilt(boot, L=L1) 
+# Confidence limits are shown for both exponential and maximum
+# likelihood tilting.
+
+# The function also accepts bootstrap objects created using importance
+# sampling.  In that case, you would typically want to have most samples
+# drawn from the center (unweighted) distribution.   
+# 
+# We have not (yet) provided a function that does hypothesis
+# tests.  They can be done by solving for the value of tau that
+# makes
+#       theta(weighted empirical distribution) = theta0
+# then calculating the corresponding p-value.
+
+theta0 <- .5
+f <- function(tau, L, data, statistic, tilt="exponential"){
+  k <- length(tau)
+  result <- rep(NA, k)
+  for(i in 1:k){
+    w <- tiltWeights(tau[i], L, tilt=tilt)
+    if(!length(which.na(w)))
+      result[i] <- statistic(data, weights=w)
+  }
+  result
+}
+# Use that function to find theta
+
+cor1 <- function(x, weights=NULL) cor(x[,1], x[,2], weights=weights)
+tau0 <- inverseFunction(f, v=theta0, L=L1, data=x, statistic=cor1)
+# Check the accuracy of the numerical solution; should be
+# approximately equal to theta0:
+f(tau0, L=L1, data=x, statistic=cor1)
+
+# Calculating the p-value can be done using `reweight' or `tiltBootProbs':
+# 
+# tiltBootProbs(tau0, boot, L=L1)    # first p-value
+# temp <- reweight(boot, tau=tau0, L=L1)
+# sum(temp$weights[temp$replicates > boot$observed]) / temp$B # second
+# 
+# The answers are the same.  If we use importance sampling the
+# answers differ slightly due to normalizing the weights differently:
+
+tiltBootProbs(tau0, boot4, L=L1)    # first p-value
+temp2 <- reweight(boot4, tau=tau0, L=L1)
+sum(temp2$weights[temp2$replicates > boot4$observed]) / temp2$B # second
+
+# The difference is the factor sum(boot4$weights)/500.
+
+
+# SECTION 3.2  `t.test'
+# 
+# In the long term, it may prove feasible to include bootstrap tilting
+# inferences within standard functions such as `lm' and `glm',
+# to provide inferences which do not depend on assumptions of underlying
+# normality.  As a first test of feasibility of this approach,
+# we have modified `t.test' to provide bootstrap tilting inferences
+# in addition to standard Students-t inferences.
+
+saddlepoint.test(rexp(30), mu=1)
+
+# This is implemented deterministically, using saddlepoint
+# approximations provided by `revSaddlepointP' and `revSaddlepointPSolve';
+# see the help file for these functions.
+
+
+##################################################
+# CHAPTER 4  Updating L.
+##################################################
+# 
+# The maximum likelihood tilting above does not exactly correspond
+# to maximum likelihood methods when the statistic of interest
+# is nonlinear.  This section shows a variation to more closely
+# approximate maximum likelihood answers.  However, this
+# procedure is currently unstable in some problems, and requires
+# further research before we recommend it.
+# 
+# Recall that maximum likelihood tilting places probabilities
+# proportional to:
+#        1 / (1 - tau * (L - mean(L)))
+# on the observed data.  If L is the vector of empirical influence
+# function values <<evaluated at that weighted distribution>>
+# this gives a (local) solution to the empirical maximum likelihood
+# problem, maximizing the product of the probabilities subject
+# to the condition that
+#        theta(weighted empirical distribution) = theta0
+# for any specified value theta0.
+# 
+# If we let L be any of L1, L2, L3, L4 computed earlier,
+# which correspond to empirical influence values evaluated
+# at the unweighted empirical distribution, then the results
+# are an approximation to the true maximum likelihood results.
+# In some circumstances, the approximation can be closer by
+# updating the L values.  For example:
+
+tau1 <- inverseFunction(f, v=theta0, L=L4, data=x, statistic=cor1,
+                        tilt="ml", initial=c(0, .9/min(L4)))
+w1 <- tiltWeights(tau1, L=L4, tilt="ml")
+L4.update1 <- influence(x, cor1, weights = w1)$L
+
+# You may receive messages about a finite domain from `inverseFunction',
+# depending on the initial values -- maximum likelihood tilting is only
+# defined for tau in an open interval around zero.
+# 
+# We do not currently recommend updating L. While it will give slightly
+# more accurate answers in many problems, in finite samples it can give
+# very poor results. We have observed divergent behavior with iterative
+# updating in a number of examples. We are investigating ways to make
+# updating more robust.
+
+##################################################
+# CHAPTER 5:  Prediction Error
+##################################################
+# 
+# New functions bootstrapValidation and crossValidation provide
+# functionality for assessing how well a model predicts future response
+# values. For example, consider the pollution dataset "air", which
+# consists of ozone, radiation, temperature and wind readings. We wish
+# to explore the linear model with response equal to ozone and
+# explanatory variables wind and temperature. Function lm performs the
+# regression.
+
+lmobj <- lm(ozone~wind+temperature, data = air)
+lmobj       # view the lm object
+coef(lmobj) # 3 regression coefficients
+
+# The usual (biased) estimate of residual variance is
+
+sum(resid(lmobj)^2)/numRows(air)  # 0.2874537
+
+# As a measure of the error in predicting future, related values,
+# however, this is too optimistic since we are using the same data to
+# fit and judge the model. Cross-validation addresses this bias by
+# dividing the data into a "training set" used to fit the model, and a
+# "predictive set" used to measure the error. In K-fold
+# cross-validation, the data is divided into K groups of roughly equal
+# size.  Each group takes its turn as the predictive set while the
+# remaining K-1 groups are taken together to form the training set.  The
+# resulting K estimates of prediction error are then averaged together.
+# For instance, leave-one-out cross-validation uses K = n, (the size of
+# the data) so that each group is of size one and the average is over
+# all n such possibilities:
+
+crossValidation(ozone~wind+temperature, data = air, modelFit = lm)  # 0.3068
+
+# You can also try a different value of K:
+
+crossValidation(ozone~wind+temperature, modelFit = lm, data = air, K = 10)  # 0.3013
+
+# Another approach to prediction error is implemented by
+# bootstrapValidation, which uses bootstrap sampling.
+
+bpred <- bootstrapValidation(ozone~wind+temperature, data = air, modelFit = lm,
+                  B = 15, seed = 0)
+bpred # view the bootstrapValidation object
+
+# In this case, a number of bootstrap samples (15 here for expediency --
+# you would generally want more) are generated to which the model is
+# fit.  The "Apparent Error Rate"
+
+bpred$apparent.error # 0.2874537
+
+# is the same as the biased estimate of residual variance above, and is
+# independent of the bootstrap samples.  The model for each sample is
+# applied to the original data and to the bootstrap data, resulting in
+# two prediction errors, the latter of which is smaller. The difference
+# in the two errors is called the "optimism" for that sample.  The
+# average optimism over all samples is the optimism component of the
+# result.
+
+bpred$optimism # 0.004908218
+
+# The sum of the apparent error and optimism is an improved estimate of
+# the prediction error.
+
+bpred$apparent.error + bpred$optimism # 0.2923619
+
+# There are two other prediction error estimates provided by bootstrapValidation.
+
+bpred$err632      # 0.3065604
+bpred$err632plus  # 0.3067761
+
+# Let a given data point y_i be fixed.  The .632 estimates take into
+# account that some bootstrap samples will contain y_i and some do not.
+# The prediction error at y_i will in general be larger for those
+# samples not containing y_i.  The .632 estimates are weighted averages
+# of the apparent error and the average error rate from the samples not
+# containing y_i. The err632 and err632plus components average these
+# estimates over all data points.

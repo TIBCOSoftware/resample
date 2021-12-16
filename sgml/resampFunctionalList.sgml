@@ -1,0 +1,101 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampFunctionalList</s-topic>
+</s-topics>
+<s-title>
+List of functionals (summaries of a bootstrap distribution) 
+<p>
+List of functionals (summaries of a bootstrap distribution). 
+These accept a matrix of bootstrap replicates as input, 
+and possibly the observed value and weights, and calculate 
+a summary such as quantiles, centered 
+quantiles, standard error, mean or bias, for each column. 
+</s-title>
+<s-usage>
+<s-old-style-usage>
+resampFunctionalList[["mean"]](x,              weights, ...) 
+resampFunctionalList[["bias"]](x,    observed, weights, ...) 
+resampFunctionalList[["se"]](x,                weights, ...) 
+resampFunctionalList[["bias&#38;se"]](x, observed, weights, ...) 
+resampFunctionalList[["mean&#38;se"]](x,           weights, ...) 
+resampFunctionalList[["quantiles"]](x,                        weights,  
+                              probs = c(0.025, 0.16, 0.5, 0.84, 0.975), ...) 
+resampFunctionalList[["centered quantiles"]](x,     observed, weights, 
+                              probs = c(0.025, 0.16, 0.5, 0.84, 0.975), ...) 
+resampFunctionalList[["standardized quantiles"]](x, observed, weights, 
+                              probs = c(0.025, 0.16, 0.5, 0.84, 0.975), ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+matrix with <code>B</code> rows (number of bootstrap samples) and <code>p</code> columns 
+(length of the observed statistic), containing the bootstrap sample. 
+</s-arg>
+<s-arg name="observed">
+vector of length <code>p</code> of observed statistics.  This argument is required 
+for functionals that use it. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="weights">
+vector of weights of length <code>B</code>, or <code>NULL</code> signifying equal weights. 
+Calculations are done for the weighted distributions. 
+</s-arg>
+<s-arg name="...">
+optional arguments, passed to the corresponding function, e.g. 
+<code>colMeans</code> for <code>"mean"</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+A vector or matrix of summary statistics, for example 
+quantiles of each column.  The <code>"mean"</code>, <code>"bias"</code>, and <code>"se"</code> 
+examples return vectors of length <code>p</code>, 
+the others return matrices with <code>p</code> columns and two or five (by default) 
+columns. 
+</s-value>
+<s-details>
+These are used by 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function> 
+and 
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>. 
+<p>
+You may define your own functional to pass to those functions; 
+it should have the same initial arguments.  The output need not have 
+<code>p</code> columns or length <code>p</code>; however the plotting routines will work 
+best if it does.  If the output has <code>names</code> or <code>dimnames</code> they 
+will be used in printing and plotting. 
+</s-details>
+<s-see>
+These functionals are called by 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>  and 
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+x <- qexp(ppoints(19)) 
+boot <- bootstrap(x, mean) 
+plot(boot) # slightly skewed 
+jab <- jackknifeAfterBootstrap(boot) 
+plot(jab) 
+plot(jab, xaxis = "L") 
+plot(jab, xaxis = "data") 
+ 
+jab <- jackknifeAfterBootstrap(boot, functional = "Centered Quantiles") 
+plot(jab) 
+ 
+# See also extensive examples in the help files for jackknifeAfterBootstrap 
+# and tiltAfterBootstrap 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>sysdata</s-keyword>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

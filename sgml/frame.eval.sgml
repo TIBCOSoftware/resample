@@ -1,0 +1,163 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>frame.eval</s-topic>
+</s-topics>
+<s-title>
+Symbolic processing in resampling 
+</s-title>
+<s-description>
+Arguments specifying a frame where data used when creating a 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or other resampling argument may be found. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+jackknifeAfterBootstrap(boot.obj, ..., frame.eval, ...) 
+limits.bca(boot.obj, ..., frame.eval, ...) 
+summary.bootstrap(object, ..., frame.eval, ...) 
+resampGetIndices(object, frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-optional>
+<s-arg name="frame.eval">
+a frame in which to do evaluation, or integer giving a frame number. 
+</s-arg>
+<s-arg name="...">
+other arguments; see the respective functions. 
+</s-arg>
+</s-args-optional>
+<s-details>
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and other resampling functions 
+return objects that do not include copies of the original data. 
+But various functions 
+that use these objects need access to that data. 
+This is done symbolically, by using the same name or other 
+expression originally used.  But this may fail in some circumstances, 
+if the data no longer exists by that name. 
+Or it may give incorrect results, if the data has changed. 
+The various <code>frame.eval</code> arguments provide a mechanism for specifying 
+that data; or for that matter, any other object named when 
+calling the original 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or other function. 
+<br>
+For example, suppose you define <code>B &lt;- bootstrap(myData, mean)</code>. 
+<code>B</code> does not contain a copy of <code>myData</code>, but 
+<code>B$call</code> contains the name <code>myData</code>. 
+Now call <code>limits.bca(B)</code>; 
+this creates and evaluates a new 
+call <code>jackknife(myData, mean)</code> in order to perform some of its 
+calculations.  This works only if <code>myData</code> exists 
+where 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+can find it. 
+That is no problem if 
+<code>myData</code> is stored on a permanent database, but may be a problem 
+if it is defined only within a function.  The solution is for 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+to do <code>eval(jack.call, frame.eval)</code>, 
+which tells <code>eval</code> where to find <code>myData</code>. 
+Normally <code>frame.eval</code> should just be the frame number 
+that 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+was called from in the first place. 
+<br>
+The default behavior of these functions is to let 
+the <code>frame.eval</code> argument be the frame number from which 
+the object (<code>boot.obj</code> or <code>object</code>) was originally created, 
+if possible. 
+In newer versions of the resampling code, the frame number 
+is stored with the object itself, as the <code>parent.frame</code> component; 
+this is used as the default value.  If that information is not 
+stored (say if <code>B</code> were created in an earlier version of S-PLUS), 
+then these functions make a guess. 
+<br>
+The <code>frame.eval</code> argument is passed as the <code>local</code> argument to <code>eval</code>; 
+hence it may be anything that <code>eval</code> accepts, either a frame number 
+or a frame.  The latter is necessary in some cases, in order to make 
+available one or more objects originally used in arguments to 
+<code>bootstrap</code>; see the loop example below. 
+</s-details>
+<s-see>
+
+<s-function name="eval.sgm">eval</s-function>,  
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+##### Simple example -- no special action needed 
+myData <- stack.loss[1:20] 
+B <- bootstrap(myData, mean) 
+trace(jackknife) 
+limits.bca(B)  # note that jackknife was called 
+untrace(jackknife) 
+ 
+rm(myData) 
+# limits.bca(B)  # Fails, myData was not found 
+limits.bca(B, frame.eval = list(myData = stack.loss[1:20])) 
+# Explicitly specify a list containing myData as the frame. 
+ 
+ 
+##### Loop example 
+rm(j) 
+dataList <- split(market.frame$usage, market.frame$age) 
+k <- length(dataList) 
+Blist <- vector("list", k); names(Blist) <- names(dataList) 
+for(j in 1:k) 
+  Blist[[j]] <- bootstrap(dataList[[j]], mean) 
+Blist[[1]]  # No problem - but note that data = dataList[[j]] 
+# summary(Blist[[1]])  # fails -- "j" is not found 
+# traceback() 
+# Note that summary calls summary.bootstrap which calls limits.bca 
+#   which calls jackknife, referring to dataList[[j]] 
+# Specifically note that j=1 
+summary(Blist[[1]], frame.eval = list(j = 1)) 
+ 
+# Compute BCa limits for each of those bootstrap computations 
+lapply(1:k, function(j) limits.bca(Blist[[j]], frame.eval=list(j=j))) 
+ 
+ 
+##### Function example -- no special action needed 
+rm(myData, dataList, k, Blist) 
+f <- function(data, column){ 
+  # compute BCa limits for data[,column] 
+  myData <- data[,column] 
+  B <- bootstrap(myData, colMeans) 
+  limits.bca(B) 
+} 
+f(fuel.frame, "Weight") 
+# There is no problem here, because limits.bca was called from 
+# the same function that B and myData were defined in. 
+ 
+ 
+##### Function example -- demonstrate a problem 
+f <- function(data, column){ 
+  g <- function(data, column){ 
+    myData <- data[,column] 
+    bootstrap(myData, colMeans) 
+  } 
+  B <- g(data, column) 
+  limits.bca(B) 
+} 
+# f(fuel.frame, "Weight") 
+# Fails, myData not found.  myData was only defined in g's frame, 
+# which no longer exists when limits.bca is called. 
+# 
+# Workaround would be to replace the call to limits.bca(B) with: 
+# limits.bca(B, frame.eval = list(myData=data[,column])) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

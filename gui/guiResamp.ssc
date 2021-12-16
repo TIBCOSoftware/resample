@@ -1,0 +1,726 @@
+#############################################################################
+# This file contains some properties and groups used by menus under
+# 	Statistics/Resample
+# including
+#	Bootstrap
+#	Jackknife
+#	Permutation Test
+#       bootstrap        tabs for various menus
+#       permutation test tabs for various menus
+# For the most part, this file contains the properties and groups that
+# have similarities across menus.  These are used by files:
+#   guiTabs.ssc (bootstrap and permutation test tabs for menus like TTest1)
+#   guiBootstrap.ssc
+#   guiJackknife.ssc
+#   guiPermutations.ssc
+#############################################################################
+
+
+############################################################################
+# Spaces
+############################################################################
+
+newProperty(Name = "resamp_Space1",
+	    DialogControl = "New Line")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space2")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space3")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space4")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space5")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space6")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space7")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space8")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space9")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space10")
+
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space11")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space12")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space13")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space14")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space15")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space16")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space17")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space18")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space19")
+guiCopy( "Property", Name = "resamp_Space1", NewName = "resamp_Space20")
+
+
+######################################################################
+#       Data Group (in Model tab)
+# Difference Group (in Model tab)
+#	resamp_DataFrameList	(invisible)
+#	resamp_Data		Data set
+#	resamp_Data2		Data set2
+#       resamp_UseRatio		Compare using    (Difference or Ratio)
+#  resampGroup_Data		Data
+#  resampGroup_Data2		Difference between two samples
+#
+######################################################################
+
+copyProperty(Name = "resamp_DataFrameList", OldName = "SPropDataFrameList", 
+	     DialogControl = "Invisible", DialogPrompt = "")
+# That doesn't work.  Have not figured out a way to both
+# have CopyFrom and DialogControl = "Invisible"
+# I wanted to have an invisible property containing the current
+# dataframe; I would use that to assign to resamp_Data
+# Note I want to use resamp_Data instead of SPropDataX (or SPropDataFrameList)
+# because the latter is messed up on rollback.
+# For now I won't use that.
+
+copyProperty(Name = "resamp_Data", OldName = "SPropDataX2")  # required
+# That isn't really what I want, because it is messed up on rollback.
+# But I couldn't figure out a way to get a list of the possible data frames
+# without having (CopyFrom = "TXPROP_DataFrames").
+newProperty(Name = "resamp_Data2",  # not required
+	    DialogControl = "Combo Box",
+	    DialogPrompt = "&Data Set:"
+	    )
+newProperty(Name = "resamp_UseRatio",
+	    DefaultValue = "Difference",
+	    DialogPrompt = "&Compare Using:",
+	    DialogControl = "Radio Buttons",
+	    OptionList = "Difference, Ratio",
+	    UseQuotes = T
+	    )
+newProperty(Name = "resampGroup_Data", Type = "Group",
+	    DialogPrompt = "Data",
+	    PropertyList = "resamp_Data"
+	    )
+newProperty(Name = "resampGroup_Data2", Type = "Group",
+	    DialogPrompt = "Difference between two samples",
+	    PropertyList = c("resamp_treatment",
+	      "resamp_Data2",
+	      "resamp_UseRatio"))
+
+######################################################################
+# Statistic WideGroup (in Model tab)
+#	resamp_Statistic	Expression
+#  resampGroup_Statistic	Statistic to Estimate ...
+######################################################################
+
+newProperty(Name = "resamp_Statistic",  ## SPropStatistic
+	    DialogControl = "Wide String",
+	    DialogPrompt = "&Expression:",
+	    Disable = F
+	    )
+
+newProperty(Name = "resampGroup_Statistic", Type = "WideGroup",
+	    DialogPrompt="Statistic to Estimate (e.g. mean, or mean(y, trim=.2))",
+	    PropertyList = "resamp_Statistic")
+
+
+
+
+######################################################################
+# WideGroup (in Model tab)
+#	resamp_Additional	Additional Arguments
+#	resamp_Additional7	Additional Arguments	[boot tabs]
+#	resamp_Additional8	Additional Arguments	[perm tabs]
+#  resampGroup_Additional 	For example: label='My Label'
+#  resampGroup_Additional7	For example: label='My Label' [b tabs]
+#  resampGroup_Additional8	For example: label='My Label' [p tabs]
+######################################################################
+
+newProperty(Name = "resamp_Additional",
+	    UseQuotes=T,
+	    DialogControl = "Wide String",
+	    DialogPrompt = "Arguments:",
+	    #	  DialogPrompt = "For example: label='My Label'",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_Additional7",
+	     OldName = "resamp_Additional", 
+	     Disable = T)
+copyProperty(Name = "resamp_Additional8",
+	     OldName = "resamp_Additional", 
+	     Disable = T)
+
+newProperty(Name = "resampGroup_Additional", Type = "WideGroup",
+	    #	  DialogPrompt = "Additional Arguments:",
+	    DialogPrompt ="Additional Arguments: (e.g. label='My Label')",
+	    PropertyList = "resamp_Additional")
+copyProperty(Name = "resampGroup_Additional7",
+	     OldName = "resampGroup_Additional", 
+	     PropertyList = "resamp_Additional7")
+copyProperty(Name = "resampGroup_Additional8",
+	     OldName = "resampGroup_Additional", 
+	     PropertyList = "resamp_Additional8")
+
+
+
+######################################################################
+#	resamp_SaveAs		Save As:	(not disabled)
+#	resamp_SaveAsBoot	Save As:	(not disabled, default)
+#	resamp_SaveAsJack	Save As:	(not disabled, default)
+#	resamp_SaveAsPerm	Save As:	(not disabled, default)
+#	resamp_SaveAs7		Save As:	(disabled, dflt)[boot tabs]
+#	resamp_SaveAs8		Save As:	(disabled, dflt)[perm tabs]
+#  resampGroup_SaveBoot		Save Bootstrap Object		[boot gui]
+#  resampGroup_SaveJack		Save Jackknife Object		[jack gui]
+#  resampGroup_SavePerm		Save Permutations Object	[perm gui]
+#  resampGroup_SaveBoot7	Save Bootstrap Object (use SaveAs7) [boot tabs]
+#  resampGroup_SavePerm8	Save Permutations Object ( SaveAs8) [perm tabs]
+######################################################################
+
+newProperty(Name = "resamp_SaveAs", # SPropReturnObject
+	  DialogControl = "String",
+	  UseQuotes = T,
+	  DialogPrompt = "&Save As:",
+	  Disable = F)
+copyProperty(Name = "resamp_SaveAsBoot",
+	     OldName = "resamp_SaveAs", 
+	     DefaultValue = "save.boot")
+copyProperty(Name = "resamp_SaveAsJack",
+	     OldName = "resamp_SaveAs", 
+	     DefaultValue = "save.jack")
+copyProperty(Name = "resamp_SaveAsPerm",
+	     OldName = "resamp_SaveAs", 
+	     DefaultValue = "save.perm")
+copyProperty(Name = "resamp_SaveAs7",
+	     OldName = "resamp_SaveAs", 
+	     DefaultValue = "save.boot",
+	     Disable = T)
+copyProperty(Name = "resamp_SaveAs8",
+	     OldName = "resamp_SaveAs", 
+	     DefaultValue = "save.perm",
+	     Disable = T)
+
+newProperty(Name = "resampGroup_SaveBoot", Type = "Group",
+	    DialogPrompt = "Save Bootstrap Object",
+	    PropertyList = "resamp_SaveAsBoot")
+copyProperty(Name = "resampGroup_SaveJack",
+	     OldName = "resampGroup_SaveBoot", 
+	     DialogPrompt = "Save Jackknife or Influence Object",
+	     PropertyList = "resamp_SaveAsJack")
+copyProperty(Name = "resampGroup_SavePerm",
+	     OldName = "resampGroup_SaveBoot", 
+	     DialogPrompt = "Save Permutations Object",
+	     PropertyList = "resamp_SaveAsPerm")
+copyProperty(Name = "resampGroup_SaveBoot7",
+	     OldName = "resampGroup_SaveBoot", 
+	     PropertyList = "resamp_SaveAs7")
+copyProperty(Name = "resampGroup_SavePerm8",
+	     OldName = "resampGroup_SavePerm", 
+	     PropertyList = "resamp_SaveAs8")
+
+
+
+######################################################################
+#	resamp_alternative	Alternative:	(not disabled)	[perm]
+#  resampGroup_alternative	Alternative Hypothesis:		[perm]
+######################################################################
+
+copyProperty(Name = "resamp_alternative",
+	     OldName = "SPropAlternative", 
+	     DialogPrompt = "Al&ternative:")
+
+newProperty(Name = "resampGroup_alternative", Type = "Group",
+	    DialogPrompt = "Alternative Hypothesis:",
+	    PropertyList = "resamp_alternative")
+
+
+######################################################################
+#	resamp_permuteCols	Permute these Columns		[perm, Cor]
+#  resampGroup_permuteCols	Columns:			[perm, Cor]
+######################################################################
+
+newProperty(Name = "resampGroup_permuteCols", Type = "Group",
+	    DialogPrompt = "Permute these columns",
+	    PropertyList = c(
+	      "resamp_permuteCols",
+	      )
+	    )
+newProperty(Name = "resamp_permuteCols",
+	    DialogPrompt = "&Columns:",
+	    DialogControl = "Multi-select List Box",
+	    UseQuotes = T)
+
+
+
+######################################################################
+# Reampling Options
+#	resamp_B1000		Sampler		[boot]
+#	resamp_B999		Sampler		[perm]
+#	resamp_B1000_7		Sampler		[boot tabs]
+#	resamp_B999_8		Sampler		[perm tabs]
+#	resamp_sampler		Sampler		[boot]
+#	resamp_sampler7		Sampler		[boot tabs]
+#	resamp_strata		Strata/Groups	[boot, perm, jack]
+#	resamp_strata7		Strata		[boot tabs]
+#	resamp_strata8		Strata		[perm tabs]
+#	resamp_subject		Subject		[boot, perm, jack]
+#	resamp_treatment	Treatment	[boot, perm]  (bootstrap2)
+#	resamp_seed		Seed		[boot, perm]
+#	resamp_seed7		Seed		[boot tabs]
+#	resamp_seed8		Seed		[perm tabs]
+#	resamp_assignFrame1	Assign ...	[boot, perm, jack]
+#	resamp_trace		Print Iter...	[boot, perm]
+#	resamp_lmsampler	Sample		[boot tab for lm]
+#  resampGroup_OptionsBoot	Resampling Options	[boot]
+#  resampGroup_OptionsPerm	Resampling Options	[perm]
+#  resampGroup_OptionsJack	Resampling Options	[jack]
+#  resampGroup_Options7		Resampling Options	[boot tabs]
+#  resampGroup_Options8		Resampling Options	[perm tabs]
+#  resampGroup_OptionsLinear	Resampling Options	[boot tab for lm]
+######################################################################
+
+
+newProperty(Name = "resamp_B1000",
+	    DialogControl = "String",
+	    DialogPrompt = "&Number of Resamples:",
+	    DefaultValue = "1000",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_B999",
+	     OldName = "resamp_B1000", 
+	     DefaultValue = "999")
+copyProperty(Name = "resamp_B1000_7",
+	     OldName = "resamp_B1000", 
+	     Disable = T)
+copyProperty(Name = "resamp_B999_8",
+	     OldName = "resamp_B999", 
+	     Disable = T)
+
+
+newProperty(Name = "resamp_sampler",
+	    DialogControl = "Combo Box",
+	    DialogPrompt = "Sampler:",
+	    IsList = F,
+	    Disable = F,
+	    DefaultValue = "samp.bootstrap",
+	    OptionList = c(
+	      "samp.bootstrap",
+	      "samp.bootstrap(size= , reduceSize=, prob= )",
+	      "samp.boot.bal(size= , reduceSize=, method= )",
+	      "samp.bootknife(size= , reduceSize= )",
+	      "samp.half(size= , reduceSize= )",
+	      "samp.finite(N=?, size= , reduceSize= , bootknife= )",
+	      "samp.permute(size= , reduceSize= , prob= )",
+	      "samp.combinations(k=?, both= )",
+	      "samp.blockBootstrap(blockLength=?, size= , reduceSize= )"
+	      )
+	    )
+copyProperty(Name = "resamp_sampler7",
+	     OldName = "resamp_sampler", 
+	     Disable = F)
+
+newProperty(Name = "resamp_strata",
+	    # DialogControl = "Combo Box",
+	    DialogPrompt = "Strata/Groups:",
+	    CopyFrom = "TXPROP_DataFrameColumnsND",
+	    IsList = F,
+	    Disable = F
+	    # UseQuotes = T,
+	    )
+copyProperty(Name = "resamp_strata7",
+	     OldName = "resamp_strata", 
+	     DialogPrompt = "Strata:",
+	     disable = T)
+copyProperty(Name = "resamp_strata8",
+	     OldName = "resamp_strata", 
+	     DialogPrompt = "Strata:",
+	     disable = T)
+
+copyProperty(Name = "resamp_subject",
+	     OldName = "resamp_strata", 
+	     DialogPrompt = "Subject:")
+
+copyProperty(Name = "resamp_treatment",
+	     OldName = "resamp_strata", 
+	     DialogPrompt = "Treatment:")
+
+newProperty(Name = "resamp_seed",
+	    DialogPrompt = "Random &Seed:",
+	    DialogControl = "String"
+	    )
+copyProperty(Name = "resamp_seed7",
+	     OldName = "resamp_seed", 
+	     Disable = T)
+copyProperty(Name = "resamp_seed8",
+	     OldName = "resamp_seed", 
+	     Disable = T)
+
+newProperty(Name = "resamp_assignFrame1",
+	    DialogPrompt = "Assign Resampled Data to Frame &1",
+	    DialogControl = "Check Box"
+	    )
+
+newProperty(Name = "resamp_trace",
+	    DialogPrompt = "&Print Iteration Numbers",
+	    DefaultValue = F,
+	    DialogControl = "Check Box")
+
+newProperty(Name = "resamp_lmsampler",
+	    DialogControl = "Combo Box",
+	    DialogPrompt = "Sample:",
+	    IsList = F,
+	    Disable = T,
+	    UseQuotes = T,
+	    DefaultValue = "observations",
+	    OptionList = c(
+	      "observations",
+	      "residuals",
+	      "wild",
+	      "wild-as",
+	      )
+	    )
+
+
+
+## Create groups for Resampling Options
+newProperty(Name = "resampGroup_OptionsBoot", Type = "Group",
+	    DialogPrompt = "Resampling Options",
+	    PropertyList = c(
+	      "resamp_B1000",
+	      "resamp_sampler",
+	      "resamp_strata",
+	      "resamp_subject",
+	      "resamp_seed",
+	      "resamp_trace",
+	      "resamp_assignFrame1",
+	      ),
+	    )
+copyProperty(Name = "resampGroup_OptionsPerm",
+	     OldName = "resampGroup_OptionsBoot", 
+	     PropertyList = c(
+	       "resamp_B999",
+	       "resamp_strata",
+	       "resamp_subject",
+	       "resamp_seed",
+	       "resamp_trace",
+	       "resamp_assignFrame1",
+	       ),
+	     )
+copyProperty(Name = "resampGroup_OptionsJack",
+	     OldName = "resampGroup_OptionsBoot", 
+	     PropertyList = c(
+	       "resamp_strata",
+	       "resamp_subject",
+	       "resamp_assignFrame1",
+	       ),
+	     )
+copyProperty(Name = "resampGroup_Options7",
+	     OldName = "resampGroup_OptionsBoot", 
+	     PropertyList = c(
+	       "resamp_B1000_7",
+	       "resamp_sampler7",
+	       "resamp_strata7",
+	       "resamp_seed7",
+	       ),
+	     )
+copyProperty(Name = "resampGroup_Options8",
+	     OldName = "resampGroup_OptionsPerm", 
+	     PropertyList = c(
+	       "resamp_B999_8",
+	       "resamp_strata8",
+	       "resamp_seed8",
+	       ),
+	     )
+copyProperty(Name = "resampGroup_OptionsLinear",
+	     OldName = "resampGroup_OptionsBoot", 
+	     PropertyList = c(
+	       "resamp_B1000_7",
+	       "resamp_lmsampler",
+	       "resamp_sampler7",
+	       "resamp_strata7",
+	       "resamp_seed7",
+	       ),
+	     )
+
+
+
+######################################################################
+# Plots
+#	resamp_Histogram	Distribution of Replicates	[boot, p, j]
+#	resamp_Histogram7	Distribution of Replicates	[boot tabs]
+#	resamp_Histogram8	Distribution of Replicates	[perm tabs]
+#	resamp_QQ		Normal Quantile-Quantile	[boot, p, j]
+#	resamp_QQ7		Normal Quantile-Quantile	[boot tabs]
+#	resamp_QQ8		Normal Quantile-Quantile	[perm tabs]
+#	resamp_PlotBoth		Both Distribution and QQ	[boot, p, j]
+#	resamp_PlotBoth7	Both Distribution and QQ	[boot tabs]
+#	resamp_PlotBoth8	Both Distribution and QQ	[perm tabs]
+#  resampGroup_Plots		Plots				[boot, p, j]
+#  resampGroup_Plots7		Plots				[boot tabs]
+#  resampGroup_Plots8		Plots				[perm tabs]
+######################################################################
+
+newProperty(Name = "resamp_Histogram",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&Distribution of Replicates",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_Histogram7",
+	     OldName = "resamp_Histogram", 
+	     Disable = T)
+copyProperty(Name = "resamp_Histogram8",
+	     OldName = "resamp_Histogram", 
+	     Disable = T)
+
+newProperty(Name = "resamp_QQ",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "Normal &Quantile-Quantile",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_QQ7",
+	     OldName = "resamp_QQ", 
+	     Disable = T)
+copyProperty(Name = "resamp_QQ8",
+	     OldName = "resamp_QQ", 
+	     Disable = T)
+
+newProperty(Name = "resamp_PlotBoth",
+	    DefaultValue = T,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "Both Distribution and QQ",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_PlotBoth7",
+	     OldName = "resamp_PlotBoth", 
+	     Disable = T)
+copyProperty(Name = "resamp_PlotBoth8",
+	     OldName = "resamp_PlotBoth", 
+	     Disable = T)
+
+
+newProperty(Name = "resampGroup_Plots", Type = "Group",
+	    DialogPrompt = "Plots",
+	    PropertyList = c(
+	      "resamp_Histogram",
+	      "resamp_QQ",
+	      "resamp_PlotBoth"
+	      )
+	    )
+copyProperty(Name = "resampGroup_Plots7",
+	     OldName = "resampGroup_Plots", 
+	     PropertyList = c(
+	       "resamp_Histogram7",
+	       "resamp_QQ7",
+	       "resamp_PlotBoth7"
+	       ))
+copyProperty(Name = "resampGroup_Plots8",
+	     OldName = "resampGroup_Plots", 
+	     PropertyList = c(
+	       "resamp_Histogram8",
+	       "resamp_QQ8",
+	       "resamp_PlotBoth8"
+	       ))
+
+
+######################################################################
+# Summary Results
+#	resamp_SummaryStats	Summary Statistics		[boot, p, j]
+#	resamp_Correlation	Correlation Matrix of Estimates	[boot, p, j]
+#	resamp_Percentiles	Percentiles			[boot, p, j
+#	resamp_Percentiles7	Percentiles			[boot tabs]
+#	resamp_BCa		BCa Confidence Intervals	[boot]
+#	resamp_BCa7		BCa Confidence Intervals	[boot tabs]
+#	resamp_ABC		ABC Confidence Intervals	[jack]
+#	resamp_Tilting		Tilting Confidence Intervals	[boot]
+#	resamp_Tilting7		Tilting Confidence Intervals	[boot tabs]
+#	resamp_tLimits		t Intervals w/boot SE		[boot]
+#	resamp_tLimitsResample	t Intervals w/Resampling SE	[jack]
+#	resamp_tLimits7		t Intervals w/boot SE		[boot tabs]
+#	resamp_Levels		Percentile Levels:		[boot, p, j]
+#	resamp_Levels7		Percentile Levels:		[boot, p, j]
+#	resamp_SaveSummary	Save Summary Results As:	[boot, p, j]
+#  resampGroup_SummaryBoot	Summary Results			[boot]
+#  resampGroup_SummaryJack	Summary Results			[jack]
+#  resampGroup_SummaryPerm	Summary Results			[perm]
+#  resampGroup_Summary7		Summary Results			[boot tabs]
+######################################################################
+
+newProperty(Name = "resamp_SummaryStats",
+	    DefaultValue = T,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&Summary Statistics",
+	    Disable = F
+	    )
+
+newProperty(Name = "resamp_Correlation",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&Correlation Matrix of Estimates",
+	    Disable = F
+	    )
+
+newProperty(Name = "resamp_Percentiles",
+	    DefaultValue = T,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&Percentiles",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_Percentiles7",
+	     OldName = "resamp_Percentiles", 
+	     Disable = T)
+
+newProperty(Name = "resamp_BCa",
+	    DefaultValue = T,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&BCa Confidence Intervals",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_BCa7",
+	     OldName = "resamp_BCa", 
+	     Disable = T)
+copyProperty(Name = "resamp_ABC",
+	     OldName = "resamp_BCa", 
+	     DialogPrompt = "&ABC Confidence Intervals")
+
+newProperty(Name = "resamp_Tilting",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "Tilting Confidence Intervals",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_Tilting7",
+	     OldName = "resamp_Tilting", 
+	     Disable = T,
+	     DefaultValue = T)	    # will override this in some menus
+
+newProperty(Name = "resamp_tLimits",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "t Intervals using Bootstrap SE",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_tLimitsResample",
+	     OldName = "resamp_tLimits", 
+	     DialogPrompt = "t Intervals using Resampling SE",
+	     Disable = F)
+copyProperty(Name = "resamp_tLimits7",
+	     OldName = "resamp_tLimits", 
+	     Disable = T,
+	     DefaultValue = F)
+
+newProperty(Name = "resamp_Levels",
+	    DefaultValue = ".025, .05, .95, .975",
+	    UseQuotes = T, # will paste "c(" ")" around before evaluating
+	    DialogControl = "String",
+	    DialogPrompt = "Percentile Levels:",
+	    Disable = F
+	    )
+copyProperty(Name = "resamp_Levels7",
+	     OldName = "resamp_Levels", 
+	     Disable = T)
+
+newProperty(Name = "resamp_SaveSummary",
+	    DialogControl = "String",
+	    DialogPrompt = "Save Summary Results As:",
+	    UseQuotes=T,
+	    Disable = F
+	    )
+
+## Groups
+
+newProperty(Name = "resampGroup_SummaryBoot", Type = "Group",
+	    DialogPrompt = "Summary Results",
+	    PropertyList = c(
+	      "resamp_SummaryStats",
+	      "resamp_Percentiles",
+	      "resamp_BCa",
+	      "resamp_Tilting",
+	      "resamp_tLimits",
+	      "resamp_Levels",
+	      "resamp_Correlation",
+	      "resamp_SaveSummary"
+	      ),
+	    )
+copyProperty(Name = "resampGroup_SummaryJack",
+	     OldName = "resampGroup_SummaryBoot", 
+	     PropertyList = c(
+	       "resamp_SummaryStats",
+	       "resamp_Percentiles",
+	       "resamp_tLimitsResample",
+	       "resamp_ABC",
+	       "resamp_Levels",
+	       "resamp_Correlation",
+	       "resamp_SaveSummary"
+	       ),
+	     )
+copyProperty(Name = "resampGroup_SummaryPerm",
+	     OldName = "resampGroup_SummaryBoot", 
+	     PropertyList = c(
+	       "resamp_SummaryStats",
+	       "resamp_Percentiles",
+	       "resamp_Levels",
+	       "resamp_Correlation",
+	       "resamp_SaveSummary"
+	       ),
+	     )
+copyProperty(Name = "resampGroup_Summary7",
+	     OldName = "resampGroup_SummaryBoot", 
+	     PropertyList = c(
+	       "resamp_Percentiles7",
+	       "resamp_BCa7",
+	       "resamp_Tilting7",
+	       "resamp_tLimits7",
+	       "resamp_Levels7",
+	       ))
+
+
+######################################################################
+# Replicates
+#	resamp_ViewReplicates	View Replicates			[context*]
+#	resamp_SaveReplicates	Save Replicates As:		[context*]
+#  resampGroup_Replicates	Extract Replicates		[context*]
+######################################################################
+newProperty(Name = "resamp_ViewReplicates",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&View Replicates",
+	    Disable = F
+	    )
+
+newProperty(Name = "resamp_SaveReplicates",
+	    DialogControl = "String",
+	    DialogPrompt = "Save Replicates As:",
+	    DefaultValue = "",
+	    UseQuotes=T,
+	    Disable = F
+	    )
+
+newProperty(Name = "resampGroup_Replicates", Type = "Group",
+	    DialogPrompt = "Replicates",
+	    PropertyList = c(
+	      "resamp_ViewReplicates",
+	      "resamp_SaveReplicates",
+	      ),
+	    )
+
+
+######################################################################
+# Trimmed Mean Group (on t-test tabs)
+#	resamp_Trim		Trim % each side
+#  resampGroup_TrimMean		Trimmed Mean
+######################################################################
+# Trimmed Mean option (Summary Statistics)
+#	resamp_doTrimMean	Trim % each side
+#	resamp_Trim25		Trim % each side
+######################################################################
+newProperty(Name = "resamp_Trim",
+	    DialogControl = "String",
+	    DialogPrompt = "&Trim % each side:",
+	    DefaultValue = "0",
+	    Disable = F
+	    )
+newProperty(Name = "resampGroup_TrimMean", Type = "Group",
+	    DialogPrompt = "Trimmed Mean",
+	    PropertyList = c(
+	      "resamp_Trim",
+	      ),
+	    )
+
+newProperty(Name = "resamp_doTrimMean",
+	    DialogControl = "Check Box",
+	    DialogPrompt = "&Trimmed Mean",
+	    DefaultValue = "T"
+	    )
+copyProperty(Name = "resamp_Trim25",
+	     OldName = "resamp_Trim", 
+	     DefaultValue = "25"
+	     )
+
+
+"Done with guiResamp.ssc" # for script file input

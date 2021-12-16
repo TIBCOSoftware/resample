@@ -1,0 +1,282 @@
+#############################################################################
+# This file contains some gui specs for
+# (1) the "Bootstrap" tab called from:
+#   TTest1 - Statistics:Compare Samples:One Sample:t test/Resample
+#   TTest2 - Statistics:Compare Samples:Two Samples:t test/Resample
+#   Cor    - Correlations
+#   Describe - Summary Statistics
+#   Proportions
+#   Linear   - Linear regression
+# (2) the "Permutations" tab called from:
+#   Statistics:Compare Samples:Two Samples:t test/Resample
+#   Correlations
+#   Proportions
+#
+# This file also contains:
+#   backResampBoot  - the call back function for the bootstrap tab,
+#     called by callback functions for the menus above.
+#   backResampPerm  - call back function for the permutations tab,
+#     called by callback functions for the menus above.
+#   backResampBootPerm  - call back function for both tabs
+#     called by callback functions for the menus above.
+#
+# This file uses many properties and groups from guiResample.ssc
+# The objects here are specific to the "special-purpose" menus,
+# that are not used in the general bootstrap, jackknife, & perm menus
+#
+# In this file:
+# * "perform" properties and tabs for both boot & perm
+# * "resampPage_boot" (bootstrap tab for various menus)
+# * call back for boot tab
+# * "resampPage_perm" (perm tab for various menus)
+# * "resampPage_permCor" (perm tab for Corr menu)
+# * call back for perm tab
+# * call back for both tabs
+
+#############################################################################
+
+
+##################################################################
+#
+#      resamp_performBoot: 	"Perform Bootstrap"		[Check Box]
+#      resamp_performPerm: 	"Perform Permutation Test"	[Check Box]
+# resampGroup_performBoot: 	"Bootstrap"
+# resampGroup_performPerm: 	"Permutation Test"
+#
+##################################################################
+
+newProperty(Name = "resamp_performBoot",
+	    DefaultValue = F,
+	    DialogControl = "Check Box",
+	    DialogPrompt = "Perform Bootstrap"
+	    )
+copyProperty(Name = "resamp_performPerm",
+	     OldName = "resamp_performBoot", 
+	     DialogPrompt = "Perform Permutation Test")
+
+newProperty(Name = "resampGroup_performBoot", Type = "Group",
+	    DialogPrompt = "Bootstrap",
+	    PropertyList = "resamp_performBoot")
+copyProperty(Name = "resampGroup_performPerm",
+	     OldName = "resampGroup_performBoot", 
+	     DialogPrompt = "Permutation Test",
+	     PropertyList = "resamp_performPerm")
+
+
+
+##################################################################
+
+
+newProperty(Name = "resampPage_boot", Type = "Page",
+	    DialogPrompt = "Bootstrap",
+	    PropertyList = c(
+	      "resampGroup_performBoot",
+	      "resampGroup_Options7",
+	      "resampGroup_SaveBoot7",
+	      "resamp_Space1",
+	      #	    "resamp_Space2",
+	      #	    "resamp_Space3",
+	      #	    "resamp_Space4",
+	      "resampGroup_Additional7", # double wide
+	      # new column
+	      "resampGroup_Plots7",
+	      "resampGroup_Summary7",
+	      #	    "resamp_Space5",
+	      #	    "resamp_Space6",
+	      ),
+	    )
+
+###################################################################
+#
+#  Call back stuff
+#
+###################################################################
+
+enableOrDisableSummStuffResampBoot <- function(dfp){
+  # Enable levels if performing bootstrap and any intervals are requested
+  dfp <- cbSetEnableFlag(dfp, "resamp_Levels7",
+			cbGetCurrValue(dfp, "resamp_performBoot" ) &&
+			(cbGetCurrValue(dfp, "resamp_Percentiles7" ) ||
+			 cbGetCurrValue(dfp, "resamp_BCa7" ) ||
+			 cbGetCurrValue(dfp, "resamp_Tilting7" ) ||
+			 cbGetCurrValue(dfp, "resamp_tLimits7" )))
+  dfp
+}
+
+
+enableOrDisableItemsOnPerformResampBoot <- function(dfp){
+  dfp <- cbSetEnableFlag(dfp,
+			c("resamp_B1000_7",
+			  "resamp_sampler7",
+			  "resamp_strata7",
+			  "resamp_seed7",
+			  "resamp_Percentiles7",
+			  "resamp_BCa7",
+			  "resamp_Tilting7",
+			  "resamp_tLimits7",
+			  "resamp_Levels7",
+			  "resamp_Histogram7",
+			  "resamp_QQ7",
+			  "resamp_PlotBoth7",
+			  "resamp_Additional7",
+			  "resamp_SaveAs7",
+			  ),
+			cbGetCurrValue(dfp, "resamp_performBoot" ))
+  dfp <- enableOrDisableSummStuffResampBoot(dfp)
+  dfp
+}
+
+
+
+backResampBoot <- function(dfp, dataFrameProperty = ""){
+  # callback support for the bootstrap tab, called by backTTest2resample
+  # (or corresponding function from other menus).
+  # dataFrameProperty should be the name of the property whose value
+  #  is the current data frame (if any).
+  
+  # Enable or disable menu items, 
+  if(cbIsNewOrChange(dfp, "resamp_performBoot")){
+    dfp <- enableOrDisableItemsOnPerformResampBoot(dfp)
+  }
+
+  if(cbIsUpdateMessage(dfp)) {
+    activeprop <- cbGetActiveProp(dfp)
+    switch( activeprop,
+	   "resamp_Percentiles7" =,
+	   "resamp_BCa7" =,
+	   "resamp_Tilting7" =,
+	   "resamp_tLimits7" = {
+	     dfp <- enableOrDisableSummStuffResampBoot(dfp)
+	   }
+	   )				# end: switch( activeprop ...)
+  }
+
+  # If a dataFrameProperty is supplied, then also adjust the strata (group)
+  # field.
+  if(dataFrameProperty != "" &&
+     cbIsNewOrChange(dfp, dataFrameProperty)){
+    var.names <- cbGetColumnNamesString(cbGetCurrValue(dfp, dataFrameProperty))
+    dfp <- cbSetOptionList(dfp, "resamp_strata7", var.names)
+    if(cbIsUpdateMessage(dfp))
+      dfp <- cbSetCurrValue(dfp, "resamp_strata7", "")
+  }
+
+  dfp
+}
+
+###################################################################
+
+
+newProperty(Name = "resampPage_perm", Type = "Page",
+	    DialogPrompt = "Permutations",
+	    PropertyList = c(
+	      "resampGroup_performPerm",
+	      "resampGroup_Options8",
+	      "resampGroup_SavePerm8",
+	      "resamp_Space11",
+	      "resamp_Space12",
+	      #	    "resamp_Space13",
+	      #	    "resamp_Space14",
+	      "resampGroup_Additional8",
+	      # new column
+	      "resampGroup_Plots8",
+	      "resamp_Space15",
+	      "resamp_Space16",
+	      "resamp_Space17",
+	      "resamp_Space18",
+	      "resamp_Space19",
+	      "resamp_Space20",
+	      ),
+	    )
+# No alternative hypothesis here, because given on first page for TTest2,
+# and implied for other menus
+
+# This version adds the alternative hypothesis & resampleColumns;
+# use for Correlation
+newProperty(Name = "resampPage_permCor", Type = "Page",
+	    DialogPrompt = "Permutations",
+	    PropertyList = c(
+	      "resampGroup_performPerm",
+	      "resampGroup_Options8",
+	      "resampGroup_SavePerm8",
+	      "resamp_Space11",
+	      "resamp_Space12",
+	      #	    "resamp_Space13",
+	      #	    "resamp_Space14",
+	      "resampGroup_Additional8",
+	      # new column
+	      "resampGroup_permuteCols",
+	      "resampGroup_alternative", # This differs from above
+	      "resampGroup_Plots8",
+	      #	"resamp_Space15",		# Comment out two lines, to make
+	      #	"resamp_Space16",		# space for alternative
+	      #	"resamp_Space17",	# Comment out 3 lines for permuteCols
+	      # "resamp_Space18",
+	      # "resamp_Space19",
+	      "resamp_Space20",
+	      ),
+	    )
+
+
+###################################################################
+#
+#  Call back stuff
+#
+###################################################################
+
+enableOrDisableItemsOnPerformResampPerm <- function(dfp){
+  dfp <- cbSetEnableFlag(dfp,
+			c("resamp_B999_8",
+			  "resamp_strata8",
+			  "resamp_seed8",
+			  "resamp_Histogram8",
+			  "resamp_QQ8",
+			  "resamp_PlotBoth8",
+			  "resamp_Additional8",
+			  "resamp_SaveAs8",
+			  ),
+			cbGetCurrValue(dfp, "resamp_performPerm" ))
+  dfp
+}
+
+
+
+backResampPerm <- function(dfp, dataFrameProperty = ""){
+  # callback support for the permutations tab, called by backTTest2resample
+  # (or corresponding function from other menus)
+  # dataFrameProperty should be the name of the property whose value
+  #  is the current data frame (if any).
+  if(cbIsNewOrChange(dfp, "resamp_performPerm")){
+    dfp <- enableOrDisableItemsOnPerformResampPerm(dfp)
+  }
+
+  # If a dataFrameProperty is supplied, then also adjust the strata (group)
+  # field.
+  if(dataFrameProperty != "" &&
+     cbIsNewOrChange(dfp, dataFrameProperty)){
+    var.names <- cbGetColumnNamesString(cbGetCurrValue(dfp, dataFrameProperty))
+    dfp <- cbSetOptionList(dfp, "resamp_strata8", var.names)
+    if(cbIsUpdateMessage(dfp))
+      dfp <- cbSetCurrValue(dfp, "resamp_strata8", "")
+  }
+
+  dfp
+}
+
+backResampBootPerm <- function(dfp, dataFrameProperty = ""){
+  # Callback support for both bootstrap and permutations tabs.
+  # Calls
+  #   backResampBoot for bootstrap tab
+  #   backResampPerm for permutation tab
+  # then makes the strata fields identical
+  dfp <- backResampBoot(dfp, dataFrameProperty)
+  dfp <- backResampPerm(dfp, dataFrameProperty)
+  if(cbIsChange(dfp, "resamp_strata7"))
+    dfp["resamp_strata8", "value"] <- dfp["resamp_strata7", "value"]
+  if(cbIsChange(dfp, "resamp_strata8"))
+    dfp["resamp_strata7", "value"] <- dfp["resamp_strata8", "value"]
+  dfp
+}
+
+
+"Done with guiTabs.ssc" # for script file input

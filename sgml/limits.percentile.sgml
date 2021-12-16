@@ -1,0 +1,79 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>limits.percentile</s-topic>
+</s-topics>
+<s-title>
+Calculate Percentiles of Resampling Distributions 
+</s-title>
+<s-description>
+Calculates percentiles for the resampled statistics 
+in a <code>resamp</code> object. 
+The <code>quantile</code> function is used 
+to calculate the percentiles of each column of the <code>replicates</code> 
+component of <code>x</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+limits.percentile(x, probs=c(0.025, 0.05, 0.95, 0.975), 
+                  subset.statistic = T, narrow = F) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class <code>resamp</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="probs">
+probabilities at which to calculate percentiles. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic that was bootstrapped has 
+length greater than 1, use this to request intervals for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="narrow">
+logical, determines how quantiles are computed.  If <code>narrow=FALSE</code> 
+(the default), then intervals are wider and coverage probabilities 
+are usually more accurate than with <code>narrow=TRUE</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix of percentiles with one row per parameter. 
+</s-value>
+<s-details>
+When bootstrapping, quantiles produced by <code>limits.percentile</code> 
+are known as bootstrap percentile confidence intervals. 
+They are not particularly accurate; under general 
+conditions they are 
+first-order accurate (coverage errors O(1/sqrt(n))), 
+while BCa and tilting limits are second-order accurate (O(1/n)). 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="summary.bootstrap.sgm">summary.bootstrap</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+temp <- bootstrap(stack.loss,var) 
+limits.percentile(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

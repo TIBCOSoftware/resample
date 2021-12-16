@@ -1,0 +1,112 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>makeBootstrap</s-topic>
+</s-topics>
+<s-title>
+Calculate Bootstrap Statistics 
+</s-title>
+<s-description>
+Utility function called by 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+to calculate bootstrap statistics and 
+create an object of class <code>bootstrap</code> which inherits from <code>resamp</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+makeBootstrap(replicates, observed, n, call, seed.start, seed.end, 
+          dim.obs = NULL, weights = NULL, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="replicates">
+matrix of bootstrap replicates of the parameters of interest, with one 
+column per parameter. 
+</s-arg>
+<s-arg name="observed">
+parameter values for the original set of data. 
+</s-arg>
+<s-arg name="n">
+number of observations in original set of data. 
+</s-arg>
+<s-arg name="call">
+original call to <code>bootstrap()</code> (or other resampling function). 
+Should contain arguments 
+specifying the <code>data</code> and <code>statistic</code> used in the fit.  Used in 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+to identify data and statistic to jackknife when calculating the acceleration, 
+and by 
+<s-function name="addSamples.bootstrap.sgm">addSamples.bootstrap</s-function> 
+and 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>. 
+</s-arg>
+<s-arg name="seed.start">
+random seed set at start of function calling 
+<s-function name="makeBootstrap.sgm">makeBootstrap</s-function>. 
+</s-arg>
+<s-arg name="seed.end">
+random number seed at end of resampling. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="dim.obs">
+if the statistic of interest returns a matrix of parameters, the dimensions 
+of this matrix are stored as <code>dim.obs</code>.  This is used in 
+<s-function name="plot.resamp.sgm">plot.resamp</s-function> 
+and 
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function> 
+to control the layout of plots. 
+</s-arg>
+<s-arg name="weights">
+optional vector of weights. 
+</s-arg>
+<s-arg name="...">
+other arguments such as <code>group</code> and <code>indices</code> to include in the 
+returned list.  For some of these arguments, a value of <code>NULL</code> is 
+equivalent to not being present, so the <code>NULL</code> is not included 
+in the returned list. 
+</s-arg>
+</s-args-optional>
+<s-value>
+a list of class <code>bootstrap</code> which inherits from <code>resamp</code>.  This has 
+components <code>call</code>, <code>observed</code>, <code>replicates</code>, <code>estimate</code>, <code>B</code>, <code>n</code>, 
+<code>dim.obs</code>, <code>seed.start</code>, and <code>seed.end</code>. 
+Optional components include <code>B.missing</code>, 
+<code>group</code>, <code>subject</code>, <code>indices</code>, <code>weights</code>, and <code>L</code>. 
+The data frame <code>estimate</code> has three columns containing the 
+bootstrap estimates of <code>Bias</code>, <code>Mean</code>, and <code>SE</code>.  These are 
+weighted estimates if <code>weights</code> is supplied.  See 
+<s-function name="bootstrap.object.sgm">bootstrap.object</s-function> 
+or  
+<s-function name="resamp.object.sgm">resamp.object</s-function> 
+for further details.  
+</s-value>
+<s-details>
+Various parts of the output are required for use by some functions 
+that operate on a <code>bootstrap</code> object. 
+For example, 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function> 
+and 
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function> 
+require the initial seed, 
+<s-function name="addSamples.sgm">addSamples</s-function> 
+requires the final seed, 
+and numerous functions require the call. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="bootstrap.object.sgm">bootstrap.object</s-function>,  
+<s-function name="resamp.object.sgm">resamp.object</s-function>.  </s-see>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

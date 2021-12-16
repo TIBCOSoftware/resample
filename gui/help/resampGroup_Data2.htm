@@ -1,0 +1,42 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Difference between two samples</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Difference between two samples</H3>
+<p>
+When resampling the difference between two samples,
+you may use either of the followng two fields:
+
+<h4>Treatment</h4>
+Specify the combined data set in the "Data" area,
+and a vector with two unique values as the 
+<code>Treatment</code> field.
+<p>
+If the data set is a data frame, then <code>Treatment</code>
+may be the name of a variable in the data frame, e.g.
+<br>
+<code>Sex</code>.
+<br>
+Or it may be an expression that uses variable(s) in the 
+data frame, e.g.
+<br>
+<code>Dose < 15</code>.
+
+<h4>Data Set</h4>
+Specify a data set containing the second sample.
+If the data set containing the first sample is a matrix or data frame,
+this must be too, with the same variables.
+</BODY>
+</HTML>

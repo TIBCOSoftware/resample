@@ -1,0 +1,208 @@
+#! /bin/sh
+
+## This script does a complete build of the resample module.
+##
+## Doesn't do chm build.  Do that first (if needed) by typing from this 
+## directory in a cygwin window:
+## 
+## 	$ bash build_helpchm_resamp.cyg
+##
+## Then 
+##
+## 	$ bash build_resample.cyg
+
+
+## 1. You must have a build directory and staging directory specified
+##    which are different from your source directory. 
+## 2. You must have Splus6 for windows installed on your machine.
+## 3. You must have Cygwin installed on your machine.
+## 4. NOTE: Splus CANNOT be running when you do this build.
+
+## This script does the following:
+## 1. The previous build of your module in the build directory is 
+##    copied to $BLDHOME/$MODULE.old
+## 2. Your source directory is copied to the build directory.
+##    To get a proper build, you must insure that your source directory is clean.
+## 3. A complete build is done in the build directory and results printed to a log.
+## 4. Pieces needed for the module, are copied to the staging directory. 
+## 5. The "pro" version of the module is copied to your $SHOME/module directory.
+## 6. Splus is fired and any specified tests are run and results are printed
+##    to the log, test.log which is placed in your test directory.
+## 7. The build.log is placed in the root of your module directory.  To view
+##    the log while the log while the build is taking place, bring up a 
+##    cygwin window, type "tail -f <path to log>/build.log"
+
+
+## ----------------------------------------------------------------
+## Set the name of the module you are building
+
+MODULE=resample
+
+
+## ----------------------------------------------------------------
+## Set the version
+
+MOD_VERSION="Version 2.0 Beta 9"
+
+
+## ----------------------------------------------------------------
+## Set path to cygwin/bin
+## This path must be in cygwin format (notice "cygdrive/d/" for "d:/").
+
+PATH="/cygdrive/d/cygwin/bin:$PATH"
+
+
+## ----------------------------------------------------------------
+## If you are compiling fortran code, you must set the path
+## to Visual Studio Fortran bin.  This path must be before 
+## the cygwin/bin path because both bins contain a fortran compiler
+## named "df.exe".  You want to pick up the Visual Studio Fortran compiler.
+## This path must be in cygwin format (notice "cygdrive/d/" for "d:/") 
+## and the entire path must be in quotes, because of possible spaces.
+
+PATH="/cygdrive/d/Program Files/Microsoft Visual Studio/DF98/BIN:$PATH"
+export PATH
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing your buildtools with forward slashes.
+
+BLDTOOLS=D:/modules/moduletools/buildtools
+
+
+## ----------------------------------------------------------------
+## Set the path to the root directory for your builds with forward slashes.
+
+BLDHOME=D:/modules/builds
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing module source code with forward slashes.
+
+MODHOME=D:/modules/resamp/resample
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory for your staging with forward slashes.
+
+STAGING=D:/modules/staging
+
+
+## ----------------------------------------------------------------
+## Set the path to the root directory of splus6 with forward slashes.
+## Splus must reside in a path that contains no spaces.
+
+## NOTE: We had been building with 6.0, since we vaguely remember there
+## were problems when you built on 6.1 and tried to run on 6.0.
+
+SHOME=D:/Insightful/splus61
+##SHOME=D:/Insightful/splus6
+
+
+## ----------------------------------------------------------------
+## Do the builds
+
+echo 
+echo ... BUILDING $MODULE ...
+echo 
+echo $BLDTOOLS/build_module $MODULE $MODHOME $SHOME $BLDHOME $BLDTOOLS
+     $BLDTOOLS/build_module $MODULE $MODHOME $SHOME $BLDHOME $BLDTOOLS || exit 1
+
+
+## ----------------------------------------------------------------
+## Do the staging
+
+echo 
+echo ... STAGING $MODULE ...
+echo 
+echo $BLDTOOLS/stage_module -v"$MOD_VERSION" $MODULE $BLDHOME $STAGING $BLDTOOLS 
+     $BLDTOOLS/stage_module -v"$MOD_VERSION" $MODULE $BLDHOME $STAGING $BLDTOOLS  || exit 1
+
+
+## ----------------------------------------------------------------
+## Set the path to the flavor of module you want to load into splus
+
+## STAGED_MODULE=$STAGING/$MODULE/pro/${MODULE}.old
+## STAGED_MODULE=$STAGING/$MODULE/pro/${MODULE}.tb
+   STAGED_MODULE=$STAGING/$MODULE/pro/${MODULE}
+
+
+## ----------------------------------------------------------------
+## Load the module into the splus tree
+
+echo 
+echo ... LOADING $MODULE ...
+echo 
+echo $BLDTOOLS/load_module $MODULE $STAGED_MODULE $SHOME $BLDTOOLS 
+     $BLDTOOLS/load_module $MODULE $STAGED_MODULE $SHOME $BLDTOOLS || exit 1
+
+
+## ----------------------------------------------------------------
+## Do any extra setup for testing here
+
+
+## ----------------------------------------------------------------
+## Do the testing
+
+## NOTE:  If you have more than one directory of tests, then
+## you must reset "TESTS", "TESTDIR", "TESTPATH" and 
+## call "run_tests" for each directory.
+
+
+## ----------------------------------------------------------------
+## List the tests you want to run.
+## Tests must be surrounded by quotes do deal with spaces.
+
+TESTS="addSamples.t balancedSample.t basic.t bootPred.t bootPred2.t"
+
+## NOTE: I removed censreg.ml.t because of random unexplained failures that also occur
+## in the original Splus loop test censReg.t on Windows.  From Chuck Taylor:
+## "Looking over the censReg test (no ".t"), it would appear that I have never been able 
+## to get it to run correctly under Windows, so gave up. It would be nice to have an ## up-to-date set of tests for censorReg."  The test censreg.ml.t passes on Unix.
+
+TESTS1="addSamples.t balancedSample.t basic.t bootPred.t bootPred2.t bootstrap.censorReg.t bootstrap.glm.t bootstrap.lm.t bootstrap.t bootstrap2.t bootstrap2b.t bootstrapFitObj.t bootstrapII.t bootstrapT.t cdf.t combinations.t combineP.t compressIndices.t concomitants.t controlVariates.t cor2.t corFreq.t crossVal.t glm.t groupAnys.t groupMaxs.t groupMeans.t groupMins.t groupRanges.t groupStdevs.t groupSums.t groupVars.t hist.t influence.t inverseFunction.t jackknife.censorReg.t jackknife.glm.t jackknife.lm.t"
+TESTS2="jackknifeFitObj.t limits.abc.t limits.bca.t limits.t.t lm.t match_arg.t mean2.t median.t monotoneSpline.t nclass.t notNested.t other.t pTestMeans.t pbootTest.t pbootstrap.t pbootstrapMethods.t permutationTest.t permutationTest2.t permutations.t ppoints.t qqline.t qqnorm.t quantile2.t quantileFreq.t randomSample.t resampGetL.t resampMakeFunc.t resampSubDF.t revSaddle.t reweight.t saddle.t samp.t samplerCall.t samplerProb.t samplerProb2.t sbootstrap.t sbootstrapMethods.t skewness.t skewness2.t spline.t sub.model.matrix.t tab.t tabulate.t testSize.t tilt.t tiltBoot.t tiltGroups.t tiltMean.t update.t var.t varFreq.t"
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing your tests
+## from the root of your module directory, not including the root name.
+## If the test directory is in the root directory of your module, then you only need to
+## put the name of the directory.  If the directory is further down in
+## your tree then you must use forward slashes to indicate the path.
+
+TESTDIR=loop
+
+TESTPATH=$BLDHOME/$MODULE/$TESTDIR
+
+## ----------------------------------------------------------------
+## If you have some special env vars needed for testing that need setting,
+## set EXTRA_COMMANDS to the S code within quotes.  If there are 
+## quotes in your code preceed each quote with a backslash.
+## For example:
+EXTRA_COMMANDS="setenv( \"RESAMPTEST\", getenv( \"S_PROJ\" ))" 
+## EXTRA_COMMANDS=""
+
+
+## ----------------------------------------------------------------
+## Run the tests.
+## NOTE: Splus CANNOT be running when calling run_tests.
+
+echo 
+echo ... TESTING $MODULE ...
+echo 
+
+## echo $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" ...
+##     $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" $TESTS
+
+echo $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" ...
+    $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" $TESTS1
+
+cp $TESTPATH/test.log $TESTPATH/test1.log
+
+echo $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" ...
+    $BLDTOOLS/run_tests $MODULE $TESTPATH $SHOME $BLDTOOLS $TESTDIR "$EXTRA_COMMANDS" $TESTS2
+
+cp $TESTPATH/test.log $TESTPATH/test2.log
+
+

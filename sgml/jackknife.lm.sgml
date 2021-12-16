@@ -1,0 +1,109 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>jackknife.lm</s-topic>
+   <s-topic>jackknife.glm</s-topic>
+   <s-topic>jackknife.censorReg</s-topic>
+</s-topics>
+<s-title>
+General Nonparametric Jackknife for Fitted Models 
+</s-title>
+<s-description>
+Performs delete-one jackknifing of observations from fitted linear 
+models of class 
+<code>lm</code>, 
+<code>glm</code>, 
+<code>censorReg</code>, 
+or <code>censorRegList</code>. 
+Calculates jackknife statistics for parameters 
+of interest and produces an object of class 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+jackknife(data, statistic, ...) 
+jackknife.lm(data, statistic, ...) 
+jackknife.glm(data, statistic, ...) 
+jackknife.censorReg(data, statistic, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+object to be jackknifed, of class 
+<s-function name="lm.sgm">lm</s-function>, 
+<s-function name="glm.sgm">glm</s-function>, 
+<s-function name="censorReg.sgm">censorReg</s-function>, 
+or <code>censorRegList</code>. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be jackknifed; 
+a function or expression that operates on 
+<code>lm</code>, <code>glm</code>, or <code>censorReg</code> objects and returns a 
+vector or matrix. 
+It may be a function (e.g. <code>coef</code>) which 
+accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>predict(fit,newdata=orig.frame)</code>. 
+If the <code>data</code> object is given by name (e.g. <code>data=fit</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=glm(formula,dataframe)</code>) use the name <code>data</code> in 
+the expression, e.g. <code>predict(data,newdata=orig.frame)</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+The remaining arguments have the same usage as in the default version of 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+</s-args-optional>
+<s-value>
+an object of class 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+which inherits from <code>resamp</code>.  See 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+for more details. 
+</s-value>
+<s-section name=" BUGS">
+
+See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>. 
+</s-section>
+<s-see>
+
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="lm.sgm">lm</s-function>,  
+<s-function name="glm.sgm">glm</s-function>,  
+<s-function name="censorReg.sgm">censorReg</s-function>,  
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+# jackknife and lm 
+fit <- lm(Fuel~Weight+Disp., data=fuel.frame) 
+jackknife(fit, coef) 
+ 
+# jackknife and glm 
+fit <- glm(ozone^(1/3) ~ bs(radiation, 5,knots=185,Boundary.knots=c(7,334)) + 
+           (wind + temperature)^2, data=air) 
+newdata <- air 
+jackknife(fit, predict(fit, newdata=newdata, type="link")) 
+ 
+# jackknife and censorReg (use default statistic) 
+fit <- censorReg(censor(days, event) ~ voltage, data = capacitor2, 
+weights=weights, distribution = "weibull", threshold = "Lin") 
+jackknife(fit, coef(fit)) 
+ 
+# See help(bootstrap.lm) for more examples of syntax. 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

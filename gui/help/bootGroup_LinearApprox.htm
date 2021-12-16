@@ -1,0 +1,58 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Linear Approximation</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Linear Approximation</H3>
+<P>
+Specify a method for calculating a linear approximation to the
+statistic being resampled.  This is used for determining the
+acceleration for BCa confidence intervals, for calculating tilting
+confidence intervals and diagnostics, and other uses.
+<p>
+The basic methods are:
+<br>
+<code>jackknife</code>: calculated by leaving out one observation
+at at time
+<br>
+<code>influence</code>: empirical influence function, calculated using
+a small epsilon,
+<br>
+<code>regression</code>: calculated by regression of resampled statistic
+values vs the frequencies of observations in the resamples, and
+<br>
+<code>ace</code>: like regression, except after the first regression,
+a nonlinear transformation is applied to the "y" (resampled statistic)
+values, and a second regression is run.
+<p>
+In addition,
+<br>
+<code>choose</code>: indicates to choose one of the above choices,
+based on the sample size, number of resamples, and other factors.
+<br>
+<code>none</code>: prevents a linear approximation from being 
+calculated and saved (it is calculated if needed in any case).
+
+<h4>Formula</h4>
+Normally the <code>regression</code> and <code>ace</code> regress
+against observed frequencies.  This regression has 
+<it>n-1</it> explanatory variables, where <it>n</it> is the number
+of observations in the data set.  If <it>n</it> is large and the
+number of bootstrap samples is small the results may be inaccurate.
+You may specify the explanatory variables using a formula instead;
+e.g. if the statistic is variance, then a suitable formula
+would be <code>~x + x^2</code>, where <code>x</code> is the variable
+being resampled.
+</BODY>
+</HTML>

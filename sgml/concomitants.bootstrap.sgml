@@ -1,0 +1,168 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>concomitants.bootstrap</s-topic>
+</s-topics>
+<s-title>
+Concomitants variance reduction 
+</s-title>
+<s-description>
+Adjust a bootstrap object for greater accuracy. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+concomitants.bootstrap(x, subset.statistic = &lt;all&gt;, 
+    L = resampGetL(x), 
+    group, treatment, 
+    conv.factor = 0.1, 
+    frame.eval = &lt;&lt;see below&gt;&gt;) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+a  
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+object. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="subset.statistic">
+vector of integers, indicating which columns of the bootstrap replicates 
+to adjust. 
+</s-arg>
+<s-arg name="L">
+matrix containing empirical influence values or other values to use 
+in creating a linear approximation to the statistic being bootstrapped, 
+with one column for each dimension (parameter) of the statistic. 
+</s-arg>
+<s-arg name="conv.factor">
+scalar, convolution factor passed to <code>qDiscreteMean</code>. A nonzero 
+value convolves the discrete distribution with a normal distribution; 
+a small value like 0.1 improves stability, a larger value like <code>n/(n-1)</code> 
+adds enough variance that the variance of the result 
+is <code>s^2/n</code> where <code>s</code> is calculated with a divisor of <code>(n-1)</code>. 
+</s-arg>
+<s-arg name="group">
+vector defining stratified sampling.  This is normally calculated 
+automatically. 
+</s-arg>
+<s-arg name="treatment">
+vector defining two groups.  This is normally calculated automatically. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>x</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>"concomitants"</code> which inherits from  
+<code>"bootstrap"</code>. 
+This is the same as <code>x</code>, except for components: 
+<s-return-component name="call">
+the call used to create the object. 
+</s-return-component>
+<s-return-component name="replicates">
+the adjusted replicates. 
+</s-return-component>
+<s-return-component name="L">
+the input <code>L</code> 
+</s-return-component>
+<s-return-component name="estimate">
+adjusted estimate of mean, bias, and standard error. 
+</s-return-component>
+<s-return-component name="original">
+list containing the components <code>"call"</code>, <code>"estimate"</code> and <code>"replicates"</code> 
+from <code>x</code>. 
+</s-return-component>
+</s-value>
+
+<s-details>
+This function adjusts the distribution of the bootstrap replicates, based 
+on difference between the observed and exact 
+distributions of a linear approximation. 
+Given a vector <code>L</code> such as that created by 
+<s-function name="influence.sgm">influence</s-function> 
+(empirical influence function) or 
+<s-function name="resampGetL.sgm">resampGetL</s-function> 
+(influence, jackknife, or regression methods), 
+this function will 
+(1) evaluate the linear approximation for bootstrap samples, e.g. 
+<code>Lstar=indexMeans(L,resampGetIndices(x))</code>, 
+(2) compute saddlepoint approximations for 
+quantiles of the distribution of <code>Lstar</code> 
+using 
+<s-function name="qDiscreteMean.sgm">qDiscreteMean</s-function>, 
+then (3) adjust the <code>replicates</code> component of the bootstrap object 
+based on the observed values of the linear approximation for bootstrap 
+samples and the corresponding quantiles. 
+<p>
+This implementation uses <code>smooth.spline</code> to allow 
+the relationship between <code>Lstar</code> and the statistic to be curvilinear. 
+The higher the correlation between <code>Lstar</code> and a smooth monotone 
+transformation of the statistic being bootstrapped the more accurate 
+the result is. 
+</s-details>
+<s-section name=" REFERENCES">
+Do, K. and Hall, P. (1992), 
+"Distribution Estimation using Concomitants of Order Statistics, 
+with Application to Monte Carlo Simulation for the Bootstrap," 
+<it>Journal of the Royal Statistical Society</it>
+Series B, <bf>54</bf>(2), 595-607. 
+<p>
+Efron, B. (1990), 
+"More Efficient Bootstrap Computations," 
+<it>Journal of the American Statistical Society,</it>
+<bf>85</bf>, 79-89. 
+<p>
+Hesterberg, T.C. (1995), 
+"Tail-Specific Linear Approximations for Efficient Bootstrap Simulations," 
+<it>Journal of Computational and Graphical Statistics,</it>
+<bf>4</bf>, 113-133. 
+<p>
+Hesterberg, T.C. (1997), 
+"Fast Bootstrapping by Combining Importance Sampling and Concomitants," 
+<it>Computing Science and Statistics,</it>
+<bf>29</bf>(2), 72-78. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="controlVariates.bootstrap.sgm">controlVariates.bootstrap</s-function>,  
+<s-function name="qDiscreteMean.sgm">qDiscreteMean</s-function>,  
+<s-function name="frame.eval.sgm">frame.eval</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+bfit <- bootstrap(qexp(ppoints(50)), mean) 
+abfit <- concomitants(bfit) 
+bfit # Bias should be zero, but differs due to random variation 
+abfit # Bias is very near zero 
+qqnorm(bfit) 
+qqnorm(abfit) # much less random variation 
+ 
+bfit <- bootstrap(1:50, var) 
+abfit <- concomitants(bfit) 
+bfit 
+abfit 
+plot(bfit) 
+plot(abfit) 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

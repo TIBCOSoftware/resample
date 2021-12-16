@@ -1,0 +1,126 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>plot.resamp</s-topic>
+</s-topics>
+<s-title>
+Plot Method for Resample Objects 
+</s-title>
+<s-description>
+Plots the distributions of parameter replicates for an object of 
+class <code>resamp</code>.  For each parameter, a histogram of replicates 
+with a smooth density estimate is plotted.  A solid line indicates the observed 
+parameter value for the original data, and (when appropriate) 
+a dotted line indicates the mean of the replicates. 
+For the bootstrap, the difference between these two lines is the estimated bias. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plot.resamp(x, nrow = NULL, grid.layout = T, rugplot = F, 
+            nclass.func = nclass.fd, 
+            bandwidth.func = bandwidth.nrd, 
+            subset.statistic = 1:p, 
+            key = T, corner=c(1,1), ..., inside=F, nclass, main) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class <code>resamp</code>, e.g. produced by 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="nrow">
+number of rows of plots on the screen.  If <code>nrow</code> is NULL and <code>x</code> has a 
+<code>dim.obs</code> component, it is used to determine <code>nrow</code>.  Otherwise, two rows are 
+used unless there is only a single parameter. 
+</s-arg>
+<s-arg name="grid.layout">
+logical flag indicating whether to display plots in a single grid or as 
+separate plots when the resampled statistic is a vector. 
+</s-arg>
+<s-arg name="rugplot">
+logical flag indicating whether to display a rug of replicate values. 
+</s-arg>
+<s-arg name="nclass.func">
+function which produces the number of intervals to use in the histogram of 
+replicate values.  By default the function <code>nclass.fd</code> 
+is used.  This function uses the 
+Freedman and Diaconis rule as described in Venables and Ripley. 
+</s-arg>
+<s-arg name="bandwidth.func">
+function which produces a bandwidth estimate to pass to <code>density</code> when 
+constructing the density estimate.  By default the function <code>bandwidth.nrd</code>, 
+is used.  This function uses the 
+normal reference density bandwidth estimate as described by Venables and 
+Ripley. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic has 
+length greater than 1, use this to request plots for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="key">
+if <code>TRUE</code> (the default), then a legend is added, 
+describing the solid and dotted lines indicating the observed 
+value and mean of the replicates, and plotting characters are 
+added at the bottom of the lines to help distinguish them. 
+</s-arg>
+<s-arg name="corner">
+argument passed to 
+<s-function name="key.sgm">key</s-function> 
+indicating where to place the legend; the default is in the top right, 
+<code>c(0,1)</code> indicates the top left. 
+</s-arg>
+<s-arg name="...">
+other arguments to <code>hist</code> and <code>barplot</code>. 
+</s-arg>
+<s-arg name="inside">
+logical, if <code>TRUE</code> then lines are drawn between histogram bars;  
+default <code>FALSE</code>. 
+</s-arg>
+<s-arg name="nclass">
+integer, number of intervals to use for the histogram. 
+If supplied is used instead of <code>nclass.func</code>. 
+</s-arg>
+<s-arg name="main">
+character, if supplied is used as the main title; otherwise a default 
+title is used.  Use <code>main=""</code> to avoid a title. 
+</s-arg>
+</s-args-optional>
+<s-value>
+no value is returned. 
+</s-value>
+<s-side-effects>
+a plot is created on the current graphics device. 
+</s-side-effects>
+<s-section name=" REFERENCES">
+
+Venables, W.N. and Ripley, B.D. (1997), 
+<it>Modern Applied Statistics with S-PLUS,</it>
+Second Edition, Springer-Verlag. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+temp <- bootstrap(stack.loss, var) 
+plot(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

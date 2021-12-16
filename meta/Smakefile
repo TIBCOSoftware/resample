@@ -1,0 +1,12 @@
+DEST=..
+DEVS=
+QFILES= numRowsMethods.q oldClasses.q
+
+
+all : $(QFILES)
+install : install.funs
+install.funs : $(QFILES) $(DEST)/$(DATA_DIR)
+#	../miMETAINSTALL $(DEST) $(QFILES)
+	METAINSTALL $(DEST) $(QFILES)
+
+virgin : clean virgin.std

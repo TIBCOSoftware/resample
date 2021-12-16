@@ -1,0 +1,32 @@
+<HTML>
+<head>
+<style type="text/css">
+body { font-size: 10pt ; font-family: Arial, SansSerif }
+h1   { font-size: 150% }
+h2   { font-size: 120% }
+samp { font-size: small; font-family: "Courier New", Monospaced }
+code { font-family: "Courier New", Monospaced }
+tt   { font-family: "Courier New", Monospaced }
+pre  { margin-top: 5; margin-bottom: 5; font-family: "Courier New", Monospaced}
+</style>
+</head>
+<SCRIPT LANGUAGE="JavaScript" TITLE="BSSC Special Effects" SRC="BSSCDHTM.js">
+</SCRIPT>
+<TITLE>Tilting Confidence Intervals</TITLE>
+<BODY ONLOAD="BSSCOnLoad();" ONCLICK="BSSCOnClick();" ONUNLOAD="BSSCOnUnload();">
+<H3>Tilting Confidence Intervals</H3>
+<P>
+Select this to print bootstrap tilting confidence intervals for the
+statistic under consideration.
+<p>
+Note that tilting confidence intervals are generally more 
+accurate than using percentiles as confidence intervals.
+However, for small samples from nonlinear statistics, the current
+implementation may give inaccurate results.
+<p>
+Tilting intervals have much smaller simulation variation than other
+confidence intervals.  For example, they require approximately 1/37
+times as many bootstrap samples as do BCa intervals, for comparable
+simulation accuracy (for 95% intervals).
+</BODY>
+</HTML>

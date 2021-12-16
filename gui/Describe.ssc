@@ -1,0 +1,408 @@
+#############################################################################
+# This file contains the gui specs for
+# the dialog box that comes up when you select from the SPlusMenuBar
+#   "Statistics"  "Data Summaries"  "Summary Statistics/Resample..."
+# The dialog box is named "Summary Statistics"
+#
+# This is based on `menuDescribe' and related properties;
+# see originals/originalDescribe.ssc for those properties in tree view.
+#
+# This file also contains:
+#   menuDescribeResample  - the menu function
+#   backDescribeResample  - the call back function
+#   createMenuDescribeResample  - add or ...
+#   removeMenuDescribeResample  - remove menu "Summary Statistics/Resample ..."
+#############################################################################
+
+
+###########################################################
+
+resampFormatArgumentList <- function(...){
+  v <- c(...)
+  paste("#", seq(from=0, length=length(v)), "=", v, sep="")
+}
+
+copyProperty(Name = "resamp_DescMeanGroup",
+	     OldName = "SPropDescMeanGroup",
+	     PropertyList = c(
+	       "SPropDescMean",
+	       "SPropDescSeMean",
+	       "SPropDescConfLimMean",
+	       "SPropDescConfLevMean",
+	       "resamp_doTrimMean",	# add this and next
+	       "resamp_Trim25",
+	       )
+	     )
+
+copyProperty(Name = "resampPage_DescStats",
+	     OldName = "SPropDescStatsPage",
+	     PropertyList = c(
+	       "resamp_DescMeanGroup", # use this instead of SPropDesMeanGroup
+	       "SPropDescQuantileGroup",
+	       "SPropDescScaleGroup",
+	       "SPropDescShapeGroup",
+	       "SPropDescOtherStatsGroup"
+	       )
+	     )
+
+
+
+# Copied from menuDescribe
+newFunctionInfo(Name = "menuDescribeResample",
+		Function = "menuDescribeResample",
+		CallBackFunction = "backDescribeResample",
+		DialogHeader = "Summary Statistics/Resample",
+                HelpCommand = 'help("function_menuDescribeResample")',
+		StatusString = "",
+		PropertyList = c(
+		  "SPropDescDataPage",
+		  "resampPage_DescStats",
+		  "resampPage_boot"),
+		DefaultValueList = "#33=F", # set tilting to F
+		ArgumentList = resampFormatArgumentList(
+		  "SPropSaveObj",
+		  "SPropDataX2",
+		  "SPropDescDataVars",
+		  "SPropDescByVars",
+		  "SPropMaxNumericLevels",
+		  "SPropNBins",
+		  "SPropDescFactors",
+		  "SPropPrintObjP",
+
+		  "SPropDescMin",
+		  "SPropDescFirst",
+		  "SPropDescMean",
+		  "SPropDescMedian",
+		  "SPropDescThird",
+		  "SPropDescMax",
+		  "SPropDescNobs",
+		  "SPropDescValid",
+		  "SPropDescVar",
+		  "SPropDescStdev",
+		  "SPropDescSum",
+		  "SPropDescSeMean",
+		  "SPropDescConfLimMean",
+		  "SPropDescConfLevMean",
+		  "SPropDescSkew",
+		  "SPropDescKurt",
+		  "resamp_doTrimMean",
+		  "resamp_Trim25",
+
+		  "resamp_performBoot",	# F
+		  "resamp_B1000_7",	# "1000",
+		  "resamp_sampler7",
+		  "resamp_strata7",	# ""
+		  "resamp_seed7",
+		  "resamp_Percentiles7", # T
+		  "resamp_BCa7",	# T
+		  "resamp_Tilting7",	# This is set to F above
+		  "resamp_tLimits7",
+		  "resamp_Levels7",	# c(25, 50, 950, 975)/1000
+		  "resamp_Histogram7",	# F
+		  "resamp_QQ7",		# F
+		  "resamp_PlotBoth7",	# T
+		  "resamp_SaveAs7",	# ""
+		  "resamp_Additional7"	# ""
+		  )
+		)
+
+rm(resampFormatArgumentList)
+
+
+# roughly based on menuDescribe
+menuDescribeResample <-
+function(data,
+	 variables = names(data),
+	 grouping.variables = NULL,
+	 max.numeric.levels = 10,
+	 nbins = 6,
+	 factors.too.p = T,
+	 do.print,
+
+	 do.min,
+	 do.firstquar,
+	 do.means,
+	 do.median,
+	 do.thirdquar,
+	 do.max,
+	 do.nrow,
+	 do.missing.rows,
+	 do.variance,
+	 do.std.deviation,
+	 do.sum,
+	 do.stderr,
+	 do.conf.limits.means,
+	 conf.level.mean = 0.95, 	# conf.level
+	 do.skewness,
+	 do.kurtosis,
+
+	 do.trimMean,
+	 trimPercent,
+
+	 boot.perform = F,
+	 boot.B = NULL,
+	 boot.sampler = "",
+	 boot.group = "",
+	 boot.seed = NULL,
+	 boot.summ.emp = T,
+	 boot.summ.bca = T,
+	 boot.summ.tilt = T,
+	 boot.summ.tLimits = F,
+	 boot.summ.probs = ".025, .05, .95, .975",
+	 boot.plot.dist = F,
+	 boot.plot.QQ = F,
+	 boot.plot.both = T,
+	 boot.save.obj = "",
+	 boot.additional.args = ""
+	 )
+{
+  DEBUG <- if(exists( ".resample.debug" )) .resample.debug else F
+  if(DEBUG) {
+    cat( "AT BEGINNING of menuDescribeResample.\n" )
+    print( match.call() )
+  }
+
+  data <- guiAsDefaultDataObject(data)
+  data.name <- deparse(substitute(data))
+  variables <- guiAsColNames(variables, data)
+  if(!is.null(grouping.variables)){
+    grouping.variables <- guiAsColNames(grouping.variables, data)
+    grouping.variables <- setdiff(grouping.variables, "(None)")
+  }
+
+  do <- list(min = do.min,
+	    firstquar = do.firstquar,
+	    means = do.means,
+	    trimMean = do.trimMean,
+	    median = do.median,
+	    thirdquar = do.thirdquar,
+	    max = do.max,
+	    nrow = do.nrow,
+	    missing.rows = do.missing.rows,
+	    variance = do.variance,
+	    std.deviation = do.std.deviation,
+	    sum = do.sum,
+	    stderr = do.stderr,
+	    skewness = do.skewness,
+	    kurtosis = do.kurtosis)
+
+  if( !any( unlist( do )))
+    stop("No statistic specified.  No summary statistics will be computed.")
+
+  .descriptive.stats <- function(x, do, factors.too.p = F,
+				conf.level.mean, weights = NULL, trim){
+    N <- nrow(x)
+    index <- sapply(x, is.numeric)
+    value.fac <- NULL
+    if(any(!index) && factors.too.p) {
+      x2 <- x[!index] # subscript columns; this assumes x is a data frame
+      value.fac <- summary(x2, maxsum = 100)
+    }
+    # any numeric columns?
+    if(!all(index))
+      x <- x[index]
+    value <- NULL
+    if(any(index))
+      value <- rbind("Min:"       = if( do$min )
+		    sapply(x, min, na.rm=T ),
+		    "1st Qu.:"   = if( do$firstquar)
+		    sapply(x, quantile, probs = .25, na.rm=T, weights=weights ),
+		    "Mean:"      = if( do$means )
+		    colMeans(x, na.rm=T, weights=weights),
+		    "Trim Mean:"    = if( do$trimMean )
+		    sapply(x, mean, na.rm=T, weights=weights, trim = trim ),
+		    "Median:"    = if( do$median )
+		    sapply(x, median, na.rm=T, weights=weights ),
+		    "3rd Qu.:"   = if( do$thirdquar )
+		    sapply(x, quantile, probs = .75, na.rm=T, weights=weights ),
+		    "Max:"       = if( do$max )
+		    sapply(x, max, na.rm=T ),
+		    "Total N:"   = if( do$nrow )
+		    apply( x, 2, length ),
+		    "NA's:"      = if( do$missing.rows )
+		    colSums( is.na(x)),
+		    "Variance:"  = if( do$variance )
+		    colVars(x, na.rm=T, weights=weights ),
+		    "Std Dev.:"  = if( do$std.deviation )
+		    colStdevs(x, na.rm=T, weights=weights ),
+		    "Sum:"       = if( do$sum )
+		    colSums( x, na.rm=T, weights=weights ),
+		    "SE Mean:"   = if( do$stderr )
+		    colStdevs(x, na.rm=T)/sqrt(N - colSums( is.na(x))),
+		    "Skewness:"  = if( do$skewness )
+		    apply( x, 2, skewness, method="moment", na.rm=T, weights=weights ),
+		    "Kurtosis:"  = if( do$kurtosis )
+		    apply( x, 2, kurtosis, method="moment", na.rm=T, weights=weights )
+		    )
+    if(!factors.too.p)
+      return(value)
+    z <- list("Factor Summaries" = value.fac,
+	     "Numeric Summaries" = value)
+    for(i in 2:1)
+      if(is.null(z[[i]])) z <- z[-i]
+    return(z)
+  }
+  .descriptive.stats$trim <- trimPercent / 100
+  # set default value for argument
+
+  if(is.null(grouping.variables)) {
+    # Call .descriptive.stats() on full data.
+    z <- .descriptive.stats(data[, variables, drop = F], do = do,
+			   factors.too.p = factors.too.p,
+			   conf.level.mean = conf.level.mean)
+  }
+  else {
+    # construct list of grouping variables
+    grouping.list <- list()
+    for(var.name.i in grouping.variables) {
+      current.var <- data[, var.name.i]
+      if(is.numeric(current.var) && length(unique(current.var)) >
+	 max.numeric.levels) {
+        current.var <- cut(current.var, breaks = nbins,
+			  include.lowest = T)
+      }
+      grouping.list <- c(grouping.list, list(current.var))
+    }
+    names(grouping.list) <- grouping.variables
+    # use by() to loop over grouping variables
+    z <- by(data[, variables, drop = F], grouping.list,
+	   .descriptive.stats, do = do,
+	   factors.too.p = factors.too.p,
+	   conf.level.mean = conf.level.mean)
+  }
+  if(do.print) {
+    cat(paste("\n\t***  Summary Statistics for data in: ",
+	      data.name, "***\n\n"))
+    print(z, quote = F, prefix = "\t$$")
+    if((do.stderr || do.conf.limits.means) && !missing(boot.group))
+      cat("\nPreceding results do not take stratification into account\n",
+	  "so p-values and confidence intervals are not reliable.\n")
+  }
+  if(missing(boot.perform) || !boot.perform)
+    return(invisible(z))
+
+  ### Now do bootstrapping
+  if(DEBUG) cat( "PERFORMING BOOTSTRAP\n" )
+
+  if(!is.null(grouping.variables))
+    warning("Bootstrapping summaries are for the whole data set, not each group.")
+
+  parseText <- function(..., sep="")
+    parse(text = paste(..., sep=sep))[[1]]
+
+  # For bootstrapping, turn off calculation for some statistics:
+  boot.do <- do
+  boot.do$min <- F
+  boot.do$max <- F
+  boot.do$nrow <- F
+  boot.do$missing.rows <- F
+  boot.do$stderr <- F
+
+  # Set up bootstrap call.  This will be a long ugly call, containing
+  # the data and the statistic.
+  boot.call <- call( "bootstrap" )
+  # Assume that the data is a data frame
+  boot.call$data <- data[variables]
+  boot.call$data <- boot.call$data[sapply(boot.call$data, is.numeric)]
+
+  # set the default value for this argument, so don't need to
+  # pass it while bootstrapping
+  .descriptive.stats$do <- boot.do
+  boot.call$statistic <- .descriptive.stats
+
+  boot.call$B <- boot.B
+  if(boot.B == 1000) boot.call$B <- NULL
+
+  if( !missing( boot.sampler ))
+    boot.call$sampler <- substitute( boot.sampler )
+  if(identical(boot.call$sampler, as.name("samp.bootstrap")))
+    boot.call$sampler <- NULL
+
+  if( !missing( boot.group )){
+    boot.group.call <- substitute(boot.group)
+    boot.call$group <- (if(is.data.frame(data) &&
+			  is.element( boot.group.call, names(data) ))
+		       parseText(data.name, "$", boot.group.call)
+		       else boot.group)
+  }
+  boot.call$seed <- boot.seed
+
+  if(!missing(boot.additional.args))
+    boot.call <- resampAddArgumentsToCall(boot.call, boot.additional.args)
+
+  # If tilting, save indices, unless set explicitly
+  if(boot.summ.tilt && is.null(boot.call$save.indices))
+    boot.call$save.indices <- T
+  # If tilting, add L, unless set explicitly
+  if(boot.summ.tilt && is.null(boot.call$L))
+    boot.call$L <- "choose"
+
+  if(is.null(boot.call$label))
+    boot.call$label <- paste("bootstrap :", data.name, ": Summary Statistics")
+
+  if(DEBUG > 1){
+    cat( "boot.call:\n" )
+    print(boot.call )
+  }
+
+  #
+  # Call bootstrap
+  if(any(boot.call$trace))
+    cat("\nBeginning bootstrap replications\n")
+  boot.obj <- eval( boot.call )		# not using: local=F
+  if( !missing( boot.save.obj ) && boot.save.obj != "" )
+    assign( boot.save.obj, boot.obj, where = 1, immediate = T)
+
+  #
+  # Call summary and plot functions
+  summ.obj <- tabSummary.bootstrap(boot.obj, boot.summ.probs,
+				  printSummary = T,
+				  boot.summ.emp, boot.summ.bca,
+				  correlations = F,
+				  boot.summ.tilt, boot.summ.tLimits)
+  tabPlot.resamp(boot.obj, boot.plot.dist, boot.plot.QQ, boot.plot.both )
+
+  invisible(z)
+}
+
+# To do:
+#  bootstrap summaries for each group.
+
+
+
+
+
+###########################################################
+
+backDescribeResample <- function(dfp){
+  dfp <- backDescribe(dfp)
+  dfp <- backResampBoot(dfp, "SPropDataX2")
+  dfp
+}
+
+
+###########################################################
+
+createMenuDescribeResample <- function() {
+  guiCreate( "MenuItem",
+	    Name = "SPlusMenuBar$Statistics$DataSummaries$SummaryStatResample",
+	    Type = "MenuItem",
+	    Action = "Function",
+	    MenuItemText = "&Summary Statistics/Resample...",
+	    Command = "menuDescribeResample",
+	    Overwrite = F,
+	    Index = "2")
+  invisible()
+}
+# previously used guiCopy from ...$SummaryStat, but that set Index="6"
+
+
+removeMenuDescribeResample <- function(){
+  menu.item.name <- "SPlusMenuBar$Statistics$DataSummaries$SummaryStatResample"
+  if(is.element(menu.item.name, guiGetObjectNames("MenuItem")))
+    guiRemove("MenuItem", Name = menu.item.name )
+  invisible()
+}
+
+
+"Done with Describe.ssc" # for script file input

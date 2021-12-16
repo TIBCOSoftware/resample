@@ -1,0 +1,143 @@
+#! /bin/sh
+
+## Build the resample chm file
+
+## If cygwin bin is in your path, you can run this script from a "DOS" 
+## command window by typing "bash <path_to_script>/<script_name>"
+##
+## From a cygwin window, 
+##
+## 	$ bash build_helpchm_resamp.cyg
+##
+
+
+## ----------------------------------------------------------------
+## Set the name of the module you are building.  This name
+## will be the prefix name of your chm file.
+
+MODULE=resample
+
+
+## ----------------------------------------------------------------
+## Set the string which appears on the right hand side of
+## the header gray area for each html page and for the blue bar
+## at the top of each window.  This header will be the same for both.
+## If there are spaces, make sure the entire phrase is surrounded by quotes 
+
+HEADER="S+Resample Language Reference"
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing module source code
+## with forward slashes.  The chm file and "help.log" will be placed
+## in this directory.  To view the progress of your build in detail,
+## open a cygwin window and type "tail -f <path to help.log>/help.log"
+
+MODHOME=D:/modules/resamp/resample
+
+#-------------------------------------------------
+# Enter path to *.d files
+D_FILES_DIR=$MODHOME/help
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing sgml files with forward slashes.
+## Set the path to the parent directory that will contain the __Hhelp directory.
+## The __Hhelp directory is created by the chm build.
+## The __Hhelp will contain all the generated html files.
+## Currently $HTML_DIR_ROOT must be the same as the $SGML_DIR.
+##
+## NOTE: HTML Help Workshop DOES NOT LIKE directories that begin with a dot
+## so DO NOT HAVE .Data in your path to the __Hhelp directory.
+## ...don't ask me why..., I guess directories whose names begin with a dot
+## in windows are "secret" directories.  
+## So if your sgml files are in a .Data directory,
+## you need to copy them to another location whose path contains no 
+## initial dots in any directory name.
+
+SGML_DIR=$MODHOME/help
+##HTML_DIR_ROOT=$MODHOME/help
+HTML_DIR_ROOT=$SGML_DIR
+
+
+## ----------------------------------------------------------------
+## Set the path to the splus s-topic list.  This file is needed
+## for building a chm file that can link to pages in the splus.chm.
+## The path cannot have any spaces.
+##
+## If you don't have links to the splus.chm or don't want to bother then set 
+##    SEARCH_STOPIC_LIST=F
+## and set STOPIC_LIST_SPLUS to some string of any alphanumeric kind 
+## with no spaces.
+##
+## Do not set STOPIC_LIST_SPLUS to the empty string or comment out 
+## the following lines of script if there are arguments that are 
+## used for "build_helpfiles" following $STOPIC_LIST_SPLUS.  You may
+## comment out the following lines ONLY if you are commenting out
+## all the rest of the args to build_helpfiles following $STOPIC_LIST_SPLUS.
+
+SEARCH_STOPIC_LIST=F
+STOPIC_LIST_SPLUS=D:/modules/moduletools/splus_stuff/stopicListSplus.out
+
+## ----------------------------------------------------------------
+## If you have any gui html and htm files, set the path to the
+## the directory here.  These files must be ready to go.  All links
+## should be correct, etc.  Also indicate whether your gui help
+## files have any htm files.
+
+## If you do not have any gui files then comment out 
+## the next two script lines.
+
+GUI_HELP_DIR=$MODHOME/gui/help
+HAVE_HTM_FILES=T
+
+
+## ----------------------------------------------------------------
+## Set the name of the html file you would like shown as the default topic.
+## This is the default html file shown if the chm file is brought up 
+## without specifying an html file or function to be shown.
+## The prefix of an sgm file can change when translated into an html file.
+## So if you get a compilation error from HTML Help Workshop, make sure
+## the file you specify here is the name of one generated in your html directory.
+
+DEFAULTFILE=Resample.html
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing the chm build tools with
+## forward slashes.
+
+CHMTOOLS=D:/modules/moduletools/buildtools/build_chm_tools
+
+
+## ----------------------------------------------------------------
+## Set the path to cygwin bin using forward slashes.
+
+CYGWIN_BIN=D:/cygwin/bin
+
+
+## ----------------------------------------------------------------
+## Set the path to the directory containing hhc.exe, the *.chm compiler
+## for HTML Help Workshop.  Make sure you use forward slashes.
+## The path cannot contain spaces.  So if the path does have spaces,
+## you can do something like the example below or reinstall it.
+
+## HELPWORKSHOP_DIR="D:/Program Files/HTML Help Workshop"
+HELPWORKSHOP_DIR="D:/HTMLHe~1"
+
+#-------------------------------------------------
+# Translate *.d files to *.sgml
+
+$CHMTOOLS/doc_to_S.cyg $CHMTOOLS $D_FILES_DIR
+
+
+## ----------------------------------------------------------------
+## Build the chm file
+## The chm file if built will be placed in $MODHOME.
+## NOTE: you can add "-a" as the first arg to build_helpfiles if you want to 
+## append your log file rather than create a new one.  The log file is
+## always called "help.log" and it is placed in the $MODHOME.
+## To view the progress of your build in detail,
+## open a cygwin window and type "tail -f <path to help.log>/help.log"
+
+$CHMTOOLS/build_helpfiles $MODULE $SGML_DIR $HTML_DIR_ROOT $CHMTOOLS $HELPWORKSHOP_DIR  $DEFAULTFILE $MODHOME $CYGWIN_BIN "$HEADER" $SEARCH_STOPIC_LIST $STOPIC_LIST_SPLUS $GUI_HELP_DIR $HAVE_HTM_FILES

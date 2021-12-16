@@ -1,0 +1,519 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resamp.problems</s-topic>
+</s-topics>
+<s-title>
+Issues, Problems and Workarounds for Resampling Functions 
+</s-title>
+<s-description>
+This is a collection of issues and problems (and workarounds) 
+with resampling functions, including 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="influence.sgm">influence</s-function>, 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+If you encounter other problems, browse to 
+http://spotfire.tibco.com/support and register for an account. 
+<p>
+Sections in this file: 
+<br>
+Randomness 
+<br>
+Non-functional statistics 
+<br>
+Mismatch in number of observations 
+<br>
+Scoping problems (this has a number of subsections) 
+<br>
+Intermittent Statistic Failure (two subsections) 
+</s-description>
+<s-section name=" RANDOMNESS">
+
+Bootstrap results are random, and results depend on the random number 
+seed used, number of blocks used, order of the data, and names of 
+groups and subjects (the sorted names determine the order in which 
+sample indices are drawn).  These factors normally cause only small 
+differences in bootstrap results.  You can reduce this by increasing 
+the number <code>B</code> of bootstrap replications. 
+</s-section>
+<s-section name=" NON-FUNCTIONAL STATISTICS">
+
+Many of the resampling functions implicitly assume that the statistic 
+is "functional" -- that it depends only on the empirical distribution 
+(assuming equal probabilities on all observations), not on addition 
+information such as the sample size. 
+A functional statistic would return the same value if all observations 
+were repeated the same number of times. 
+Examples of statistics which are not functional include modeling 
+functions that use smoothing parameters that depend on n, and 
+<code>var()</code> when called without weights and with <code>unbiased=T</code>. 
+You should exercise care when calling a non-functional statistic, 
+as the assumptions that underlying resampling methods may be violated. 
+Also note that some functions assign weights, which may cause the 
+behavior of the statistic to change.  For example, by default var() 
+is normally not functional, but can be made so by specifying 
+<code>unbiased=F</code> or by supplying weights: 
+<verb>
+var(1:5)                        # 2.5 -- not functional by default 
+var(rep(1:5,2))                 # 2.22222 
+var(1:5, unbiased=F)            # 2   -- this gives the 
+functional version 
+var(rep(1:5,2), unbiased=F)     # 2 
+var(1:5, weights=rep(1/5,5))    # 2   -- weights force 
+functional version 
+var(rep(1:5,2), weights=rep(1/10,10))  # 2 
+</verb>
+Some resampling functions add weights when calling the statistic 
+(e.g. influence), others do not (bootstrap and jackknife). 
+<verb>
+bootstrap(1:5, var, B=3)$observed # 2.5 
+jackknife(1:5, var, B=3)$observed # 2.5 
+influence(1:5, var)$observed      # 2 -- is calculated with weights 
+</verb>
+The results are self-consistent within a function, because both the 
+observed value and all replicates are computed the same way (with 
+or without weights).  However, results differ across functions, both 
+the observed values and output quantities -- 
+<code>jackknife</code> indicates 
+that <code>var</code> is unbiased (which is true for the default calculations 
+for <code>var</code> without weights, if the data are independent and identically 
+distributed), while <code>influence</code> indicates that it is biased 
+(which is true for the functional form of <code>var</code>). 
+</s-section>
+<s-section name=" MISMATCH IN NUMBER OF OBSERVATIONS">
+
+This problem affects <code>jackknife</code> and functions that call <code>jackknife</code>, 
+including <code>limits.bca</code> and <code>summary</code>.  If some but not all vectors used 
+by the statistic are contained in the <code>data</code> argument,  
+then only the vectors included in <code>data</code> have observations omitted. 
+<verb>
+West <- state.region) == "West" 
+Income <- state.x77[,"Income"]  
+# jackknife(Income, mean(Income[West])-mean(Income[!West]))  # fails 
+</verb>
+That <code>jackknife</code> call fails.  <code>bootstrap</code> works, but <code>limits.bca</code> or <code>summary</code> 
+will fail: 
+<verb>
+bs <- bootstrap(Income, mean(Income[West])-mean(Income[!West]), group = West)  
+# limits.bca(bs) # fails 
+# summary(bs)    # fails 
+</verb>
+One workaround is to include all vectors in the data.  For example: 
+<verb>
+myData <- data.frame(West = (state.region == "West"), 
+                     Income = state.x77[,"Income"]) 
+jackknife(myData, mean(Income[West])-mean(Income[!West])) 
+</verb>
+Alternately, to make <code>summary</code> and <code>limits.bca</code> work after bootstrapping, 
+you may avoid <code>jackknife</code> by using another method to calculate 
+<code>L</code> (which is used to calculate acceleration); see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>. 
+<p>
+Incidentally, 
+<s-function name="bootstrap2.sgm">bootstrap2</s-function> 
+makes bootstrapping the difference in two means much easier. 
+</s-section>
+<s-section name=" SCOPING PROBLEMS">
+
+This refers to the general problem of a function not finding data 
+because the data is not in the search path for that 
+function.  The problems below are illustrated for 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+but also apply to 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+and possibly other resampling functions. 
+</s-section>
+<s-section name=" SCOPING PROBLEM - when calling from a function">
+
+Bootstrap or jackknife may fail when called from within another 
+function.  Here is an example. 
+<verb>
+# Scoping problem when bootstrap is called from a function, 
+# and statistic is an expression that uses objects defined in 
+# the function. 
+# 
+fun1 <- function(){ 
+  x <- 1:20 
+  fun2 <- function(x) mean(x, trim=.2) 
+  bootstrap(data = x, statistic = fun2(x)) 
+ } 
+fun1() 
+</verb>
+This fails with the message that function <code>fun2</code> (which is defined in 
+the frame of <code>fun1</code>) could not be found.  One workaround is to assign 
+<code>fun2</code> to frame 1 before calling bootstrap: 
+<verb>
+fun1 <- function() 
+{ 
+  x <- 1:20 
+  fun2 <- function(x) mean(x, trim=.2) 
+  assign("fun2", fun2, frame = 1)  # workaround 
+  bootstrap(data = x, statistic = fun2(x)) 
+} 
+fun1() 
+</verb>
+One additional caution -- if you don't use the workaround, 
+and <code>fun2</code> is defined on a permanent 
+database, then the permanent copy is used (not the copy inside <code>fun1</code>). 
+<p>
+This scoping problem occurs when argument <code>statistic</code> is an 
+expression. When <code>statistic</code> is a name 
+or a function, it is not necessary to assign to frame 1 in most cases. 
+An alternate 
+workaround is therefore to replace <code>"statistic = fun2(x)"</code> by 
+<code>"statistic = fun2"</code>. 
+<p>
+An exception occurs when bootstrapping an <code>lm</code> object: 
+</s-section>
+<s-section name=" SCOPING PROBLEM - bootstrap.lm">
+
+<verb>
+fun1 <- function() 
+{ 
+  x <- 1:20 
+  set.seed(0) 
+  y <- sort(runif(20)) 
+  fit <- lm(y~x) 
+  fun2 <- function(x) coef(x) 
+  bootstrap(data = fit, statistic = fun2) 
+} 
+fun1() 
+</verb>
+This also fails, even though <code>statistic</code> is a 
+name.  The hidden behavior here is that 
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function> 
+converts <code>statistic</code> to an expression before calling 
+the default method for 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+Assigning <code>fun2</code> to frame 1 overcomes the error. 
+</s-section>
+<s-section name=" SCOPING PROBLEM - data">
+
+A similar scoping problem can occur with the <code>data</code> argument, when 
+<code>data</code> is a fitted model object defined in a frame other than that 
+containing the call to bootstrap.  Here is an example using 
+<s-function name="lm.sgm">lm</s-function>. 
+<verb>
+fun1 <- function() 
+{ 
+  x <- 1:20 
+  set.seed(0) 
+  y <- sort(runif(20)) 
+  fit <- lm(y~x) 
+  fun2 <- function(fit) bootstrap(fit, coef, B=100) 
+  fun2(fit) 
+} 
+fun1() 
+</verb>
+Here bootstrap is called from <code>fun2</code> but the 
+objects <code>x</code> and <code>y</code>, are defined in the frame of <code>fun1</code>. 
+While they do not appear directly in the call to <code>bootstrap</code>, 
+they are used indirectly. 
+So again one workaround is 
+to assign <code>x</code> and <code>y</code> to frame 1 before calling <code>fun2</code>. 
+Another solution is to pass <code>x</code> and <code>y</code> to <code>fun2</code>: 
+<verb>
+fun1 <- function() 
+{ 
+  x <- 1:20 
+  set.seed(0) 
+  y <- sort(runif(20)) 
+  fit <- lm(y~x) 
+  fun2 <- function(fit, x, y){ 
+    # make sure that copies of x and y are defined in fun2 
+    x <- x; y <- y 
+    bootstrap(fit, coef, B=100) 
+  } 
+  fun2(fit, x, y) 
+} 
+fun1() 
+</verb>
+</s-section>
+<s-section name=" SCOPING PROBLEM - using the data argument in a modeling function">
+
+Consider the following example using jackknife. 
+<verb>
+jackknife(data = kyphosis, 
+          statistic = coef(glm(Kyphosis ~ kyphosis[[3]], data = kyphosis))) 
+</verb>
+This causes the error 
+<verb>
+Problem in eval(statistic, c(list(kyphosis = data), ..: Length of 
+kyphosis[[3]] (variable 2) is 81 != length of others (80) 
+</verb>
+This known bug in Spotfire S+ 
+occurs during the evaluation of 
+the statistic by 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+There are two different 
+types of references to the data in the formula argument to <code>glm</code>.  The 
+first variable, <code>Kyphosis</code>, is the name of the first variable in the 
+<code>kyphosis</code> data set.  The second variable, <code>kyphosis[[3]]</code>, references 
+the third column of <code>kyphosis</code> by index rather than name.  It is the 
+latter which is mis-handled -- the third column of the full dataset is 
+used rather than that of the jackknifed (one row-deleted) data. 
+<p>
+There are several workarounds.  One is to use variable names rather 
+than column indices:  the third column of kyphosis is <code>"Number"</code>, so 
+we can obtain the desired results using 
+<verb>
+jackknife(data = kyphosis, 
+          statistic = coef(glm(Kyphosis ~ Number, data = kyphosis))) 
+</verb>
+<p>
+Another workaround is to 
+avoid using the <code>data</code> argument to <code>glm</code> (it is redundant, since 
+the <code>data</code> argument to <code>jackknife</code> specifies the data to be used). 
+<verb>
+jackknife(data = kyphosis, 
+          statistic = coef(glm(Kyphosis ~ kyphosis[[3]]))) 
+</verb>
+Another workaround is to use <code>assign.frame1 = T</code>, to put the jackknifed 
+version of the data on frame 1 where it hides the original. 
+<verb>
+jackknife(data = kyphosis, assign.frame1 = T, 
+          statistic = coef(glm(Kyphosis ~ kyphosis[[3]], data = kyphosis))) 
+</verb>
+A final workaround is to use the new <code>glm</code> method for <code>jackknife</code>, 
+which has the additional benefit of generally executing faster. 
+<verb>
+jackknife(data = glm(Kyphosis ~ kyphosis[[3]], data = kyphosis), 
+          statistic = coef) 
+</verb>
+The same problem occurs with <code>bootstrap</code>, though it is more 
+insidious.  The data in the call 
+<verb>
+boot.obj <- bootstrap(data = kyphosis, 
+            statistic = coef(glm(Kyphosis ~ kyphosis[[3]], data = 
+            kyphosis)), B = 100, seed = 0) 
+</verb>
+is mishandled in the same way as the original <code>jackknife</code> example. But 
+there is no error message since, for bootstrap, the original data and 
+the resampled data are both the same size.   The results, however, are 
+wrong.  An attempt to use <code>summary</code> on <code>boot.obj</code>, 
+<br>
+<code>summary(boot.obj)</code> 
+<br>
+causes the same <code>jackknife</code>-type error message we got before, because 
+<code>jackknife</code> is called by <code>summary</code> to evaluate BCa 
+limits.  It is important to remember, however, that <code>boot.obj</code> 
+contains incorrect results, independent of any future call to 
+<code>summary</code>. Any of the above workarounds for <code>jackknife</code> can be used to 
+get correct results for <code>bootstrap</code>. 
+</s-section>
+<s-section name=" SCOPING PROBLEM - modeling functions">
+
+In <code>influence</code>, <code>resampGetL</code>, <code>limits.tilt</code>, and <code>limits.abc</code>. 
+This is another manifestation of the known Spotfire S+ scoping bug 
+mentioned above.   For example, 
+<verb>
+xy <- data.frame(x = 1:10, y = sort(runif(10))) 
+influence(xy, coef(lm(y~x, data = xy)))  # fails 
+</verb>
+fails with a message about not finding weights.  As with the 
+<code>jackknife</code> bugs in the previous section, the <code>data</code> argument to <code>lm</code> 
+is redundant here, and the error disappears if we get rid of it. 
+<br>
+<code>influence(xy, coef(lm(y~x)))  # works</code> 
+<br>
+Setting <code>assign.frame1 = T</code> also gets around the error. 
+<br>
+<code>influence(xy, coef(lm(y~x)), assign.frame1 = T)  # works</code> 
+<br>
+Similar problems occur with the <code>"influence"</code> method of <code>resampGetL</code>, 
+which invokes <code>influence</code>.  Thus the following fails. 
+<verb>
+bfit <- bootstrap(xy, coef(lm(y~x, data = xy)), B=20, seed = 0) 
+resampGetL(bfit, method="influence")  # fails 
+</verb>
+We can workaround this error by getting rid of the <code>data</code> argument. 
+<verb>
+bfit <- bootstrap(xy, coef(lm(y~x)), B=20, seed = 0) 
+resampGetL(bfit, method="influence")  # works 
+</verb>
+Or we can use the <code>lm</code> method for <code>bootstrap</code>. 
+<verb>
+bfit <- bootstrap(lm(y~x, data = xy), coef, B=20, seed = 0) 
+resampGetL(bfit, method="influence")  # nope, works but all zeros 
+</verb>
+Note that the other methods for <code>resampGetL</code> 
+(<code>"jackknife"</code>, <code>"ace"</code>, etc.) do not have these problems. 
+<p>
+The same scoping problem manifests itself in 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>, 
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>, 
+and 
+<s-function name="limits.abc.sgm">limits.abc</s-function> 
+when the statistic involves modeling functions.  For example, 
+<verb>
+bfit <- bootstrap(xy, coef(lm(y~x, data = xy)), B=20, seed = 0) 
+limits.tilt(bfit) # fails 
+tiltAfterBootstrap(bfit) # fails 
+limits.abc(fuel.frame, coef(lm(cform, data = fuel.frame))) # fails 
+</verb>
+The same cures work for these functions. 
+</s-section>
+<s-section name=" INTERMITTENT STATISTIC FAILURE - nls">
+
+Here is an example where 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+fails because the statistic 
+sometimes fails. 
+<verb>
+# fit Michaelis and Menten's original data. 
+conc   <- c(0.3330, 0.1670, 0.0833, 0.0416, 0.0208, 0.0104, 0.0052) 
+vel    <- c(3.636, 3.636, 3.236, 2.666, 2.114, 1.466, 0.866) 
+Micmen <- data.frame(conc=conc, vel=vel) 
+param(Micmen,"K")  <- 0.02; 
+param(Micmen,"Vm") <- 3.7 
+fit <- nls(vel~Vm*conc/(K+conc), data = Micmen) 
+set.seed(0) 
+bootstrap(Micmen, coef(nls(vel~Vm*conc/(K+conc), data = Micmen)), B=200, 
+          seed=0) 
+# fails, step factor below minimum on replication 144 
+</verb>
+One workaround is to construct a new statistic that can detect 
+failures in <code>nls</code> and to simply return <code>NA</code> for those samples.  The 
+function <code>try</code> can be used for this purpose. 
+<verb>
+# Use try().  If the result is of class "Error", then return 
+# rep(NA, same length as other replications) 
+try.expr <- Quote({result <- try(coef(nls(vel~Vm*conc/(K+conc), 
+                                data = Micmen))) 
+                  if(is(result, "Error")) rep(NA,2) else result 
+                }) 
+bootstrap(Micmen, try.expr, B=200, seed=0) 
+</verb>
+The error still occurs for the bad sample, but the remaining samples 
+can be processed. 
+</s-section>
+<s-section name=" INTERMITTENT STATISTIC FAILURE">
+
+The same type of problem can occur with other modeling functions.  One 
+example occurs with 
+<s-function name="lm.sgm">lm</s-function> 
+using factor data.  If one of the factor 
+categories is relatively rare, some bootstrap samples will not contain 
+that category. 
+<verb>
+abc <- data.frame(x=1:20, y=sort(runif(20)), 
+                abc=factor(c(rep("a",8), rep("b",9), rep("c",3)))) 
+bootstrap(lm(y~x+abc, data=abc), coef, B=100, seed = 0) 
+</verb>
+An error occurs in 
+<s-function name="lm.sgm">lm</s-function> 
+due to the singular fit.  It does not help to 
+specify <code>singular.ok=T</code> in the call to 
+<s-function name="lm.sgm">lm</s-function> 
+: 
+<verb>
+bootstrap(lm(y~x+abc, data=abc, singular.ok = T), coef, B=100, 
+          seed = 0) 
+</verb>
+Now 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+complains that statistic returns results with varying 
+length, because  
+<s-function name="coef.sgm">coef</s-function> 
+returns fewer coefficients on those samples 
+lacking category "c".  One solution is to use <code>singular.ok=F</code> and to 
+handle failures using  
+<s-function name="try.sgm">try</s-function>, 
+as above. 
+<verb>
+try.expr <- Quote({result <- try(coef(data)) 
+                   if(is(result, "Error")) rep(NA, 4) else result}) 
+bootstrap(lm(y~x+abc, data=abc), try.expr, B=100, seed = 0) 
+</verb>
+Another solution is to use <code>singular.ok = T</code> and  
+<s-function name="coef.default.sgm">coef.default</s-function> 
+rather than  
+<s-function name="coef.sgm">coef</s-function>. 
+<verb>
+bootstrap(lm(y~x+abc, data=abc, singular.ok = T), coef.default, B=100, 
+          seed = 0) 
+</verb>
+This works because  
+<s-function name="coef.sgm">coef</s-function> 
+(which actually dispatches to 
+<s-function name="coef.lm.sgm">coef.lm</s-function>) 
+only returns coefficients corresponding to the non-singular 
+part of the model, while  
+<s-function name="coef.default.sgm">coef.default</s-function> 
+returns all coefficients, including <code>NA</code> for the singular parts. 
+<p>
+As an aside, note that  
+<s-function name="coef.default.sgm">coef.default</s-function> 
+simply extracts the <code>coefficients</code> component from the  
+<s-function name="lm.sgm">lm</s-function> 
+object.  Therefore an equivalent workaround is 
+<verb>
+bootstrap(lm(y~x+abc, data=abc, singular.ok = T), data$coefficients, B=100, 
+          seed = 0) 
+</verb>
+</s-section>
+<s-section name=" MASKED STATISTIC">
+
+If you create a numeric object named <code>mean</code>, then this fails: 
+<verb>
+bootstrap(x, mean) 
+</verb>
+The solution is to remove your object which is masking <code>mean</code>. 
+Similarly for other functions.  You can check for these using 
+<verb>
+masked() 
+</verb>
+</s-section>
+<s-section name=" UPDATE FAILS">
+
+<s-function name="addSamples.sgm">addSamples</s-function> 
+and some methods for 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+create objects with a modified <code>call</code> component, which prevents 
+<s-function name="update.sgm">update</s-function> 
+from working properly.  For example: 
+<verb>
+fit <- lm(Fuel ~ Weight, data = fuel.frame) 
+boot1 <- bootstrap(fit, coef, B=30, seed=0) 
+boot2 <- update(boot1, lmsampler = "residuals") 
+</verb>
+That gives warning about unrecognized arguments. 
+The reason is that  
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function> 
+modifies the call: 
+<verb>
+boot1$call 
+# bootstrap(data = lm(formula = Fuel ~ Weight, data = fuel.frame, 
+#           method =  "model.list"), statistic = coef.default(lm(data)), 
+#           B = 30, seed = 0) 
+</verb>
+The first workaround is to give the command by hand: 
+<verb>
+boot2b <- bootstrap(fit, coef, B=30, seed = 0, lmsampler = "residuals") 
+</verb>
+The second is to replace the <code>call</code> component with the actual call, 
+then update: 
+<verb>
+boot1b <- boot1  # work with a copy in case you need boot1 later 
+boot1b$call <- boot1$actual.calls[[1]] 
+boot2c <- update(boot1b, lmsampler = "residuals") 
+</verb>
+The two methods yield the same results (if using the same seed): 
+<verb>
+all.equal(boot2b, boot2c) # TRUE 
+</verb>
+</s-section>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,299 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampGetL</s-topic>
+   <s-topic>resampGetL.default</s-topic>
+   <s-topic>resampGetL.bootstrap</s-topic>
+   <s-topic>resampGetL.jackknife</s-topic>
+   <s-topic>resampGetL.influence</s-topic>
+   <s-topic>resampGetL.bootstrap2</s-topic>
+</s-topics>
+<s-title>
+Compute linear approximation for Resample Objects 
+</s-title>
+<s-description>
+Calculate linear approximations, for a (linear or nonlinear) statistic. 
+The function is 
+generic (see Methods) with methods for 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="influence.sgm">influence</s-function>, 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+The default method handles other 
+<s-function name="resamp.sgm">resamp</s-function> 
+objects. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampGetL(x, ...) 
+resampGetL.bootstrap(x, method = &lt;&lt;see below&gt;&gt;, ..., 
+                     model.mat, formula, data, frame.eval) 
+resampGetL.jackknife(x, method = &lt;&lt;see below&gt;&gt;, ..., frame.eval) 
+resampGetL.influence(x) 
+resampGetL.bootstrap2(x, ..., frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+or other 
+<s-function name="resamp.sgm">resamp</s-function> 
+object, or a function call with arguments <code>data</code> and <code>statistic</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="method">
+a character string determines the method used to compute the L-statistic 
+values.  For most <code>resamp</code> objects the possible values are 
+<code>"jackknife"</code> and <code>"influence"</code>.  For <code>bootstrap</code> objects 
+additional choices are 
+<code>"ace"</code> and <code>"regression"</code>. 
+Default values depend on sample sizes, 
+number <code>B</code> of bootstrap replications present, 
+and whether sampling was by <code>group</code> (stratified); 
+if <code>model.mat</code> is present, or if <code>B&gt;2*n+100</code> the default is 
+<code>"ace"</code>.  Otherwise <code>"influence"</code> or <code>"jackknife"</code> is used: if 
+stratified sampling was not used, the default is <code>"jackknife"</code>; if 
+stratified sampling was used the method is <code>"influence"</code> if the 
+statistic can be modified to include weights (see below), <code>"jackknife"</code> 
+otherwise.  
+</s-arg>
+<s-arg name="model.mat">
+model matrix used in the linear model fit, required for methods 
+<code>"ace"</code> and <code>"regression"</code>, unless <code>formula</code> is supplied. 
+</s-arg>
+<s-arg name="formula">
+a formula object, with the response on the left of a <code>~</code> 
+operator, and the terms, separated by <code>+</code> operators, on the 
+right.  Used to create the model matrix. 
+</s-arg>
+<s-arg name="data">
+a data.frame in which to interpret the variables named in the 
+formula.  By default the original data used in bootstrapping is used 
+if it is a data frame. 
+</s-arg>
+<s-arg name="...">
+Other arguments which may affect calculations, e.g. <code>epsilon</code> for 
+<s-function name="influence.sgm">influence</s-function> 
+and <code>df</code> for the "ace" methods, see 
+<s-function name="linearApproxReg.sgm">linearApproxReg</s-function>. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>x</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+vector or matrix containing 
+approximate empirical influence function values for each data point. 
+There are <code>n</code> rows, where <code>n</code> is the original number of observations 
+or subjects; and <code>p</code> columns, where the 
+statistic is <code>p</code>-valued.   When sampling by subject the 
+rows names of the result are the sorted unique values of the 
+<code>subject</code> argument taken from the call to 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+<p>
+The results are normalized to sum to zero 
+(by group, if sampling by <code>group</code>; see below). 
+<p>
+The result has a <code>"method"</code> attribute giving the method. 
+For the two regression methods, the result has a 
+<code>"correlation"</code> attribute giving the multiple correlation between 
+(transformed) bootstrap replicates and the linear approximation. 
+For the <code>"influence"</code> method, the result has an <code>"epsilon"</code> 
+component (see below).  
+</s-value>
+<s-details>
+The <code>"influence"</code> method calculations are carried out by 
+<s-function name="influence.sgm">influence</s-function>, 
+using functional differentiation with a 
+finite value of <code>epsilon</code>. 
+The <code>statistic</code> must accept a <code>weights</code> argument, or be an expression 
+involving one or more functions that accept a <code>weights</code> argument. 
+<p>
+The <code>"jackknife"</code> method gives the ordinary jackknife estimate for the 
+empirical influence values. 
+Calculations are carried out by 
+<s-function name="resampGetL.jackknife.sgm">resampGetL.jackknife</s-function> 
+which in turn may call <code>jackknife</code>. 
+<p>
+The <code>"regression"</code> and <code>"ace"</code> methods perform regression 
+with bootstrap replicates as the response 
+variable.  They call 
+<s-function name="linearApproxReg.sgm">linearApproxReg</s-function> 
+for calculations. 
+These methods run faster if the <code>indices</code> are saved in 
+the bootstrap object. 
+The number of explanatory variables is <code>n</code>, so these 
+methods should only be used if the number of bootstrap 
+replications <code>B</code> is large enough to estimate that many parameters, 
+say <code>B&gt;2*n+100</code>. 
+<p>
+The <code>"ace"</code> variant perform an initial regression, transforms the 
+response to improve linearity, then performs a final regression. 
+<p>
+The <code>model.mat</code> matrix should have one row for each observation 
+(or for each subject). 
+An initial column of 1's is optional (it is added if not present). 
+It should contain columns which together 
+have a high "multiple correlation" with the statistic of interest. 
+For example, if the statistic is <code>var(x)</code>, then <code>cbind(x, x^2)</code> 
+or <code>cbind(x, (x-mean(x))^2)</code> would be suitable; 
+these could also be specified by formulae, 
+<code>~x + x^2</code> or <code>~poly(x,2)</code>, respectively. 
+Here  "multiple correlation" is between 
+the original bootstrapped statistic (<code>replicates</code>) 
+and the (multivariate) bootstrapped sample means of the model matrix, 
+using the same bootstrap indices. 
+In other words, you can view each column of the model matrix as a set 
+of data whose sample mean is bootstrapped; these sample means 
+should have high multiple correlation with the actual statistics 
+in order for the resulting linear approximations to be accurate. 
+<p>
+If <code>model.mat</code> has <code>k</code> columns, the number of bootstrap 
+replications <code>B</code> is large enough to estimate that many parameters, 
+say <code>B&gt;2*k+100</code>. 
+<p>
+Similarly, for <code>"regression"</code> and <code>"ace"</code> the multiple correlation 
+should be high for linear approximations to be accurate. 
+The estimated multiple correlation is given as an attribute to the 
+result.  This is not adjusted for 
+degrees of freedom, or for the transformation used by the <code>"ace"</code> method. 
+<p>
+Sampling by <code>group</code> (stratified sampling) and by <code>subject</code> 
+are supported by all methods. 
+However, in the group case the <code>"jackknife"</code> method should 
+not be used for some statistics.  If the statistic would give a different 
+value if all observations in one group were repeated twice, this 
+indicates that the statistic does not normalize weights by group, 
+and the jackknife estimates will be mildly or badly inaccurate. 
+Sampling by <code>subject</code> can also cause problems for the <code>"influence"</code> 
+method, because statistics vary in how the weight for a subject 
+should be divided among the corresponding observations. 
+Currently the weights for a subject are replicated to each observation, 
+but this is subject to change. 
+<p>
+For correct results with the <code>influence</code> method, 
+all functions in the expression that 
+depend on the data should accept a <code>weights</code> 
+argument.  For example, suppose the original statistic is 
+<code>mean(x)-median(x)</code>, where <code>mean</code> has a <code>weights</code> argument but <code>median</code> 
+does not.  The internal calculations create a new expression, 
+in which weights are added to every function that accepts them: 
+<br>
+<code>mean(x,weights=Splus.resamp.weights)-median(x)</code>. 
+<br>
+Results are incorrect, because weighted medians are not calculated 
+when they should be. 
+<p>
+<code>median</code> and other non-smooth functions also cause problems 
+for methods that depend on smoothness, including <code>"jackknife"</code> 
+and <code>"influence"</code> with a small value of <code>epsilon</code>; 
+these finite-difference derivative methods are not suitable for non-smooth 
+statistics. 
+For such statistics 
+use the regression methods, or <code>"influence"</code> with a large <code>epsilon</code>, 
+e.g. <code>epsilon=1/sqrt(n)</code> (the "butcher knife"). 
+</s-details>
+<s-section name=" REFERENCES">
+
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+<p>
+Hesterberg, T.C. (1995), 
+"Tail-Specific Linear Approximations for Efficient Bootstrap Simulations," 
+<it>Journal of Computational and Graphical Statistics,</it>
+<bf>4</bf>, 113-133. 
+<p>
+Hesterberg, T.C. and Ellis, S.J. (1999), 
+"Linear Approximations for Functional Statistics in Large-Sample Applications," 
+Technical Report No. 86, 
+http://www.insightful.com/Hesterberg 
+</s-section>
+<s-section name=" BUGS">
+
+<code>resampGetL</code> can fail when <code>method = "influence"</code> if the statistic in 
+<code>x</code> calls a modeling function like <code>lm</code>. See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function> 
+for details. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="influence.sgm">influence</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="tiltMean.sgm">tiltMean</s-function>,  
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+bfit <- bootstrap(stack.loss, mean) 
+L1 <- resampGetL(bfit, "jackknife") 
+# Same result using jackknife object 
+jfit <- jackknife(stack.loss, mean) 
+L2 <- resampGetL(jfit) 
+all.equal(L1, L2) 
+ 
+### Example: correlation for bivariate data 
+set.seed(1); x <- rmvnorm(100, d=2, rho=.5) 
+bfit2 <- bootstrap(x, cor(x[,1], x[,2]), save.indices=T) 
+L1 <- resampGetL(bfit2)  # "ace" method 
+L2 <- resampGetL(bfit2, model.mat = cbind(x, x^2, x[,1]*x[,2])) 
+L2b<- resampGetL(bfit2, formula = ~poly(x,2))  # equivalent to previous 
+L3 <- resampGetL(bfit2, method="jackknife") 
+L4 <- resampGetL(bfit2, method="influence") 
+L5 <- influence(x, cor(x[,1], x[,2]), returnL=T) 
+plot(x[,1], x[,2]) 
+contour(interp(x[,1], x[,2], L4), add=T) 
+# points in top right and lower left have positive influence on correlation 
+contour(interp(x[,1], x[,2], L1), add=T, col=2) # more random variation 
+contour(interp(x[,1], x[,2], L2), add=T, col=3) # less random variation 
+all.equal(L2, L2b) # identical 
+all.equal(L4, L5)  # identical 
+cor(cbind(L1, L2, L3, L4))  # high correlation 
+# Accuracy for linear approximation: 
+plot(indexMeans(L1, bfit2$indices) + bfit2$observed, bfit2$replicates, 
+     xlab = "Linear approximation", ylab="Actual bootstrap values") 
+abline(0,1,col=2) 
+cor(indexMeans(L1, bfit2$indices), bfit2$replicates) 
+# correlation .989 between bootstrap replicates and linear approximation 
+attr(L1, "correlation")  # .989 
+ 
+### Example: sampling by subject 
+bfit3 <- bootstrap(fuel.frame, mean(Fuel), subject = Type, 
+                   save.indices = T) 
+L1 <- resampGetL(bfit3, method = "ace") 
+means <- groupMeans(fuel.frame$Fuel, fuel.frame$Type) 
+counts <- table(fuel.frame$Type) 
+L2 <- resampGetL(bfit3, model.mat = cbind(means, counts, means*counts)) 
+L3 <- resampGetL(bfit3, method="jackknife") 
+L4 <- resampGetL(bfit3, method="influence") 
+L5 <- resampGetL(bfit3, model.mat = cbind(means)) 
+cor(cbind(L1, L2, L3, L4, L5))  # high correlation, except for L5 
+# The model.mat for L5 did not provide a suitable basis 
+# for predicting the bootstrap statistics (which correspond to 
+# means of resampled subject means, weighted by resampled subject counts) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
