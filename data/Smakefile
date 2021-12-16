@@ -1,9 +1,0 @@
-DEST=..
-QFILES=sdd.q
-
-all :  $(QFILES)
-install install.funs :  install.data
-install.data : $(DEST)/$(DATA_DIR) $(QFILES)
-	QINSTALL $(DEST) $(QFILES)
-
-virgin : clean virgin.std

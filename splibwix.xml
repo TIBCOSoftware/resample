@@ -1,8 +1,0 @@
-<library name="resample" support="Additional" guid="{7FA18115-0611-4C02-A07F-B98C1A2BE8CE}">
-  <dir name=".Data" guid="{8B86E24E-87B0-4748-8E76-C756394B4E55}">
-    <dir name="__Hhelp" guid="{19A153E8-46AE-40A5-807C-FF9B8CA46830}" />
-    <dir name="__Meta" guid="{523A9E2D-94FC-4988-A44C-88B7A5BEBDC5}" />
-  </dir>
-  <dir name=".Prefs" guid="{1CF47071-452B-4E49-93D8-D2996FC03FEE}" />
-  <dir name="doc" guid="{07C37FF4-26B8-4FFD-91CF-7441D65F35C0}" />
-</library>
