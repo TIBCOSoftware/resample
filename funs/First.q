@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 # Keep this synchronized with .First.lib in gui/first.q
 # The code here should match the end of .First.lib in gui/first.q
 .First.lib <- function(lib.loc, section)

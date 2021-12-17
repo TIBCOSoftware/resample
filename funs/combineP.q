@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 # Combination functions.
 # Each must take a matrix as input, one column for every variable
 # and any number of rows, containing p-values for individual variables.

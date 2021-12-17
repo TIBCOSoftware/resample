@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 deprecateFun <- function(Old, New){
   # Old and New are character strings.
   # Create a function (to be assigned to the old name) that

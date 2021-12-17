@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 limits.t <-
 function(x, probs = c(25, 50, 950, 975)/1000,
 	 df = "choose", adjust = T, z = F,

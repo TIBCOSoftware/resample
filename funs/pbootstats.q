@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 # file contains one function:  (for S version 4)
 # makeParametricBootstrap: auxiliary function for parametricBootstrap()
 #           : calculates parametricBootstrap statistic, creates parametricBootstrap object.
