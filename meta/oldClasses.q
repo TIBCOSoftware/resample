@@ -1,3 +1,7 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
 # resamp objects
 setOldClass(c("bootstrap", "resamp"), where="DESTDIR")
 setOldClass(c("concomitants", "bootstrap", "resamp"), where="DESTDIR") # deprecated

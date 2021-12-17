@@ -1,3 +1,9 @@
+/*
+* Copyright 2021. TIBCO Software Inc.
+* This file is subject to the license terms contained
+* in the license file that is distributed with this file.
+*/
+
 /* This file contains routines used in other files:
      tiltBoot.c
      tiltMean.c
