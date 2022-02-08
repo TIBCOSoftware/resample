@@ -1,0 +1,335 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrapValidation</s-topic>
+   <s-topic>bootstrapValidation.default</s-topic>
+   <s-topic>bootstrapValidation.formula</s-topic>
+</s-topics>
+<s-title>
+Bootstrap Prediction 
+</s-title>
+<s-description>
+Performs bootstrap estimates of prediction error; i.e., repeatedly fits 
+a given model on bootstrap samples, and then calculates estimates of 
+prediction error. These estimates are generally more accurate than the sample 
+prediction error of the model fitted to the original data set. 
+The <code>bootstrapValidation</code> function is generic (see 
+<s-function name="Methods.sgm">Methods</s-function>); 
+method functions can be written to handle specific classes of 
+data. Classes which already have methods for this function include: 
+<code>formula</code> 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrapValidation(x, &lt;&lt;y or data&gt;&gt;, 
+         modelFit, B, group = NULL, subject = NULL, 
+         args.modelFit = NULL, 
+         predFun = &lt;&lt;see below&gt;&gt;, args.predFun = NULL, 
+         passOldData.predFun = F, 
+         errFun = &lt;&lt;see below&gt;&gt;, args.errFun = NULL, 
+         seed = .Random.seed,  
+         label, 
+         trace = resampleOptions()$trace, assign.frame1 = F, 
+         save.indices = F, 
+         save.group = &lt;&lt;see below&gt;&gt;, save.subject = &lt;&lt;see below&gt;&gt;, 
+         save.errors = F) 
+bootstrapValidation.default(x, y, 
+         &lt;&lt;modelFit and subsequent arguments&gt;&gt;) 
+bootstrapValidation.formula(x, data, 
+         &lt;&lt;modelFit and subsequent arguments&gt;&gt;) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+For <code>bootstrapValidation.default</code>, a data frame or matrix containing 
+the explanatory variables. 
+For <code>bootstrapValidation.formula</code>, a formula object that specifies the model, with 
+the response on the left of a <code>~</code> operator and the explanatory terms, 
+separated by <code>+</code> operators, on the right. 
+</s-arg>
+<s-arg name="y">
+the response variable. 
+</s-arg>
+<s-arg name="data">
+data frame used to fit the model. 
+</s-arg>
+<s-arg name="modelFit">
+function that fits the model under consideration. 
+<p>
+For <code>bootstrapValidation.formula</code>: 
+the function must accept a formula as its first argument, 
+and have a <code>data</code> argument; 
+e.g. <code>modelFit(x, data=data)</code>. 
+<p>
+For <code>bootstrapValidation.default</code>: this function must take arguments <code>x</code> and <code>y</code>, 
+not necessarily in that order. 
+</s-arg>
+<s-arg name="B">
+number of bootstrap samples used. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="group">
+vector of length equal to the number of observations in <code>data</code>, for 
+stratified sampling or multiple-sample problems. 
+Sampling is done separately for each group 
+(determined by unique values of this vector). 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or expression involving such variables. 
+</s-arg>
+<s-arg name="subject">
+vector of length equal to the number of observations in <code>data</code>; 
+if present then subjects 
+(determined by unique values of this vector) are resampled rather than 
+individual observations. 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables. 
+If <code>group</code> is also present, <code>subject</code> must be nested within <code>group</code> 
+(each subject must be in only one group). 
+</s-arg>
+<s-arg name="args.modelFit">
+list of arguments to pass to <code>modelFit</code> when fitting the model. 
+</s-arg>
+<s-arg name="predFun">
+function that returns predicted values for a given model 
+object and new data values. 
+The first two arguments to this function  
+are the model object and new data (except see Details below). 
+The default is a version of <code>predict</code>. 
+</s-arg>
+<s-arg name="args.predFun">
+list of additional arguments to pass to <code>predFun</code> 
+when calculating predicted values. 
+</s-arg>
+<s-arg name="passOldData.predFun">
+logical flag indicating if the prediction algorithm refits 
+the original model.  If so, the training data must be passed to 
+the prediction function; this is done with an assignment to frame 1. 
+</s-arg>
+<s-arg name="errFun">
+function that computes a measure of error, based on actual values 
+of the response variable and fitted values. 
+The first two arguments to this function are the actual and fitted values 
+(except see Details below). 
+The default computes squared error. 
+</s-arg>
+<s-arg name="args.errFun">
+list of arguments to pass to the function given in <code>errFun</code> 
+when calculating the prediction error. 
+</s-arg>
+<s-arg name="seed">
+seed for generating resampling indices.  May be a legal random number 
+seed or an integer between 0 and 1023 which is passed to <code>set.seed</code>. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing. 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether the algorithm should print a message indicating 
+which bootstrap sample is currently being processed. 
+The default is set by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before fitting the model. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="save.indices">
+logical flag indicating whether to save the indices.  See 
+return component <code>indices</code> below. 
+</s-arg>
+<s-arg name="save.group, save.subject">
+logical flags, if <code>TRUE</code> then <code>group</code> and <code>subject</code> vectors, respectively, 
+are saved in the returned object.  Both defaults are <code>TRUE</code> if <code>n&lt;=10000</code>. 
+</s-arg>
+<s-arg name="save.errors">
+logical flag, if <code>TRUE</code> then the matrix of errors are 
+saved in the returned object. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>bootstrapValidation</code>, with the following components: 
+<s-return-component name="call">
+the call to <code>bootstrapValidation</code>, but with all the arguments explicitly named. 
+</s-return-component>
+<s-return-component name="B">
+the number of bootstrap samples used. 
+</s-return-component>
+<s-return-component name="apparent.error">
+the average prediction error of the original model used to predict the 
+original data. 
+</s-return-component>
+<s-return-component name="optimism">
+the average decrease in error due to overfitting.  The same model--a 
+model built on a bootstrap sample--is used to predict both the bootstrap data 
+and the original data, and compute the difference in error. 
+</s-return-component>
+<s-return-component name="err632">
+the prediction error estimate as calculated by the .632 method. 
+</s-return-component>
+<s-return-component name="err632plus">
+the prediction error estimate as calculated by the .632+ method. 
+</s-return-component>
+<s-return-component name="seed.start">
+the initial value of the random seed for generating the resampling 
+indices, in the same format as <code>.Random.seed</code>. 
+</s-return-component>
+<s-return-component name="seed.end">
+the final value of the random seed, after the bootstrap samples have all 
+been generated, in the same format as <code>.Random.seed</code>. 
+</s-return-component>
+<s-return-component name="parent.frame">
+the frame of the caller of <code>bootstrapValidation</code>. 
+</s-return-component>
+<s-return-component name="label">
+optionally, a label to be used for printing. 
+</s-return-component>
+<s-return-component name="defaultLabel">
+a default label constructed from the call, may be used for printing. 
+</s-return-component>
+<s-return-component name="group">
+optionally, the <code>group</code> vector. 
+</s-return-component>
+<s-return-component name="subject">
+optionally, the <code>subject</code> vector. 
+</s-return-component>
+<s-return-component name="indices">
+optionally, a matrix with <code>n</code> rows and <code>B</code> columns, indicating which 
+observations were assigned to each bootstrap sample. 
+</s-return-component>
+<s-return-component name="errors">
+optionally, a matrix with <code>n</code> rows and <code>B</code> columns, containing the 
+errors (as measured by <code>errFun</code>) for each observation and bootstrap sample. 
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+To avoid scoping problems, the model fitting function is assigned to frame 
+1 using the name <code>modelFit</code>.  If <code>passOldData.predFun=T</code>, the prediction 
+algorithm assigns the training data to frame 1 using the name <code>oldData</code>. 
+(Note that <code>passOldData.predFun</code> gets set to <code>T</code> automatically when <code>gam</code> 
+is used.) If <code>assign.frame1=T</code>, the data is assigned to frame 1 using 
+the name of the data frame or the name <code>data</code>.  You must be sure that 
+these assignments to frame 1 do not overwrite some quantity of interest 
+stored in frame 1. 
+</s-side-effects>
+<s-details>
+Performs bootstrap estimates of prediction error for a wide scope of models. 
+The algorithm samples by selecting certain rows of a data frame, 
+so this function is not generally applicable to grouped-data problems that 
+use modeling functions like <code>lme</code> and <code>nlme</code>, unless you use the <code>subject</code> 
+variable. 
+<p>
+Normally the first two arguments to <code>predFun</code> are the model object 
+and new data.  Most methods for <code>predict</code> (the default <code>predFun</code>) 
+satisfy this. 
+However, <code>predict.censorReg</code> currently has 
+first four arguments <code>object, p, q, newdata</code>.   
+To use this, you could either write your 
+own <code>predFun</code> which calls <code>predict.censorReg</code> with arguments in a different 
+order, or supply  
+<code>args.predFun = list(p=c(.1,.5,.9),q=NULL)</code>; 
+this results in internal calls of the form 
+<code>predict(model object, new data, p=c(.1,.5,.9), q=NULL)</code>. 
+Because named arguments (<code>p</code> and <code>q</code>) take precedence, the new 
+data will end up being used as the fourth argument to 
+<code>predict.censorReg</code>, as desired. 
+<p>
+Similarly, the first two arguments to <code>errFun</code> are normally the 
+actual and fitted values of the response variable, but these may be 
+displaced to later positions by named arguments in <code>args.errFun</code>. 
+<p>
+The combination of <code>predFun</code> and <code>errFun</code>, and their arguments, 
+should be appropriate for your model. 
+For example, in a logistic regression (<code>glm</code> with <code>family=binomial</code>), 
+<code>args.predFun=list(type="response")</code> puts predictions on the 
+probability scale, and <code>errFun</code> could compute a weighted sum of squares. 
+The defaults are appropriate for the usual linear least-squares regression. 
+</s-details>
+<s-section name=" REFERENCES">
+Efron, B. and Tibshirani, R.J. (1995), 
+<it>"Cross-Validation and the Bootstrap: Estimating the Error Rate of a Prediction Rule,"</it>
+Technical Report (see 
+         http://www-stat.stanford.edu/~tibs/research.html) 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+
+<s-see>
+<s-function name="crossValidation.sgm">crossValidation</s-function>,  
+<s-function name="resamp.object.sgm">resamp.object</s-function>,  
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = "text">
+bootstrapValidation(ozone ~ ., air, lm, B = 40) 
+bootstrapValidation(skips ~ ., data = solder.balance, glm, 
+  B = 30, args.modelFit = list(family = poisson)) 
+ 
+# stratified sampling 
+bootstrapValidation(skips ~ ., data = solder.balance, glm, 
+  B = 30, group = Solder, args.modelFit = list(family = poisson)) 
+ 
+# bootstrapValidation.default method 
+bootstrapValidation(air$wind, air$ozone, smooth.spline, B=30, predFun = 
+  function(object, newdata) predict(object, x = newdata)$y) 
+ 
+# model selection with smooth.spline 
+attach(air) 
+plot(ozone,temperature) 
+tempErr <- rep(NA, 11) 
+for(i in 1:11){ 
+  cat("model", i, "\n") 
+  res <- bootstrapValidation(ozone, temperature, smooth.spline, 
+    args.modelFit = list(df = i+1), predFun = 
+    function(object, newdata){predict(object, x = newdata)$y}, 
+    B = 30) 
+  tempErr[i] <- res$err632plus 
+  } 
+argminErr <- which(tempErr == min(tempErr))[1] + 1 
+lines(smooth.spline(ozone,temperature, df = argminErr)) 
+# note: this simple example ignores the variability 
+# in the bootstrapValidation estimates, and just picks the 
+# minimum error as the "winner" 
+ 
+# local regression model 
+bootstrapValidation(NOx ~ C * E, data = ethanol, loess, B = 30, 
+  args.modelFit = list(span = 1/2, degree = 2, 
+  parametrix = "C", drop.square = "C", 
+  control = loess.control("direct"))) 
+ 
+# Test if match: 
+# 1. supply the prediction function 
+bootp1 <- bootstrapValidation(ozone ~ ., air, lm, B = 40, predFun = 
+  function(object, newdata, se.fit) predict.lm(object, 
+  newdata, se.fit = T)$fit) 
+# 2. supply the error function and args.errFun 
+#    while still doing the same model 
+bootp2 <- bootstrapValidation(ozone ~ ., air, lm, B = 40, errFun = 
+  function(y, fitted, dim) ((y - fitted)^dim), 
+  args.errFun = list(dim = 2), seed = bootp1$seed.start) 
+all.equal(bootp1[-1], bootp2[-1]) 
+# match except for calls 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

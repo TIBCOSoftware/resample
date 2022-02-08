@@ -1,0 +1,295 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+<s-topic>permutationTest2</s-topic>
+</s-topics>
+<s-title>
+Permutation Test for Comparing Two Samples
+</s-title>
+<s-description>
+Permutation test for the difference or ratio of a statistic
+computed on two samples.
+</s-description>
+<s-usage>
+<s-old-style-usage>
+permutationTest2(data, statistic, treatment, data2,
+                 B = 999, alternative = "two.sided", ratio = F,
+                 paired = F, group = NULL,
+                 combine = NULL,
+                 combinationFunction = combinePValues.Fisher,
+                 seed = .Random.seed, trace = resampleOptions()$trace,
+                 save.group, save.treatment, ...)
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+numerical vector or matrix, or data frame.  Each column is treated as
+a separate variable.
+</s-arg>
+<s-arg name="statistic">
+statistic to be computed;
+a function or expression that returns a vector or matrix.
+It may be a function which accepts data as the first argument.
+Or it may be an expression such as <code>mean(x,trim=.2)</code>.
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name
+in the expression,
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression.
+If <code>data</code> is a data frame, the expression may involve variables
+in the data frame.
+For examples see
+<s-function name="bootstrap.sgm">bootstrap</s-function>.
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="treatment">
+vector of length equal to the number of observations in
+<code>data</code>.  This must have two unique values, which determine the two
+samples to be compared.  If
+<code>data</code> is a data frame, this may be a variable in the data frame, or
+an expression involving such variables.  One of <code>treatment</code> or <code>data2</code>
+(but not both) must be used.
+</s-arg>
+<s-arg name="data2">
+numerical vector or matrix, or data frame, like
+<code>data</code>.  Observations in <code>data</code> are taken
+to be one sample, and those in <code>data2</code> are taken to be the other.  If
+<code>data2</code> is a matrix or data frame, it must have the same number of
+columns, and column names, if any, as <code>data</code>.  One of <code>treatment</code> or
+<code>data2</code> (but not both) must be used.
+</s-arg>
+<s-arg name="B">
+integer, number of random permutations to use.  With the default value
+of <code>B=999</code>, p-values are multiples of 1/1000.
+</s-arg>
+<s-arg name="alternative">
+character, one of
+<code>"two.sided"</code>, <code>"greater"</code>, or <code>"less"</code> (may be abbreviated),
+indicating the type of hypotheses test to perform.
+</s-arg>
+<s-arg name="ratio">
+logical value, if <code>FALSE</code> (the default) then bootstrap the
+difference in statistics between the two samples; if <code>TRUE</code>
+then bootstrap the ratio.
+</s-arg>
+<s-arg name="paired">
+logical, if <code>TRUE</code> then observations are paired, and observations
+within each pair are randomly permuted.  This is equivalent
+to supplying <code>group</code> as a vector with a different value for each pair
+of observations.  If <code>paired</code> is supplied then argument <code>group</code>
+is ignored.
+</s-arg>
+<s-arg name="group ">
+vector of length equal to the number of observations in
+<code>data</code> (or in <code>data</code> and <code>data2</code>), for further stratified sampling.
+Within each of the two permutation samples defined by <code>treatment</code> or
+<code>data2</code>, sampling is done separately
+for each group (determined by unique values of this vector).  If
+<code>data</code> is a data frame, this may be a variable in the data frame, or
+an expression involving such variables.
+</s-arg>
+<s-arg name="combine">
+numerical, logical, or character vector, indicating which variables
+to use for computing combined p-values.  Or this may be a list, each
+of whose elements indicate a set of variables to use.
+</s-arg>
+<s-arg name="combinationFunction">
+a function which combines p-values; see
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function>
+for specifications.
+</s-arg>
+<s-arg name="seed">
+seed for generating resampling indices; a legal seed, e.g. an integer
+between 0 and 1023.  See
+<s-function name="set.seed.sgm">set.seed</s-function>.
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether to print messages indicating progress.
+The default is determined by
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>.
+</s-arg>
+<s-arg name="save.group">
+</s-arg>
+<s-arg name="save.treatment">
+logical flags indicating whether to return  the <code>group</code>
+and <code>treatment</code> vectors.
+Default
+is <code>TRUE</code> if number of observations is <code>&lt;= 10000</code> or if <code>data2</code> supplied,
+<code>FALSE</code> otherwise.
+If not saved these can generally be recreated by
+<s-function name="resampGetArgument.sgm">resampGetArgument</s-function>
+when needed
+if <code>treatment</code> was supplied, but not if <code>data2</code> was supplied.
+</s-arg>
+<s-arg name="...">
+additional arguments to
+<s-function name="bootstrap.sgm">bootstrap</s-function>.
+Sampler arguments <code>sampler</code>,
+<code>sampler.prob</code>, and <code>sampler.args.group</code> are not supported.
+</s-arg>
+</s-args-optional>
+<s-value>
+An object of class <code>permutationTest2</code>
+which inherits from <code>permutationTest</code> and <code>resamp</code>.  This has components
+<code>call</code>,
+<code>observed</code>,
+<code>replicates</code>,
+<code>estimate</code>,
+<code>B</code>,
+<code>n</code>,
+<code>dim.obs</code>,
+<code>parent.frame</code>,
+<code>label</code> (only if supplied),
+<code>defaultLabel</code>,
+<code>p-value</code>,
+<code>combined-p-value</code> (only if p-values are combined),
+<code>seed.start</code>,
+<code>seed.end</code>,
+<code>ratio</code> (if <code>ratio=TRUE</code>), and
+<code>bootstrap.objects</code>.
+See
+<s-function name="resamp.object.sgm">resamp.object</s-function>
+for a description of most components. Components particularly relevant
+are:
+<s-return-component name="observed">
+vector of length <code>p</code> (the number of variables in <code>data</code>), containing
+the difference in the statistic computed on each of the two samples,
+for the original data.
+</s-return-component>
+<s-return-component name="replicates">
+matrix of dimension <code>B</code> by <code>p</code>, containing the difference
+in the statistic computed on each the two samples, for each permutation.
+</s-return-component>
+<s-return-component name="estimate">
+data.frame with <code>p</code> rows and columns <code>"alternative"</code> and <code>"p-value"</code>.
+</s-return-component>
+<s-return-component name="combined-p-value">
+vector of combined p-values, of length equal to the number of combinations
+requested by argument <code>combine</code>.
+</s-return-component>
+<s-return-component name="ratio">
+this is present only when bootstrapping the ratio between samples;
+in that case this is the logical value <code>TRUE</code>.
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+The function <code>permutationTest2</code>
+causes creation of the dataset <code>.Random.seed</code> if it does
+not already exist, otherwise its value is updated.
+</s-side-effects>
+<s-details>
+The replicates generated by <code>permutationTest2</code> are conceptually
+equivalent to those for a call to
+<s-function name="permutationTest.sgm">permutationTest</s-function>
+using <code>statistic</code> equal to
+<code>statistic(data[treatment 1]) - statistic(data[treatment 2])</code>.  If the
+statistic is <code>mean</code>, results are equivalent to calling
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.
+Neither of these will duplicate the results from <code>permutationTest2</code>
+exactly, however, since internally all three functions use different
+algorithms. If <code>statistic</code> is
+<s-function name="mean.sgm">mean</s-function>
+or
+<s-function name="colMeans.sgm">colMeans</s-function>,
+use
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>,
+which is much faster.  The results for
+<code>permutationTest2</code> are achieved by two calls to
+<s-function name="bootstrap.sgm">bootstrap</s-function>,
+one for each sample, using the sampler
+<s-function name="samp.permute.sgm">samp.permute</s-function>
+with argument <code>full.partition</code> to synchronize the permutations between
+samples.
+</s-details>
+
+<s-section name=" REFERENCES">
+Pesarin, F. (2001),
+<it> Multivariate Permutation Tests with Applications to
+Biostatistics: Nonparametric Combination Methodology, </it>
+Wiley, Chichester, UK.
+(Describes nonparametric combination methodology.)
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,
+<s-function name="permutationTest.sgm">permutationTest</s-function>,
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.
+The latter is for comparing means of two groups.
+
+More details on arguments, see
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  Note that
+<s-function name="permutationTest.sgm">permutationTest</s-function>  calls
+<s-function name="bootstrap.sgm">bootstrap</s-function>,
+so many of the arguments are common.
+
+Combination of p-values for multivariate statistics:
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function>,
+<s-function name="combinePValues.Liptak.sgm">combinePValues.Liptak</s-function>,
+<s-function name="combinePValues.chisquare.sgm">combinePValues.chisquare</s-function>,
+<s-function name="combinePValues.halfnormal.sgm">combinePValues.halfnormal</s-function>.
+
+Print, summarize, plot:
+<s-function name="print.resamp.sgm">print.resamp</s-function>,
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,
+
+Description of a "permutationTest2" object, extract parts:
+<s-function name="permutationTest2.object.sgm">permutationTest2.object</s-function>,
+<s-function name="resampGet.sgm">resampGet</s-function>,
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+Modify a "permutationTest2" object:
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see:
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+# Three ways of doing the same thing.
+set.seed(0)
+x <- matrix(rnorm(15*3), 15)
+treatment <- rep(c(T,F), length=15)
+p2 <- permutationTest2(x, statistic = colMeans, treatment = treatment,
+                       seed = 1)
+p2
+permutationTestMeans(x, treatment = treatment, seed = 1)
+permutationTest(x, statistic = colMeans(x[tr,]) - colMeans(x[!tr,]),
+                seed = 1, args.stat = list(tr = treatment))
+
+summary(p2)
+plot(p2)
+# two combinations
+update(p2, combine = list(1:3, 1:2))
+
+# Paired permutation test
+x1 <- rnorm(30); x2 <- rnorm(30)
+permutationTest2(x1, data2=x2, median, paired=T)
+# Another way to do a paired permutation test, using the group argument:
+permutationTest2(x1, data2=x2, median, group = rep(1:30, 2))
+
+# data2, group arguments
+set.seed(10)
+data1 <- data.frame(x = runif(30), g = rep(1:2, c(10, 20)))
+data2 <- data.frame(x = runif(20), g = rep(1:2, 10))
+permutationTest2(data = data1, statistic = mean(x), data2 = data2,
+                 group = g)
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

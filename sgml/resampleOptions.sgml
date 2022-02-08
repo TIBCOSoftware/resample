@@ -1,0 +1,76 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampleOptions</s-topic>
+</s-topics>
+<s-title>
+Set or Return Options for Resampling 
+</s-title>
+<s-description>
+Provides a means to control certain aspects of Spotfire S+ behavior for 
+the S+Resample package. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampleOptions(..., TEMPORARY=FALSE) 
+</s-old-style-usage>
+</s-usage>
+<s-args-optional>
+<s-arg name="...">
+a list or vector of character strings may be given as the only 
+argument, or any number of arguments may be in name=value form. 
+In addition, no arguments at all may be given. See the VALUE 
+and SIDE EFFECTS sections for explanation. 
+</s-arg>
+<s-arg name="TEMPORARY">
+logical, if <code>TRUE</code> then options are in effect only for the current call. 
+If <code>FALSE</code> they persist between calls, for the rest of the Spotfire S+ session. 
+<p>
+The following options are currently supported: 
+</s-arg>
+<s-arg name="printCall">
+a number, if a <code>call</code> component of a resample object exceeds this 
+many characters then it is not printed. 
+</s-arg>
+<s-arg name="guiPrintCorrelations">
+logical, if <code>TRUE</code> then <code>tabSummary.bootstrap</code> (a GUI function)  
+prints correlations. 
+</s-arg>
+<s-arg name="summaryCorrelations">
+logical, if <code>TRUE</code> (the default) then <code>summary.resamp</code> prints correlations. 
+</s-arg>
+</s-args-optional>
+<s-value>
+The function returns a list of the current options, stored in 
+<code>.Options.resample</code>. 
+</s-value>
+<s-side-effects>
+When options are set, then <code>.Options.resample</code> is changed, 
+either in frame 0 or 1, depending on whether <code>TEMPORARY</code> is <code>FALSE</code> 
+or <code>TRUE</code>. 
+</s-side-effects>
+<s-details>
+</s-details>
+<s-see>
+
+<s-function name="options.sgm">options</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+resampleOptions(printCall = 60) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

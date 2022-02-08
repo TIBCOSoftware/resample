@@ -1,0 +1,519 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>jackknifeAfterBootstrap</s-topic>
+</s-topics>
+<s-title>
+Perform Jackknife-After-Bootstrap 
+</s-title>
+<s-description>
+Jackknife-after-bootstrap plays three roles:   
+(1) as a graphical  
+technique for diagnosing the influence of individual observations 
+on the bootstrap distribution,  
+(2) as a numerical 
+technique for estimating the standard error  
+and bias of functionals (summaries of the bootstrap distribution, 
+such as mean, standard error, and bias), 
+and (3) to calculate the influence of 
+observations on functionals. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+jackknifeAfterBootstrap(boot.obj,  
+    functional=NULL, graphical=NULL, passObserved = FALSE, 
+    jack.obj, threshold = 2, subset.statistic = 1:p, 
+    control = "choose", moments = 2, 
+    crossCorr = FALSE, ..., frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="boot.obj">
+object of class <code>bootstrap</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="functional">
+summary of the bootstrap distribution.   
+This may be a character string, one of: 
+<code>"Quantiles"</code>, <code>"Centered Quantiles"</code>, <code>"Standardized Quantiles"</code>, 
+<code>"Mean"</code>, <code>"Bias"</code>, <code>"SE"</code>, or <code>"Bias&#38;SE"</code>. 
+Or it may be a function that takes the matrix of bootstrap 
+replicates as its first argument, such as <code>colMeans</code>; see DETAILS 
+below for additional requirements. 
+</s-arg>
+<s-arg name="graphical">
+logical value, if <code>TRUE</code> then this function focuses on graphical 
+diagnostics, and <code>functional</code> defaults to <code>"Quantiles"</code>. 
+If <code>FALSE</code> then <code>functional</code> defaults to "Bias&#38;SE". 
+Default is <code>TRUE</code>, unless <code>functional</code> is specified as one of 
+<code>"Mean"</code>, <code>"Bias"</code>, <code>"SE"</code>, or <code>"Bias&#38;SE"</code>. 
+</s-arg>
+<s-arg name="passObserved">
+logical; <code>TRUE</code> if <code>functional</code> accepts the observed value of the 
+bootstrap statistic as an argument; 
+e.g. <code>"Bias"</code> is the mean of the bootstrap distribution minus the 
+observed value. 
+This is set automatically if <code>functional</code> is one of the 
+character strings above, to <code>TRUE</code> for <code>"Bias"</code>, <code>"Bias&#38;SE"</code>, 
+<code>"Centered Quantiles"</code> and <code>"Standardized Quantiles"</code>. 
+</s-arg>
+<s-arg name="jack.obj">
+jackknife object generated from the same data and statistic as <code>boot.obj</code>. 
+This will be created if not supplied, unless you set this to <code>FALSE</code>. 
+</s-arg>
+<s-arg name="threshold">
+observations with a standardized influence larger (in absolute value) 
+than this value are 
+flagged as particularly influential. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic has 
+length greater than 1, use this to request plots for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="control">
+character string, one of <code>"none"</code>, <code>"controlVariates"</code>, <code>"concomitants"</code>, 
+or <code>"choose"</code> (choose one of the others).  These techniques may be 
+used to reduce Monte Carlo sampling variability; see below. 
+</s-arg>
+<s-arg name="moments">
+integer, either 1 or 2, number of moments to use for <code>"controlVariates"</code>. 
+</s-arg>
+<s-arg name="crossCorr">
+logical; whether or not to compute the correlation between jackknife 
+replicates for the original statistic passed to bootstrap 
+and jackknife replicates for 
+the functional.  This is automatically <code>TRUE</code> if <code>passObserved = TRUE</code> or 
+<code>functional="Bias"</code> or <code>"Bias&#38;SE"</code>.  
+</s-arg>
+<s-arg name="...">
+other arguments passed to <code>functional</code>. 
+For example, for quantiles you may pass a <code>probs</code> argument; 
+the default is <code>c(0.025, 0.16, 0.5, 0.84, 0.975)</code>. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>boot.obj</code> 
+can be found.  
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+object of class <code>jackknifeAfterBootstrap</code> with components  
+<code>call</code>,  
+<code>Func</code>, 
+<code>estimate</code>, 
+<code>replicates</code>, 
+<code>jabB</code>, 
+<code>graphical</code>, 
+<code>control</code>, 
+<code>rel.influence</code>,  
+<code>large.rel.influence</code>, 
+<code>threshold</code>,  
+<code>n</code>, 
+<code>B</code>, 
+<code>L</code>, 
+<code>dim.Func</code>, 
+<code>dimnames.Func</code>, 
+<code>quantiles</code>, 
+<code>jack.obj</code>, 
+  and 
+<code>cross.corr</code>.   
+Some of the components may be missing, or <code>NULL</code>. 
+Others are always computed, but not normally 
+used (in printing or plotting) if <code>graphical=TRUE</code>.   
+<s-return-component name="Func">
+the value of the functional applied to the original bootstrap distribution 
+(including control adjustments), converted to a vector. 
+Let <code>k</code> denote the length of this. 
+</s-return-component>
+<s-return-component name="estimate">
+a data frame with columns <code>Mean.Func</code>, 
+<code>Bias.Func</code>, and <code>SE.Func</code>  
+(the mean of jackknife replicates for the functional, and jackknife 
+estimates of bias and standard error of the functional). 
+This has <code>k</code> rows and three columns. 
+<p>
+analytical jackknife estimates of the bias and 
+standard error of the functional.  If  
+<code>graphical=FALSE</code> then printing the result shows these estimates. 
+</s-return-component>
+<s-return-component name="Func.replicates">
+jackknife replicates for the functional, the functional 
+computed on the leave-one-out bootstrap distributions. 
+This is a matrix with <code>n</code> rows (the original sample size) and <code>k</code> columns. 
+<p>
+When <code>graphical=TRUE</code> by default this contains (centered) quantiles of 
+the leave-one-out bootstrap distributions.   
+Plotting the result shows these quantiles plotted 
+against influence function values <code>L</code>. 
+</s-return-component>
+<s-return-component name="observed">
+the original observed statistic, from the bootstrap object. 
+</s-return-component>
+<s-return-component name="jack.obj">
+object created by <code>jackknife</code>, containing the leave-one-out statistics; 
+these correspond to the "observed" values for the leave-one-out bootstraps. 
+</s-return-component>
+<s-return-component name="jabB">
+number of bootstrap observations used for each of the <code>n</code> 
+leave-one-out bootstrap distributions.  Typically about <code>B/e</code>. 
+</s-return-component>
+<s-return-component name="graphical">
+logical value, indicating whether the focus is on graphical diagnostics. 
+This affects defaults for printing and plotting. 
+</s-return-component>
+<s-return-component name="control">
+character, indicating what type of control (if any) was used. 
+</s-return-component>
+<s-return-component name="rel.influence">
+matrix with <code>n</code> rows and <code>k</code> columns,  
+standardized estimates of the influence of each observation on the 
+functional; these are the <code>replicates</code> minus their column means 
+and divided by their standard deviations, then rescaled. 
+</s-return-component>
+<s-return-component name="large.rel.influence">
+a list of length <code>k</code>, with one component for each dimension of  
+the functional (e.g. a component for each quantile), 
+containing the large values 
+of relative influence for that dimension. 
+</s-return-component>
+<s-return-component name="threshold">
+numeric, value used for determining which relative influences are large. 
+</s-return-component>
+<s-return-component name="n">
+sample size for the original data. 
+</s-return-component>
+<s-return-component name="B">
+number of bootstrap samples. 
+</s-return-component>
+<s-return-component name="L">
+empirical influence values.  This may be omitted (<code>NULL</code>) if not used. 
+</s-return-component>
+<s-return-component name="dim.Func">
+dimension of the calculated functional (<code>Func</code>, before it is converted 
+to a vector).  For example, for a multivariate 
+statistic when the functional returns quantiles, the functional 
+returns one row for each quantile and one column for each dimension 
+of the statistic. 
+</s-return-component>
+<s-return-component name="dimnames.Func">
+dimnames of the functional. 
+</s-return-component>
+<s-return-component name="quantiles">
+logical, <code>TRUE</code> if the functional was one of the quantile choices. 
+</s-return-component>
+<s-return-component name="cross.corr">
+correlation between jackknife replicates of 
+the bootstrap statistic and jackknife replicates of the functional. 
+It is a matrix of dimension <code>k x p</code>, where <code>p</code> is the length of 
+<code>boot.obj$observed</code> (using <code>subset.statistic</code> does not affect this). 
+</s-return-component>
+</s-value>
+
+<s-details>
+Consider first the graphical approach to jackknife-after bootstrap. 
+We begin by bootstrapping some statistic, such as a sample mean 
+or regression coefficient.  Then, imagine leaving out one 
+observation at a time from the original sample, and repeating 
+the bootstrap process.  This gives <code>n</code> bootstrap distributions. 
+The differences between those distributions,
+and between them and the original bootstrap distribution,
+indicate the influence that each observation
+has on the bootstrap distributions. 
+<p>
+In particular,  
+we compute the quantiles, or some other functional, for each  
+leave-one-out distribution, and 
+plot the quantiles against <code>L</code>, the empirical influence 
+of each observation on the original statistic (or against  
+a column of the original data, the observation number, or the 
+jackknife statistic values). 
+<p>
+For example, when considering use of a inference procedure such as 
+t-tests or confidence intervals that assumes that standard errors are 
+independent of the statistic, it is useful to check that assumption by 
+plotting either "Centered Quantiles" or "SE" (standard error) against 
+the jackknife statistics. 
+<p>
+The implentation is clever--instead of drawing new 
+bootstrap distributions after leaving out each observation, 
+it uses the subset of the original bootstrap samples that 
+do not contain that observation. 
+<p>
+Now consider the analytical 
+jackknife-after-bootstrap. 
+This is a technique for approximating the 
+standard error and bias of  
+bootstrap functionals (such as a bootstrap standard error estimate, 
+which is the standard deviation of a bootstrap distribution). 
+Conceptually we leave out an observation at a time, generate a bootstrap 
+distribution, calculate the bootstrap estimate of bias, standard 
+error, or some other quantity based on this bootstrap distribution, 
+repeat for each observation, 
+and combine all the quantities using the  
+jackknife formulae for standard error and bias. 
+<p>
+The basic principle of the bootstrap is to estimate something 
+about the sampling distribution (which depends on the unknown 
+underlying distribution) using the bootstrap distribution 
+(which depends on the empirical distribution). 
+This is accurate only for functional summaries which are approximately 
+pivotal (do not depend on the underlying distribution) 
+such as bias or standard error; 
+e.g. a bootstrap estimate 
+of bias is usually a reasonable approximation to the true bias. 
+In contrast, consider a non-pivotal quantity such as the mean; 
+the mean of the bootstrap distribution should never be used 
+to estimate the mean of the true sampling distribution. 
+<p>
+The correlation between jackknife replicates 
+of the original statistic and jackknife replicates of the functional 
+gives an indication of  
+whether or not the functional is pivotal; a high correlation 
+indicates a strong dependence of the functional on the underlying 
+distribution, in particular that aspect of the underlying distribution 
+which is measured by the original statistic. 
+<p>
+Jackknife-after-bootstrap estimates for SE and Bias should be 
+interpreted with caution for non-pivotal statistics. 
+<p>
+Conversely, sometimes one is interested in the influence of 
+individual observations on functionals which need not be pivotal, 
+such as the mean of the bootstrap distribution. 
+<p>
+Some functionals require both a bootstrap distribution and observed 
+value, e.g. <code>functional = "Bias"</code>.  In this case, when computing 
+the functional for the leave-one-out bootstrap distributions, the 
+observed value passed is computed from the jackknife sample 
+(these are stored as the <code>"replicates"</code> component of a jackknife object. 
+<p>
+There is one nearly-fatal flaw with the analytical jackknife-after-bootstrap. 
+Jackknife estimates for bias and standard error multiply 
+small quantities by <code>n</code>.  When those small quantities are subject 
+to Monte Carlo variability, multiplying by <code>n</code> can make the estimates 
+explode. 
+<p>
+To reduce that Monte Carlo variability, one can make the bootstrap 
+sample size <code>B</code> huge.  This function also provides two variance-reduction 
+techiques, <code>concomitants</code> (particularly useful for quantiles) 
+and <code>controlVariates</code> (particularly useful for moments, including 
+mean, bias, and standard error).  See examples below. 
+<p>
+We conclude this section with additional notes on one of the 
+input arguments. 
+<p>
+<code>functional</code> may be a function that takes a matrix 
+of bootstrap replicates as its first argument, e.g. <code>colMeans</code>. 
+If <code>passObserved=TRUE</code> the statistic should accept the original 
+observed statistic, or jackknife leave-one-out statistic, 
+as its second argument. 
+It must accept an argument <code>weights</code> (for weighted bootstrap distributions); 
+the value <code>NULL</code> signifies no weights. 
+Finally, there may be additional arguments passed using <code>...</code>. 
+You may use the functionals stored in <code>resampFunctionalList</code> as models. 
+</s-details>
+<s-section name=" WARNING">
+
+The concomitants adjustment is based on saddlepoint approximations 
+for continuous distributions.  For very small <code>n</code> the bootstrap 
+distribution is not approximately continuous - the approximation 
+may be poor, and numerical problems may occur. 
+</s-section>
+
+<s-section name=" REFERENCES">
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="print.jackknifeAfterBootstrap.sgm">print.jackknifeAfterBootstrap</s-function>,  
+<s-function name="plot.jackknifeAfterBootstrap.sgm">plot.jackknifeAfterBootstrap</s-function>.  
+<s-function name="concomitants.sgm">concomitants</s-function>  and 
+<s-function name="controlVariates.sgm">controlVariates</s-function>  are post-hoc variance-reduction methods. 
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>  performs diagnostics similar to those here. 
+<s-function name="frame.eval.sgm">frame.eval</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+# Our goal here is to see how leaving out individual observations 
+# affects the bootstrap distribution.  We can see this most easily 
+# by looking at how the quantiles of the bootstrap distribution change. 
+# 
+# However, there is substantial random variation - we can reduce this 
+# using variance reduction techniques, either control variates 
+# or concomitants.  The latter is best for quantiles, the former for 
+# moments, like the mean, bias, or standard error (standard deviation 
+# of the bootstrap distribution). 
+# 
+# Those variance reduction techniques are most effective when statistics 
+# have a good linear approximation. 
+#  
+# We can also use analytical calculations, based on jackknife formulas, 
+# to estimate the bias and standard error of any functional of the 
+# bootstrap distribution (e.g. the bias and standard error of a quantile,  
+# or of a bootstrap bias estimate).  However, here the random variation 
+# is catastrophic, unless variance reduction is very effective or 
+# the bootstrap sample sizes are immense. 
+ 
+x <- qgamma(ppoints(19), shape = 0.5)  # artificial skewed data 
+boot <- bootstrap(x, mean) 
+plot(boot) # slightly skewed 
+jo <- jackknife(x, mean) # Supplying this can speed calculations 
+jab1 <- jackknifeAfterBootstrap(boot, jack.obj = jo, control="none") 
+plot(jab1) 
+# The larger data points have positive influence, and are at the right. 
+# Note that leaving them out shifts the quantiles of the bootstrap 
+# distributions downward. 
+# The distribution is narrower, and has a smaller median, 
+# when large observations are omitted. 
+# Also note that the answers are noisy. 
+ 
+# Try two variance reduction techniques to reduce the noise. 
+# First concomitants: 
+jab2 <- jackknifeAfterBootstrap(boot, jack.obj = jo, control="concomitants") 
+plot(jab2) 
+# Very smooth.  It is easier to see the effect of leaving out observations. 
+# Leaving out the largest observation (far left) affects the 
+# upper percentiles in particular 
+ 
+jab3 <- jackknifeAfterBootstrap(boot, jack.obj = jo, control="controlVariates") 
+plot(jab3) 
+# Using control variates had little effect on the noise 
+ 
+ 
+# Some additional options 
+plot(jab2, xaxis = "data")  # Original data - works best for univariate data 
+plot(jab2, xaxis = "L")     # empirical influence function 
+plot(jab2, xaxis = "Observation") 
+plot(jab2, type = "l") 
+plot(jab1, graphical = F) # standardized influence (much noise) 
+plot(jab2, graphical = F) # standardized influence (little noise) 
+plot(jab1, graphical = F, subset.plots = c(1,5)) 
+plot(jab1, graphical = F, absolute = T) 
+ 
+ 
+### Try using "Centered Quantiles" 
+jab4 <- update(jab1, functional = "Centered Quantiles") 
+plot(jab4) 
+jab5 <- update(jab2, functional = "Centered Quantiles") 
+plot(jab5) 
+jab6 <- update(jab3, functional = "Centered Quantiles") 
+plot(jab6) 
+# The jab5 case shows a subtle effect; leaving out the smallest 
+# observations (on the left) gives bootstrap distributions which are 
+# slightly narrower.  This is more pronounced with more symmetric data. 
+ 
+ 
+# Repeat, but this time letting the functional that is analyzed by 
+# jackknifeAfterBootstrap be the mean of the bootstrap distribution 
+# (rather than quantiles). 
+# 
+# This sets graphical=FALSE, but we can override this 
+# when printing or plotting 
+jab1 <- jackknifeAfterBootstrap(boot, "mean", jack.obj = jo, control="none") 
+jab1 
+# That gives a non-zero estimate for bias due to random variation 
+# due to noise -- the true bias for the mean is zero 
+plot(jab1)  # standardized influence 
+plot(jab1, graphical=T) # y = means of leave-one-out bootstrap distns 
+# The title "Mean.mean" indicates that the functional is the mean of 
+# the bootstrap distribution, and the bootstrap distribution is for 
+# the mean of the data. 
+ 
+# Try variance reduction, for more accurate estimates 
+jab2 <- update(jab1, control = "concomitants") 
+jab2 
+# Bias estimate is closer to zero 
+plot(jab2) 
+plot(jab2, graphical=T) 
+# Much less random variability than for jab1 
+jab3 <- update(jab1, control = "controlVariates") 
+jab3 
+# Bias is zero - eliminating noise results in the right answer 
+plot(jab3) 
+plot(jab3, graphical=T) 
+# For "mean" we can also use just one moment (for "SE" it is best to use two) 
+jab4 <- update(jab3, moments = 1) 
+jab4 
+plot(jab4) 
+plot(jab4, graphical=T) 
+ 
+ 
+### Repeat, but this time letting the functional be standard error 
+# (standard deviation of the bootstrap distribution). 
+jab1 <- jackknifeAfterBootstrap(boot, "se", jack.obj = jo, control="none") 
+jab1 
+# That SE.Func exploded due to noise 
+plot(jab1)  # standarized influence 
+plot(jab1, absolute=T) 
+plot(jab1, graphical=T) # means of leave-one-out bootstrap distns 
+jab2 <- update(jab1, control = "concomitants") 
+jab2 
+# Note that SE.Func is much smaller -- less noise 
+plot(jab2) 
+# The largest observation has a big effect on the standard error 
+plot(jab2, graphical=T) 
+# Omitting that observation makes the estimated SE much smaller. 
+ 
+jab3 <- update(jab1, control = "controlVariates") 
+jab3 
+plot(jab3) 
+plot(jab3, graphical=T) 
+ 
+# For "se" it is best to use two moments to reduce variance. 
+jab4 <- update(jab3, moments = 1) 
+jab4 
+plot(jab4)              # worse than jab3 
+plot(jab4, graphical=T) # worse than jab3 
+ 
+ 
+ 
+# The gains from the variance reduction techniques are especially 
+# good in the preceding example, where the statistic is the mean. 
+# For nonlinear statistics the gains are smaller, especially for small 
+# samples. 
+boot.obj <- bootstrap(stack.loss, var) 
+jack.obj <- jackknife(stack.loss, var) 
+jab1 <- jackknifeAfterBootstrap(boot.obj, jack.obj = jack.obj, control="none") 
+plot(jab1) 
+jab2 <- update(jab1, control = ) # equivalent to control = "choose" 
+plot(jab2) 
+# Variance reduction helped for the middle quantile, less for others 
+plot(jab2, graphical=FALSE, xaxis = "data") # a lot of noise, not too useful 
+ 
+# You can supply your own functional to summarize a bootstrap distribution; 
+# this may depend on the observed value in addition to the replicates. 
+# The following is equivalent to functional = "Bias". 
+bias.fun <- function(x, observed, weights, ...) 
+  colMeans(x, weights = weights, na.rm = T) - observed 
+jackknifeAfterBootstrap(boot.obj, functional = bias.fun,  
+  passObserved = T, jack.obj = jack.obj, graphical = F, 
+  control = "control") 
+jackknifeAfterBootstrap(boot.obj, "Bias", jack.obj=jack.obj) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

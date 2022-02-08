@@ -1,0 +1,382 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resample</s-topic>
+   <s-topic>resampleOverview</s-topic>
+</s-topics>
+<s-title>
+Overview of the resample package 
+</s-title>
+<s-description>
+This file contains short descriptions of functions in the 
+resample package, and links to individual help files. 
+</s-description>
+<s-section name=" Overview">
+
+This document is divided into a number of sections: 
+<br>
+* High-level resampling functions 
+<br>
+* General help files (information for a variety of resampling areas) 
+<br>
+* Nonparametric Bootstrap 
+<br>
+* Permutation Tests 
+<br>
+* Jackknife, Influence, and ABC Limits 
+<br>
+* Parametric and Smoothed Bootstrap 
+<br>
+* Parametric Bootstrap Test 
+<br>
+* Cross Validation 
+<br>
+* Bootstrap Prediction Errors 
+<br>
+* General-purpose S-PLUS functions 
+<br>
+* Graphical Interface (Windows only) 
+</s-section>
+<s-section name=" HIGH-LEVEL RESAMPLING FUNCTIONS">
+
+</s-section>
+
+
+The functions that perform resampling are: <br>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>:  nonparametric bootstrapping <br>
+
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>:  nonparametric bootstrapping, for 2-sample difference <br>
+
+<s-function name="permutationTest.sgm">permutationTest</s-function>:  permutation testing <br>
+
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>:  permutation testing, for comparing two samples <br>
+
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>:  fast code with extra features, for comparing means <br>
+
+<s-function name="jackknife.sgm">jackknife</s-function>:  jackknife <br>
+
+<s-function name="influence.sgm">influence</s-function>:  finite-epsilon influence function <br>
+
+<s-function name="limits.abc.sgm">limits.abc</s-function>:  confidence intervals based on influence calculations <br>
+
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>:  parametric bootstrap <br>
+
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>:  smoothed bootstrap <br>
+
+<s-function name="parametricBootstrapTest.sgm">parametricBootstrapTest</s-function>:  parametric bootstrap test <br>
+
+<s-function name="crossValidation.sgm">crossValidation</s-function>:  cross-validation <br>
+
+<s-function name="bootstrapValidation.sgm">bootstrapValidation</s-function>:  bootstrap prediction errors <br>
+These functions are listed below with related routines. 
+
+<s-section name=" GENERAL HELP FILES">
+
+</s-section>
+
+
+
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>  describes various problems you may have, and describes remedies where possible. <p>
+
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>  contains details on arguments to arguments used by many high-level resampling functions. <p>
+
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>  describes various options. 
+
+<s-section name=" NONPARAMETRIC BOOTSTRAP">
+
+</s-section>
+
+
+The initial routines are 
+<s-function name="bootstrap.sgm">bootstrap</s-function>  and 
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>.  The latter bootstraps the difference in statistics between two samples. <p>
+More details on arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  For different types of samplers, see: 
+<s-function name="samp.bootstrap.sgm">samp.bootstrap</s-function>;  note that any sampler can be combined with stratfied/multi-group sampling (the "group" argument to bootstrap and other functions) and sampling by subject (the "subject" argument) <p>
+Bootstrap 
+<s-function name="lm.sgm">lm</s-function>  and other objects: 
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>.  Other model objects are handled without special methods. <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.bootstrap.sgm">summary.bootstrap</s-function>,  
+<s-function name="print.summary.bootstrap.sgm">print.summary.bootstrap</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "bootstrap" object, extract parts: 
+<s-function name="bootstrap.object.sgm">bootstrap.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.  <p>
+Diagnostics: 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>,  
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>.  <p>
+Confidence intervals: 
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>.  <p>
+Modify a "bootstrap" object: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="reweight.sgm">reweight</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+Control variate adjustment to improve accuracy: 
+<s-function name="concomitants.sgm">concomitants</s-function>,  
+<s-function name="controlVariates.sgm">controlVariates</s-function>.  <p>
+Utility routines: 
+<s-function name="resampMakeFunc.sgm">resampMakeFunc</s-function>  and other routines in the same help file, 
+<s-function name="resampMakeNewStat.sgm">resampMakeNewStat</s-function>,  
+<s-function name="resampMakeFitObjResults.sgm">resampMakeFitObjResults</s-function>.  
+
+<s-section name=" PERMUTATION TESTS">
+
+</s-section>
+
+
+The initial routines are 
+<s-function name="permutationTest.sgm">permutationTest</s-function>,  
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>,  and 
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.  The latter two are specifically for comparing the differences between two samples, for general statistics or a mean (or column means), respectively. <p>
+More details on arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  Note that 
+<s-function name="permutationTest.sgm">permutationTest</s-function>  calls 
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  so many of the arguments are common. <p>
+Combination of p-values for multivariate statistics, or across groups in the case of 
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>:  
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function>  and other functions in the same help file. <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "permutationTest" object, extract parts: 
+<s-function name="permutationTest.object.sgm">permutationTest.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.  <p>
+Modify a "permutationTest" object: 
+<s-function name="update.sgm">update</s-function>.  
+
+<s-section name=" JACKKNIFE, INFLUENCE, AND ABC LIMITS">
+
+</s-section>
+
+
+The initial routines are: 
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="influence.sgm">influence</s-function>,  and 
+<s-function name="limits.abc.sgm">limits.abc</s-function>  <p>
+More details on many arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Jackknife 
+<s-function name="lm.sgm">lm</s-function>  and other objects: 
+<s-function name="jackknife.lm.sgm">jackknife.lm</s-function>,  
+<s-function name="jackknife.glm.sgm">jackknife.glm</s-function>,  
+<s-function name="jackknife.censorReg.sgm">jackknife.censorReg</s-function>.  Other model objects are handled without special methods. <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="print.influence.sgm">print.influence</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>.  <p>
+Description of these objects, extract parts: 
+<s-function name="jackknife.object.sgm">jackknife.object</s-function>,  
+<s-function name="influence.object.sgm">influence.object</s-function>,  
+<s-function name="limits.abc.object.sgm">limits.abc.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.  <p>
+Confidence intervals: 
+<s-function name="limits.abc.sgm">limits.abc</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>.  <p>
+Modify a "jackknife" or "influence" object: 
+<s-function name="update.sgm">update</s-function>.  <p>
+Utility routines: 
+<s-function name="resampMakeFunc.sgm">resampMakeFunc</s-function>  and other routines in the same help file, 
+<s-function name="resampMakeFitObjResults.sgm">resampMakeFitObjResults</s-function>.  
+
+<s-section name=" PARAMETRIC BOOTSTRAP AND SMOOTHED BOOTSTRAP">
+
+</s-section>
+
+
+The initial routines are 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>  and 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>  for parametric and smoothed bootstrapping, respectively. The latter is implemented by calling the former; while smoothed bootstrapping seems at first glance to be more similar to simple nonparametric bootstrapping, it is closer to parametric bootstrapping in terms of the confidence intervals and other quantities that can be calculated from the results. <p>
+More details on arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.parametricBootstrap.sgm">summary.parametricBootstrap</s-function>,  
+<s-function name="print.summary.parametricBootstrap.sgm">print.summary.parametricBootstrap</s-function>,  
+<s-function name="summary.smoothedBootstrap.sgm">summary.smoothedBootstrap</s-function>,  
+<s-function name="print.summary.smoothedBootstrap.sgm">print.summary.smoothedBootstrap</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "parametricBootstrap" or "smoothedBootstrap" object, extract parts: 
+<s-function name="parametricBootstrap.object.sgm">parametricBootstrap.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>.  <p>
+Confidence intervals: 
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>.  <p>
+Modify a "parametricBootstrap" or "smoothedBootstrap" object: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+Utility routines: 
+<s-function name="resampMakeFunc.sgm">resampMakeFunc</s-function>  and other routines in the same help file. 
+
+<s-section name=" PARAMETRIC BOOTSTRAP TEST">
+
+</s-section>
+
+
+The initial routine is 
+<s-function name="parametricBootstrapTest.sgm">parametricBootstrapTest</s-function>.  <p>
+More details on some arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "parametricBootstrapTest" object, extract parts: 
+<s-function name="parametricBootstrapTest.object.sgm">parametricBootstrapTest.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>.  <p>
+Modify a "parametricBootstrapTest" object: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+Utility routines: 
+<s-function name="resampMakeFunc.sgm">resampMakeFunc</s-function>  and other routines in the same help file. 
+
+<s-section name=" CROSS VALIDATION">
+
+</s-section>
+
+
+The initial routines are 
+<s-function name="crossValidation.sgm">crossValidation</s-function>,  
+<s-function name="crossValidation.formula.sgm">crossValidation.formula</s-function>,  and 
+<s-function name="crossValidation.default.sgm">crossValidation.default</s-function>,  <p>
+More details on some arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print: 
+<s-function name="crossValidation.sgm">crossValidation</s-function>,  <p>
+Modify a "crossValidation" object: 
+<s-function name="update.sgm">update</s-function>.  
+
+<s-section name=" BOOTSTRAP VALIDATION (ESTIMATE PREDICTION ERRORS)">
+
+</s-section>
+
+
+The initial routines are 
+<s-function name="bootstrapValidation.sgm">bootstrapValidation</s-function>,  
+<s-function name="bootstrapValidation.formula.sgm">bootstrapValidation.formula</s-function>,  and 
+<s-function name="bootstrapValidation.default.sgm">bootstrapValidation.default</s-function>,  <p>
+More details on some arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print: 
+<s-function name="bootstrapValidation.sgm">bootstrapValidation</s-function>,  <p>
+Modify a "bootstrapValidation" object: 
+<s-function name="update.sgm">update</s-function>.  
+
+<s-section name=" GENERAL-PURPOSE S-PLUS FUNCTIONS">
+
+</s-section>
+
+
+There are a number of replacements for existing S-PLUS functions. The following functions add a "weights" argument: 
+<s-function name="cor.sgm">cor</s-function>,  
+<s-function name="hist.sgm">hist</s-function>,  
+<s-function name="kurtosis.sgm">kurtosis</s-function>,  
+<s-function name="median.sgm">median</s-function>,  
+<s-function name="mean.sgm">mean</s-function>,  
+<s-function name="ppoints.sgm">ppoints</s-function>,  
+<s-function name="qqline.sgm">qqline</s-function>,  
+<s-function name="qqnorm.sgm">qqnorm</s-function>,  
+<s-function name="qqplot.sgm">qqplot</s-function>,  
+<s-function name="quantile.sgm">quantile</s-function>,  
+<s-function name="skewness.sgm">skewness</s-function>,  
+<s-function name="stdev.sgm">stdev</s-function>,  
+<s-function name="tabulate.sgm">tabulate</s-function>,  
+<s-function name="var.sgm">var</s-function>.  <p>
+The following add other new options, or fix bugs: 
+<s-function name="arrows.sgm">arrows</s-function>,  
+<s-function name="quantile.sgm">quantile</s-function>,  
+<s-function name="segments.sgm">segments</s-function>,  
+<s-function name="spline.sgm">spline</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+The following general-purpose functions are new: <br>
+
+<s-function name="balancedSample.sgm">balancedSample</s-function>:  random sample with no or minimal replacement <br>
+
+<s-function name="indexMeans.sgm">indexMeans</s-function>,  
+<s-function name="indexProducts.sgm">indexProducts</s-function>,  
+<s-function name="indexSums.sgm">indexSums</s-function>,  
+<s-function name="indexVars.sgm">indexVars</s-function>:  these are more general than their name suggests; use them to simultaneously select subsets of data and compute summaries. <br>
+
+<s-function name="cdf.sgm">cdf</s-function>,  
+<s-function name="plotCDF.sgm">plotCDF</s-function>:  cumulative distribution function, and plot <br>
+
+<s-function name="colTabulate.sgm">colTabulate</s-function>:  tabulate each column. Supports weights -- this provides a fast way to compute sums of a variable by levels of a factor. <br>
+
+<s-function name="combinations.sgm">combinations</s-function>:  return all combinations of "k" numbers out of "n". <br>
+
+<s-function name="ddiscrete.sgm">ddiscrete</s-function>,  
+<s-function name="pdiscrete.sgm">pdiscrete</s-function>,  
+<s-function name="qdiscrete.sgm">qdiscrete</s-function>,  
+<s-function name="rdiscrete.sgm">rdiscrete</s-function>:  calculations and random generation for discrete distributions. <br>
+
+<s-function name="pDiscreteMean.sgm">pDiscreteMean</s-function>,  
+<s-function name="qDiscreteMean.sgm">qDiscreteMean</s-function>,  
+<s-function name="dDiscreteMean.sgm">dDiscreteMean</s-function>:  saddlepoint estimates for the mean of observations from a discrete distribution (supports stratified sampling). <br>
+
+<s-function name="groupMeans.sgm">groupMeans</s-function>,  
+<s-function name="groupSums.sgm">groupSums</s-function>,  
+<s-function name="groupVars.sgm">groupVars</s-function>,  
+<s-function name="groupStdevs.sgm">groupStdevs</s-function>:  summaries, by a single grouping variable. Optionally replicate the summaries and place them in the order of the grouping variable (e.g. useful for subtracting mean from each group). <br>
+
+<s-function name="subtractMeans.sgm">subtractMeans</s-function>:  subtract the mean for each group. <br>
+
+<s-function name="inverseFunction.sgm">inverseFunction</s-function>:  inverse of a function, solve nonlinear equation. <br>
+
+<s-function name="monotoneSpline.sgm">monotoneSpline</s-function>:  fit monotone interpolating curve through data. <br>
+
+<s-function name="randomSample.sgm">randomSample</s-function>:  simple random sample without replacement, from a vector, matrix, or data frame <br>
+
+<s-function name="saddlepoint.test.sgm">saddlepoint.test</s-function>  (an enhanced 
+<s-function name="versiont.test.sgm">versiont.test</s-function>),  <br>
+
+<s-function name="saddlepointP.sgm">saddlepointP</s-function>,  
+<s-function name="saddlepointD.sgm">saddlepointD</s-function>,  
+<s-function name="saddlepointPSolve.sgm">saddlepointPSolve</s-function>:  saddlepoint calculations, for sample means or sums of data; stratification and weights are allowed. <p>
+The following modeling functions and utilities are modified to support resampling: 
+<s-function name="censorReg.sgm">censorReg</s-function>,  
+<s-function name="coef.censorRegList.sgm">coef.censorRegList</s-function>,  
+<s-function name="glm.sgm">glm</s-function>,  
+<s-function name="lm.sgm">lm</s-function>,  and 
+<s-function name="model.list.object.sgm">model.list.object</s-function>.  
+
+<s-section name=" GRAPHICAL INTERFACE (WINDOWS ONLY)">
+
+</s-section>
+
+
+There is a graphic interface for the S+Resample package available on Windows. This includes supplements to existing Spotfire S+ menus for some common operations, and menus for using core resampling capabilites (bootstrap, jackknife, and permutation tests) with your choice of statistics. For help on the graphical interface, start by using the menu `Help:Available Help:Resample'. 
+
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

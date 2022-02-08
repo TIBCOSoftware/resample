@@ -1,0 +1,191 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrap.lm</s-topic>
+   <s-topic>bootstrap.glm</s-topic>
+</s-topics>
+<s-title>
+General Nonparametric Bootstrapping for Fitted Models 
+</s-title>
+<s-description>
+Performs bootstrap resampling of observations from fitted models of 
+class lm and glm for specified statistics, and summarizes 
+the bootstrap distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrap(data, statistic, ..., 
+          lmsampler="observations") 
+bootstrap.lm(data, statistic, ... 
+          lmsampler="observations") 
+bootstrap.glm(data, statistic, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+an 
+<s-function name="lm.sgm">lm</s-function> 
+or 
+<s-function name="glm.sgm">glm</s-function> 
+object to be bootstrapped. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that operates on <code>lm</code> or <code>glm</code> objects and returns a 
+vector or matrix. 
+It may be a function (e.g. <code>coef</code>) which 
+accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>predict(fit,newdata=orig.frame)</code>. 
+If the <code>data</code> object is given by name (e.g. <code>data=fit</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=glm(formula,dataframe)</code>) use the name <code>data</code> in 
+the expression, e.g. <code>predict(data,newdata=orig.frame)</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="...">
+The remaining arguments have the same usage as in the default version of 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+except: 
+</s-arg>
+<s-arg name="lmsampler">
+character string, one of  
+<code>"observations"</code>, <code>"residuals"</code>, <code>"wild"</code> or <code>"wild-as"</code> 
+(may be abbreviated). 
+When bootstrapping observations, the 
+data from the <code>data</code> argument to the call generating the <code>lm</code> object are 
+resampled.  When bootstrapping residuals, the (unadjusted) residuals and 
+predicted values for the fit of the original data are computed.  The 
+residuals are then resampled and the statistic is evaluated on the 
+fit with response variable replaced by the original predicted values 
+plus the resampled residuals.  The wild bootstraps are variations 
+on resampling residuals; for the simple wild bootstrap, each residual 
+is either added or subtracted to the predicted value for that observation. 
+For the asymmetric wild bootstrap, the residual times Q is added to the 
+prediction, where Q is a discrete random variable with mean 0, 
+variance 1, and E(Q^3) = 1. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>bootstrap</code> which inherits from <code>resamp</code>.  See help 
+for 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+<p>
+When resampling residuals, the result has a component 
+<code>order.matters</code> set to "resampling residuals"; this disables 
+functions such as 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+and 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function> 
+that are only appropriate for the ordinary bootstrap. 
+</s-value>
+<s-details>
+These functions are designed to speed up bootstrap computations when the 
+statistic of interest requires fitting a model. 
+Typically one has, for example, 
+<p>
+# 
+<br>
+bootstrap(data=data.frame, statistic(lm(formula, data),...),...) 
+<br>
+# 
+<p>
+In this case 
+<s-function name="lm.sgm">lm</s-function> 
+is called once per iteration, and a new object of 
+class <code>lm</code> is created each time.  Faster (but equivalent) results are 
+attained by using 
+<p>
+# 
+<br>
+bootstrap(lm(formula, data.frame), statistic(...), ...) 
+<br>
+# 
+<p>
+which dispatches to <code>bootstrap.lm</code>.  The savings come from the 
+reduction of the overhead required to create fitted models. 
+The methods described here do this work just once, save the result in 
+an object of class <code>model.list</code>, and then resample the <code>model.list</code>. 
+<p>
+Thus the following are equivalent: 
+<br>
+# 
+<br>
+# Slow 
+<br>
+bootstrap(data=data.frame, stat(lm(formula, data),...),...) 
+<br>
+# 
+<br>
+# Fast 
+<br>
+fit &lt;- lm(formula, data.frame)         # returns lm object 
+<br>
+bootstrap(fit, stat(lmfit,...),...)    # uses bootstrap.lm 
+<br>
+# 
+<br>
+# Fast 
+<br>
+modlst &lt;- lm(data,...,method="model.list")   # returns model.list object 
+<br>
+bootstrap(modlst, stat(lm(modlst),...),...)  # uses bootstrap.default 
+</s-details>
+<s-section name=" BUGS">
+
+See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="glm.sgm">glm</s-function>,  
+<s-function name="lm.sgm">lm</s-function>,  
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>,  
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>  </s-see>
+<s-examples>
+<s-example type = text>
+ 
+# bootstrap and lm 
+bootstrap(fuel.frame, coef(lm(Fuel~Weight+Disp.)), seed=10) 
+ 
+# the same thing but faster, using bootstrap.lm 
+fit <- lm(Fuel~Weight+Disp., data=fuel.frame) 
+bootstrap(fit, coef) 
+ 
+# Bootstrapping unadjusted residuals in lm (2 equivalent ways) 
+fit.lm <- lm(Mileage~Weight, fuel.frame) 
+resids <- resid(fit.lm) 
+preds  <- predict(fit.lm) 
+bootstrap(resids, lm(resids+preds~fuel.frame$Weight)$coef, B=500, seed=0) 
+bootstrap(fit.lm, coef, lmsampler="resid", B=500, seed=0) 
+ 
+# Other statistics 
+bootstrap(fit, coef(fit)[1]-coef(fit)[2]) 
+bootstrap(fit, predict, args.stat=list(newdata=fuel.frame)) 
+bootstrap(fit, function(x) predict(x,newdata=fuel.frame)) 
+ 
+# bootstrap and glm 
+mform <- Kyphosis ~ Age + (Number > 5)*Start 
+fit   <- glm(mform, family = binomial, data = kyphosis, 
+             control=glm.control(maxit=20)) 
+bootstrap(fit, coef, B=50, seed=8) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

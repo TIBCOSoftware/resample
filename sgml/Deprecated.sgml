@@ -1,0 +1,37 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>Deprecated.resample</s-topic>
+   <s-topic>limits.emp</s-topic>
+   <s-topic>samp.boot.mc</s-topic>
+</s-topics>
+<s-title>
+Deprecated in resample 
+</s-title>
+<s-description>
+Functions that are still present in this version of S+Resample, 
+but their use is discouraged.  These functions may disappear in 
+future versions.  In most cases, these functions just call the 
+replacement function, after one warning per session. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+limits.emp              # use     limits.percentile 
+samp.boot.mc            # use     samp.bootstrap 
+ 
+</s-old-style-usage>
+</s-usage>
+<s-see>
+
+<s-function name="Defunct.resample.sgm">Defunct.resample</s-function>  lists functions that have been removed from the resample package. </s-see>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

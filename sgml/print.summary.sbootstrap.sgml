@@ -1,0 +1,63 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>print.summary.smoothedBootstrap</s-topic>
+</s-topics>
+<s-title>
+Print a Summary of Sbootstrap Object 
+</s-title>
+<s-description>
+Print method for 
+<s-function name="summary.smoothedBootstrap.sgm">summary.smoothedBootstrap</s-function>. 
+Prints the same information as 
+<s-function name="print.resamp.sgm">print.resamp</s-function>, 
+plus percentiles, and 
+correlations if the statistic of interest is a vector. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+print.summary.smoothedBootstrap(x, digits = max(options()$digits - 3, 4), ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object produced by 
+<s-function name="summary.smoothedBootstrap.sgm">summary.smoothedBootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="digits">
+the number of significant digits to print. 
+</s-arg>
+<s-arg name="...">
+additional arguments; these are currently ignored. 
+</s-arg>
+</s-args-optional>
+<s-value>
+returns <code>x</code> invisibly. 
+</s-value>
+<s-see>
+
+<s-function name="summary.smoothedBootstrap.sgm">summary.smoothedBootstrap</s-function>,  
+<s-function name="print.summary.bootstrap.sgm">print.summary.bootstrap</s-function>,  
+<s-function name="print.resamp.sgm">print.resamp</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+print(summary(smoothedBootstrap(stack.loss, var))) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

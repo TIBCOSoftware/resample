@@ -1,0 +1,126 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>controlVariates.bootstrap</s-topic>
+</s-topics>
+<s-title>
+Calculate Control Variate Adjustment for a Bootstrap Object 
+</s-title>
+<s-description>
+Calculate new weights for a bootstrap distribution, based 
+on the difference between a linear approximation to the 
+statistic(s) of interest and the theoretical mean and variance 
+of the approximation. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+controlVariates(x, 
+         subset.covariates = 1:p, 
+         moments = 2, 
+         ..., L, group, treatment, frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+a <code>bootstrap</code> object.  
+</s-arg>
+<s-arg name="subset.covariates">
+if supplied and the statistic is multidimensional, this is used to 
+select a subset of the columns for use in computing the control variates. 
+If too many columns are used the computed weights may be undesirably 
+noisy. 
+</s-arg>
+<s-arg name="moments">
+integer, either 1 or 2; how many moments (from each component of a  
+multidimensional statistic) to control for. 
+</s-arg>
+<s-arg name="...">
+additional arguments to pass to controlVariates.default, 
+in particular method and positive.  Should not include weights. 
+Currently only method="linear" is supported with moments=2, 
+or if subset.covariates has length &gt; 1. 
+</s-arg>
+<s-arg name="L">
+This argument is normally extracted from <code>x</code> or computed if needed; 
+you need to supply it only if it cannot be computed. 
+Similarly for <code>group</code>, <code>treatment</code>, and <code>frame.eval</code>. 
+</s-arg>
+<s-arg name="group">
+</s-arg>
+<s-arg name="treatment">
+</s-arg>
+<s-arg name="frame.eval">
+</s-arg>
+</s-args-required>
+
+<s-value>
+The output is an object of class <code>"controlVariates.bootstrap"</code>, 
+similar to <code>x</code> but with: 
+<s-return-component name="estimate">
+new values of <code>Mean</code>, <code>Bias</code>, and <code>SE</code>, calculated using weights 
+selected to match one or two theoretical moments of a linear approximation 
+to the statistic (or columns of a multivariate statistic) being 
+bootstrapped. 
+</s-return-component>
+<s-return-component name="weights">
+the compute weights, vector of length <code>B</code>, the number of bootstrap samples. 
+</s-return-component>
+</s-value>
+
+<s-details>
+See the detailed explanation in 
+<s-function name="controlVariates.sgm">controlVariates</s-function>. 
+<p>
+If the original bootstrap object <code>x</code> contained <code>weights</code> then this 
+is the product of those weights with adjustments to match the specified 
+moments 
+<p>
+If <code>x</code> is a <code>bootstrap2</code> object, weights and estimates are only 
+computed for the main object, not the two contained bootstrap objects. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. and Nelson, B.L. (1998), 
+"Control Variates for Probability and Quantile Estimation," 
+<it>Management Science,</it>
+<bf>44</bf>(9), 1295-1312. 
+<p>
+Hesterberg, T.C. (1996), 
+"Control Variates and Importance Sampling for Efficient Bootstrap Simulations," 
+<it>Statistics and Computing</it>
+<bf>6</bf>(2), 147-157. 
+</s-section>
+
+<s-see>
+<s-function name="controlVariates.default.sgm">controlVariates.default</s-function>,  
+<s-function name="concomitants.sgm">concomitants</s-function>,  
+<s-function name="tiltMeanSolve.sgm">tiltMeanSolve</s-function>,  
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+boot <- bootstrap(1:9, mean, seed=0, save.indices=T) 
+boot2 <- controlVariates(boot) 
+boot 
+boot2  # note that Mean = 5, Bias = 0, and  
+       # SE = sqrt( mean( (1:9-5)^2 ) / 9 ) 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+<s-keyword>multivariate</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

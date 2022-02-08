@@ -1,0 +1,84 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>Defunct.resample</s-topic>
+   <s-topic>fastColMeans</s-topic>
+   <s-topic>fastColSums</s-topic>
+   <s-topic>fastColVars</s-topic>
+   <s-topic>fastColStdevs</s-topic>
+   <s-topic>fastRowMeans</s-topic>
+   <s-topic>fastRowSums</s-topic>
+   <s-topic>fastRowVars</s-topic>
+   <s-topic>fastRowStdevs</s-topic>
+   <s-topic>bootPred</s-topic>
+   <s-topic>bootstats</s-topic>
+   <s-topic>bootstrapMeans</s-topic>
+   <s-topic>bootstrapProducts</s-topic>
+   <s-topic>bootstrapSums</s-topic>
+   <s-topic>bootstrapVars</s-topic>
+   <s-topic>crossVal</s-topic>
+   <s-topic>jack.after.bootstrap</s-topic>
+   <s-topic>jackstats</s-topic>
+   <s-topic>pbootTest</s-topic>
+   <s-topic>pbootstats</s-topic>
+   <s-topic>pbootstrap</s-topic>
+   <s-topic>samp.MonteCarlo</s-topic>
+   <s-topic>sbootstrap</s-topic>
+   <s-topic>tilt.after.bootstrap</s-topic>
+</s-topics>
+<s-title>
+Defunct in S+Resample 
+</s-title>
+<s-description>
+Functions that are no longer present in this version of S+Resample 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootPred                # renamed bootstrapValidation 
+bootstats               # renamed makeBootstrap 
+bootstrapMeans          # renamed indexMeans 
+bootstrapProducts       # renamed indexProducts 
+bootstrapSums           # renamed indexSums 
+bootstrapVars           # renamed indexVars 
+crossVal                # renamed crossValidation 
+jack.after.bootstrap    # renamed jackknifeAfterBootstrap 
+jackstats               # calculations are now done inside jackknife.default 
+pbootTest               # renamed parametricBootstrapTest 
+pbootstats              # renamed makeParametricBootstrap 
+pbootstrap              # renamed parametricBootstrap 
+samp.MonteCarlo         # use     samp.bootstrap 
+sbootstrap              # renamed smoothedBootstrap 
+tilt.after.bootstrap    # renamed tiltAfterBootstrap 
+fastColMeans       # use colMeans(..., n=) 
+fastColSums        # use colSums(..., n=) 
+fastColVars        # use colVars(..., n=) 
+fastColStdevs      # use colStdevs(..., n=) 
+fastRowMeans       # use rowMeans(..., n=) 
+fastRowSums        # use rowSums(..., n=) 
+fastRowVars        # use rowVars(..., n=) 
+fastRowStdevs      # use rowStdevs(..., n=) 
+colMeans           # resample version is in S+7.0 and later 
+colSums            # resample version is in S+7.0 and later 
+colVars            # resample version is in S+7.0 and later 
+rowMeans           # resample version is in S+7.0 and later 
+rowVars            # resample version is in S+7.0 and later 
+rowSums            # resample version is in S+7.0 and later 
+density            # resample version is in S+7.0 and later 
+expectWarnings     # resample version is in S+7.0 and later 
+notSorted          # resample version is in S+7.0 and later 
+</s-old-style-usage>
+</s-usage>
+<s-see>
+
+<s-function name="Deprecated.resample.sgm">Deprecated.resample</s-function>  </s-see>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

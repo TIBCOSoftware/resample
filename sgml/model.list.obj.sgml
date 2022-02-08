@@ -1,0 +1,130 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>model.list.object</s-topic>
+</s-topics>
+<s-title>
+Model List Object 
+</s-title>
+<s-description>
+Objects of class <code>model.list</code> are typically produced as a 
+side-effect of the model-fitting process in 
+<s-function name="lm.sgm">lm</s-function>, 
+<s-function name="glm.sgm">glm</s-function> 
+and 
+<s-function name="censorReg.sgm">censorReg</s-function>. 
+They exist somewhere between the data contained in a 
+<s-function name="model.frame.sgm">model.frame</s-function> 
+object and the actual fitted model object. 
+</s-description>
+
+<s-section name="GENERATION">
+This class of objects is returned from fitting routines by specifying 
+<code>method=model.list</code> in the calling sequence. 
+</s-section>
+
+<s-section name="METHODS">
+The following generic functions have methods for <code>model.list</code>: 
+<br>
+<s-function name="lm.sgm">lm</s-function>, 
+<s-function name="glm.sgm">glm</s-function>, 
+<s-function name="censorReg.sgm">censorReg</s-function>. 
+</s-section>
+
+<s-section name="INHERITANCE">
+The class <code>model.list</code> inherits from 
+<s-function name="list.sgm">list</s-function>. 
+</s-section>
+
+<s-value>
+All model lists have the same basic structure:
+a <code>"data"</code> component containing the data to be fit; 
+a <code>"formula"</code> component containing the model formula;
+a <code>"call"</code> component containing the call generating the model list
+and a <code>"fit"</code> component containing other data needed
+to perform the fit. 
+<p>
+The components differ from one modeling function to another,
+but an important common sub-component of <code>"fit"</code>
+is <code>"fitexpr"</code>, which contains the expression to 
+actually compute the fit of the data contained in the model list. 
+See the default method for a given modeling function to see the exact 
+structure of the <code>"fit"</code> component. 
+<p>
+The <code>"data"</code> component of a model list typically contains 
+sub-components such as 
+<s-return-component name="X">
+the explanatory variables and their values 
+</s-return-component>
+<s-return-component name="Y">
+the response variable values 
+</s-return-component>
+<s-return-component name="weights">
+weights used in the fit, if any 
+<p>
+The <code>"data"</code> component is further described below. 
+</s-return-component>
+</s-value>
+
+<s-details>
+The <code>model.list</code> object was 
+created to support resampling functions such as 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+which may call model fitting routines such as 
+<s-function name="lm.sgm">lm</s-function> 
+thousands of times.  The 
+construction of a fitted model object from scratch follows three basic 
+steps:  constructing the model frame from the data; extracting the 
+relevant pieces from the model frame; and performing the 
+fit.  The first two steps are redundant from the point of view of 
+resampling.  Therefore the data from the second step, along with 
+other parameters and expressions needed to perform the fit, has been 
+organized into the <code>model.list</code> object.  During resampling, the 
+<code>model.list</code> is created once, then repeatedly resampled and fit using 
+<code>model.list</code> methods for fitting routines ( 
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>, 
+for example). 
+<p>
+A model list can be returned by fitting routines (without fitting) via 
+the <code>method</code> argument. 
+<p>
+The <code>"data"</code> component of a <code>model.list</code> object 
+contains those data that are expected to be sampled with 
+replacement by the resampling functions.  All other 
+non-sample-specific data should be in component <code>"fit"</code>.  This 
+principle, which one should keep in mind when designing 
+model lists for other modeling functions, is born out in the 
+subscripting method for model.lists: 
+the result of, for example <code>ml[rind,]</code>, where <code>ml</code> is a model.list and 
+<code>rind</code> a set of indices, is a model.list whose data component contains 
+the <code>rind</code> selected rows of the original data components,
+and whose other components are unchanged. 
+</s-details>
+
+<s-see>
+<s-function name="lm.model.list.sgm">lm.model.list</s-function>,  
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>,  
+<s-function name="censorReg.model.list.sgm">censorReg.model.list</s-function>,  
+<s-function name="lm.default.sgm">lm.default</s-function>,  
+<s-function name="glm.default.sgm">glm.default</s-function>,  
+<s-function name="censorReg.default.sgm">censorReg.default</s-function>,  
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>  </s-see>
+
+<s-keywords>
+<s-keyword>classes</s-keyword>
+<s-keyword>regression</s-keyword>
+<s-keyword>methods</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

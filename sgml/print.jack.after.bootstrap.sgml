@@ -1,0 +1,93 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>print.jackknifeAfterBootstrap</s-topic>
+</s-topics>
+<s-title>
+Print a Jackknife-After-Bootstrap Object 
+</s-title>
+<s-description>
+Print method for object produced by 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+print(x, digits=max(options()$digits-3,4), ..., graphical = x$graphical) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object produced by 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="digits">
+the number of significant digits to print. 
+</s-arg>
+<s-arg name="...">
+additional arguments, passed to <code>print</code> for printing tables. 
+</s-arg>
+<s-arg name="graphical">
+if <code>TRUE</code> (the default if <code>x</code> is based on quantiles) most printing 
+is disabled. 
+</s-arg>
+</s-args-optional>
+<s-value>
+returns <code>x</code> invisibly. 
+</s-value>
+<s-details>
+If <code>graphical=FALSE</code> this prints  
+a table (described below), 
+correlations if present, 
+a list 
+of observations with absolute standardized influence greater than the specified 
+tolerance, 
+and possibly warnings about too-small sample sizes in the leave-out  
+bootstrap distributions. 
+<p>
+The table has one row for each dimension of a multi-dimensional functional, 
+and columns for  
+(1) the functional applied to the original bootstrap distribution, 
+(2) the mean of the jackknife replicates (functional applied to the 
+    leave-out bootstrap distributions), and  
+(3) jackknife estimates of the bias and standard error of the functional. 
+<p>
+The jackknife estimate should be used with caution - any noise from 
+random bootstrap sampling is multiplied by a factor of <code>n</code> by the 
+jackknife estimates, which often renders these estimates unusable. 
+</s-details>
+<s-see>
+
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- qexp(ppoints(19))  # artificial skewed data 
+boot <- bootstrap(x, mean) 
+jab1 <- jackknifeAfterBootstrap(boot, control = "none") 
+plot(jab1)  # note the noise 
+jab1 # tables are not printed 
+print(jab1, graphical = FALSE) # The bias and SE numbers are useless 
+ 
+jab2 <- jackknifeAfterBootstrap(boot, "SE") # uses control 
+plot(jab) 
+print(jab2) 
+ 
+# See more extensive examples in the help file for jackknifeAfterBootstrap 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

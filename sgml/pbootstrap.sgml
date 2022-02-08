@@ -1,0 +1,204 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>parametricBootstrap</s-topic>
+</s-topics>
+<s-title>
+Parametric Bootstrapping 
+</s-title>
+<s-description>
+Performs parametric bootstrap; i.e., draws samples from a fitted parametric 
+model, calculates specified statistics on these simulated data sets, 
+and summarizes the bootstrap distribution. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+parametricBootstrap(data, statistic, rsampler, B=1000, 
+           args.stat, args.rsampler, dsampler, 
+           seed = .Random.seed,  
+           label, statisticNames, 
+           block.size = min(100, B), 
+           trace = resampleOptions()$trace, 
+           assign.frame1 = F, save.samples = F, 
+           statistic.is.random, seed.statistic = 500) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data on which the original statistic is calculated. 
+May be a vector, matrix, or data frame. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that returns a vector or matrix. 
+It may be a function which accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression. 
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+</s-arg>
+<s-arg name="rsampler">
+parametric function which generates the simulated data. 
+The first argument to this function should be the sample size (and called <code>n</code>), 
+which will be passed in automatically by <code>parametricBootstrap</code>; other arguments, 
+if any, should be provided in a list (<code>args.rsampler</code>). 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="B">
+number of bootstrap resamples to be drawn.  This may be a vector, whose 
+sum is the total number of resamples. 
+</s-arg>
+<s-arg name="args.stat">
+list of other arguments, if any, passed to <code>statistic</code> when calculating 
+the statistic on the resamples. 
+</s-arg>
+<s-arg name="args.rsampler">
+list of other arguments, if any, passed to <code>rsampler</code> when performing the 
+parametric sampling. 
+</s-arg>
+<s-arg name="dsampler">
+function which provides the density corresponding to rsampler.  This 
+argument is not currently used.  
+</s-arg>
+<s-arg name="seed">
+seed for generating parametric resamples.  May be a legal random number seed 
+or an integer between 0 and 1023 which is passed to <code>set.seed</code>. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+<s-arg name="block.size">
+control variable specifying the number of resamples to calculate at once 
+(in the innermost of the nested <code>for()</code> loops). 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether the algorithm should print a message indicating 
+which set of replicates is currently being drawn. 
+The default is determined by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before evaluating the statistic. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="save.samples">
+logical flag indicating whether to save the resampled data.  Note that this 
+may require a large quantity of memory. 
+</s-arg>
+<s-arg name="statistic.is.random">
+logical flag indicating whether the statistic itself performs randomization, 
+in which case we need to keep track of two parallel seeds, one for the 
+sampling and one for the statistic.  If this argument is missing, the algorithm 
+attempts to determine if the statistic involves randomization by 
+evaluating it and checking whether the random seed has changed. 
+</s-arg>
+<s-arg name="seed.statistic">
+random number seed to be used for the statistic if it uses randomization. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>parametricBootstrap</code> which inherits from <code>resamp</code>.  This has 
+components <code>call</code>, <code>observed</code>, <code>replicates</code>, <code>estimate</code>, <code>B</code>, <code>n</code>, <code>dim.obs</code>, 
+<code>seed.start</code>, <code>seed.end</code>, <code>rsampler</code>, <code>args.rsampler</code>,  
+<code>parent.frame</code>, <code>defaultLabel</code>, 
+and possibly  
+<code>dsampler</code> and 
+<code>label</code>. 
+The data frame <code>estimate</code> has 
+three columns containing the bootstrap estimates of <code>Bias</code>, <code>Mean</code>, and <code>SE</code>. 
+See 
+<s-function name="parametricBootstrap.object.sgm">parametricBootstrap.object</s-function> 
+for a description of many components. 
+</s-value>
+<s-side-effects>
+If <code>assign.frame1=T</code>, you must be sure that this assignment does not 
+overwrite some quantity of interest stored in frame 1. 
+<p>
+If the function is interrupted it saves current results 
+(all complete sets of <code>block.size</code> replicates) 
+to <code>.parametricBootstrap.partial.results</code>.  This object is nearly the same as if 
+<code>parametricBootstrap</code> were called with a smaller value of <code>B</code>. 
+(If the function is interrupted before a complete set of <code>block.size</code> 
+replicates is formed, a one-component list with <code>B</code> = 0 is saved 
+to <code>.parametricBootstrap.partial.results</code>, for use with the 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function> 
+function.) 
+</s-side-effects>
+<s-details>
+Performs parametric bootstrapping for a wide scope of 
+statistics and expressions. Function <code>rsampler</code> and its arguments 
+(passed on by <code>args.rsampler</code>) specify the parametric distribution 
+from which bootstrap samples are drawn. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="parametricBootstrapTest.sgm">parametricBootstrapTest</s-function>,  
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>.  <p>
+More details on some arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.parametricBootstrap.sgm">summary.parametricBootstrap</s-function>,  
+<s-function name="print.summary.parametricBootstrap.sgm">print.summary.parametricBootstrap</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "parametricBootstrap" object, extract parts: 
+<s-function name="parametricBootstrap.object.sgm">parametricBootstrap.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>.  <p>
+Confidence intervals: 
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>.  <p>
+Modify a "parametricBootstrap" object: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# Apply parametric bootstrap to mean 
+# and demonstrate summary(), plot() 
+temp <- parametricBootstrap(iris[,1,1], mean, rsampler = rnorm, 
+    args.rsampler = list(mean = mean(iris[,1,1]), 
+    sd = sqrt(var(iris[,1,1])))) 
+temp 
+summary(temp) 
+plot(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

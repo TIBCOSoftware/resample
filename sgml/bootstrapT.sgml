@@ -1,0 +1,184 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrapT</s-topic>
+   <s-topic>bootstrapT.default</s-topic>
+   <s-topic>bootstrapT.bootstrap</s-topic>
+</s-topics>
+<s-title>
+Bootstrap-T Confidence Intervals 
+</s-title>
+<s-description>
+Bootstrap confidence intervals, using t-statistics or other pivotal statistics. 
+This is a generic function, with methods 
+for ordinary data and for a <code>bootstrap</code> object. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrapT(data, statistic = &lt;&lt;see below&gt;&gt;, ..., 
+           probs=c(25, 50, 950, 975)/1000, pivot=resampPivotT) 
+bootstrapT(bootstrap object, 
+           probs=c(25, 50, 950, 975)/1000, pivot=resampPivotT) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data to be bootstrapped.  May be a vector, matrix, data frame, 
+or other legal input to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+<p>
+Or, this may be a <code>"bootstrap"</code> object. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that returns a vector or matrix. 
+The default statistic calculates column means and standard deviations. 
+</s-arg>
+<s-arg name="...">
+Other arguments, which are passed to <code>bootstrap</code>. 
+</s-arg>
+<s-arg name="probs">
+probabilities for one-sided confidence limits; e.g. c(.025, .975) gives 
+a two-sided 95% confidence interval. 
+</s-arg>
+<s-arg name="pivot">
+a list containing two functions, 
+<code>pivot</code> which calculates a pivotal statistic, and 
+<code>inverse</code> which solves for the value of the statistic for a given 
+quantile of the pivotal distribution.  See 
+<s-function name="resampPivotT.sgm">resampPivotT</s-function> 
+for details and specifications.  The default gives bootstrap-T intervals, 
+provided the statistic has alternating estimates and standard errors. 
+</s-arg>
+</s-args-optional>
+
+<s-value>
+a list with two components, 
+<s-return-component name="pivot">
+quantiles of the distribution of the pivotal statistic, and 
+</s-return-component>
+<s-return-component name="limits">
+confidence interval limits. 
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+The method for data calls <code>bootstrap</code>, 
+which creates or updates the value of the dataset <code>.Random.seed</code>. 
+</s-side-effects>
+
+<s-details>
+If you call <code>bootstrapT</code> with ordinary data, by default this 
+function calculates bootstrap-t confidence limits for the mean 
+(of each column of the data separately). 
+Steps in this process are 
+(1) calculate the means and standard deviations for each column, 
+for the original data and bootstrap samples, 
+<br>
+(2) calculate the pivotal statistic for each bootstrap sample, 
+e.g. 
+<br>
+(bootstrap means - means of original data)/(bootstrap stdevs), 
+<br>
+(3) calculate quantiles of the bootstrap distribution of the pivotal 
+statistic 
+<br>
+(4) invert those quantiles to obtain confidence limits. 
+<p>
+Step (1) is performed by calling <code>bootstrap</code>, with a default 
+statistic that 
+calculates means and standard deviations. 
+When <code>data</code> has <code>p</code> 
+columns, the means are returned in positions <code>1,3,...,(2p-1)</code> 
+and standard deviations in positions <code>2,4,...,2p</code>. 
+<p>
+You may perform bootstrap-t intervals for statistics other than 
+the mean, by supplying your own statistic, that 
+returns estimates and standard errors in odd and even positions, 
+respectively. 
+<p>
+If you supply a <code>bootstrap</code> object as input (using the <code>data</code> 
+argument), step (1) is skipped. 
+<p>
+Step (2-4) are calculated within <code>bootstrapT.bootstrap</code>. 
+The default pivotal statistic 
+<s-function name="resampPivotT.sgm">resampPivotT</s-function> 
+computes 
+<br>
+<code>(bootstrap estimates - observed estimates) / standardErrors</code> 
+<br>
+<p>
+Other pivotal quantities are appropriate in some situations. 
+For example, for confidence intervals for a population variance 
+(or standard deviation) try 
+<s-function name="resampPivotRatio.sgm">resampPivotRatio</s-function> 
+which calculates the ratio 
+<code>bootstrap variances/observed variance</code>.  This does not require 
+standard errors. 
+Similarly, 
+<s-function name="resampPivotDiff.sgm">resampPivotDiff</s-function> 
+gives bootstrap "reflection" intervals 
+(these are known by various names); see example below. 
+<p>
+The default statistic returns means and standard deviations; 
+the latter differ from standard errors by a factor of <code>sqrt(n)</code>. 
+This difference cancels out when the distribution of the pivotal 
+statistic is inverted.  In other words, confidence limits are not affected 
+by scaling factors on "standard errors". 
+</s-details>
+
+<s-section name=" REFERENCES">
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="resampPivotT.sgm">resampPivotT</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+x <- cbind(a=runif(30), b=runif(30)) 
+bootstrapT(x, seed=1)  # set seed for comparison below 
+ 
+# Save bootstrap results, then call bootstrapT: 
+bfit <- bootstrap(x, rbind(mean=colMeans(x), stdev=colStdevs(x)), seed=1) 
+bootstrapT(bfit)  # same as previous 
+ 
+# Bootstrap-ratio confidence interval for standard deviations 
+bootstrapT(bfit, pivot=resampPivotRatio) 
+# (Ignore the "mean" rows, look only at the "stdev" rows.) 
+ 
+# Bootstrap "reflection" interval 
+bootstrapT(bfit, pivot=resampPivotDiff) 
+# Those are equivalent to reflecting bootstrap quantiles about the observed 
+bfit$observed - (limits.percentile(bfit)-bfit$observed)[,4:1] 
+ 
+# Bootstrap T for linear regression coefficients 
+fit <- lm(Fuel ~ Weight + Disp. + Mileage , fuel.frame) 
+summary(fit)$coef  # first two columns are estimates and std errs 
+# Use transpose to put estimates in positions 1,3,5,7 
+boot <- bootstrap(fit, t(summary(fit)$coef[,1:2])) 
+boot 
+bootstrapT(boot) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

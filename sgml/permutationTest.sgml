@@ -1,0 +1,147 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>permutationTest</s-topic>
+</s-topics>
+<s-title>
+Permutation Tests 
+</s-title>
+<s-description>
+Perform permutation tests for observations 
+from specified data and for specified statistics. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+permutationTest(data, statistic, B = 999, ..., 
+                resampleColumns, ... 
+                alternative = "two.sided", 
+                combine = F, 
+                combinationFunction = combinePValues.Fisher) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data to be bootstrapped.  May be a vector, matrix, or data frame. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped; 
+a function or expression that returns a vector or matrix. 
+It may be a function which accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression. 
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+For examples see 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="B">
+number of random permutations to use.  With the default value 
+of <code>B=999</code>, p-values are multiples of 1/1000. 
+</s-arg>
+<s-arg name="resampleColumns">
+numerical, logical, or character, for subscripting columns of the data. 
+If supplied, then only those columns of the data are resampled.  This 
+is useful for permutation tests; for example, for a permutation test 
+of the correlation between two variables, permute only one of them. 
+</s-arg>
+<s-arg name="...">
+additional arguments, which are passed to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+For more detail on these arguments see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function> 
+</s-arg>
+<s-arg name="alternative">
+one of "two.sided", "greater", or "less". 
+May be a vector of the same length as the result of calling <code>statistic</code>. 
+</s-arg>
+<s-arg name="combine">
+numerical, logical, or character vector, indicating which components 
+of the result 
+to use for computing combined p-values. 
+Or this may be a list, each of whose elements indicate a set of 
+variables to use. 
+</s-arg>
+<s-arg name="combinationFunction">
+a function which combined p-values; 
+see help for <code>combinePValues.Fisher</code> for specifications 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class "permutationTest" which inherits from "resamp" 
+</s-value>
+<s-details>
+This is implemented as a front end to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+using 
+<s-function name="samp.permute.sgm">samp.permute</s-function> 
+as the sampler. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Pesarin, F. (2001), 
+<it> Multivariate Permutation Tests with Applications to Biostatistics</it>, 
+Wiley, Chichester, UK. 
+(Describes nonparametric combination methodology.) 
+<br>
+We wish to thank Dr. Luigi Salmaso for help designing and testing 
+this function. 
+</s-section>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>,  
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.  The latter two are for permutation tests comparing two groups. <p>
+More details on arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.  Note that 
+<s-function name="permutationTest.sgm">permutationTest</s-function>  calls 
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  so many of the arguments are common. <p>
+Combination of p-values for multivariate statistics: 
+<s-function name="combinePValues.Fisher.sgm">combinePValues.Fisher</s-function>,  
+<s-function name="combinePValues.Liptak.sgm">combinePValues.Liptak</s-function>,  
+<s-function name="combinePValues.chisquare.sgm">combinePValues.chisquare</s-function>,  
+<s-function name="combinePValues.halfnormal.sgm">combinePValues.halfnormal</s-function>.  <p>
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>,  <p>
+Description of a "permutationTest" object, extract parts: 
+<s-function name="permutationTest.object.sgm">permutationTest.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.  <p>
+Modify a "permutationTest" object: 
+<s-function name="update.sgm">update</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# Test significance of a correlation 
+y <- rnorm(30); x <- 1:30 
+plot(x,y); abline(lm(y ~ x)) 
+obj <- permutationTest(y, cor(y, x)) 
+obj 
+print(obj, digits=2) 
+plot(obj) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

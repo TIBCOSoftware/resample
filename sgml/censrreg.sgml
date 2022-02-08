@@ -1,0 +1,204 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>censorReg</s-topic>
+   <s-topic>censorReg.default</s-topic>
+</s-topics>
+<s-title>
+Regression Model for Censored Data 
+</s-title>
+<s-description>
+Computes a parametric survival model for censored data. 
+This function is generic (see Methods); method 
+functions can be written to handle specific classes of data.  Classes 
+which already have methods for this function include: 
+<br>
+<code>model.list</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+censorReg(formula = formula(data), data = sys.parent(), weights = rep(1,n), 
+     truncation, subset, na.action, distribution = "weibull", 
+     threshold = 0, initial, fixed = list(), control = NULL, 
+     model = F, x = F, y = F, method = NULL, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a formula expression as for other regression models.  The response is usually 
+an object of class <code>"censor"</code> as computed by the 
+<s-function name="censor.sgm">censor</s-function> 
+function.  See the documentation for 
+<s-function name="censor.sgm">censor</s-function>, 
+<s-function name="lm.sgm">lm</s-function>, 
+and 
+<s-function name="formula.sgm">formula</s-function> 
+for details.  Two special 
+variable types are handled on the right-hand-side.  These are: 
+<p>
+ <code>strata()</code> - indicates that the sample is to be split into sub-samples, 
+      and a separate model fit in each subsample.  See 
+<s-function name="strata.sgm">strata</s-function> 
+for 
+      additional details. 
+<p>
+ <code>offset()</code> - the offset for each observation is subtracted from the 
+      (transformed if one of the logged distribution is used) response 
+      and truncation times prior to fitting the model. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data">
+a data frame in which to interpret the variables named in the <code>formula</code>, 
+<code>subset</code> and <code>weights</code> argument. 
+</s-arg>
+<s-arg name="weights">
+vector of observation weights; if supplied, the algorithm fits to minimize 
+the sum of the weights multiplied into the likelihood contribution for each 
+observation. In this way, and in the computation of degrees of freedom, the 
+weights behave like frequencies.  The length of weights must be the same as 
+the number of observations. The weights must be nonnegative and it is strongly 
+recommended that they be strictly positive, since zero weights are ambiguous, 
+compared to use of the subset argument. 
+</s-arg>
+<s-arg name="truncation">
+a class <code>censor</code> object that is used to indicate a truncation distribution. 
+The usual arguments to 
+<s-function name="censor.sgm">censor</s-function> 
+are used in creating the truncation object, 
+but notice that right truncation means that the failure (or censoring must 
+occur between zero and the truncation point, left truncation means that the 
+failure (or censoring) must occur between the truncation point and infinity, 
+and interval truncation means that the failure (or censoring) must occur within 
+the truncation interval.  In particular, this implies that an observation that 
+is right censored cannot also come from a right- or interval-truncation 
+distribution, and similarly for other combinations of censoring and truncation 
+types. 
+</s-arg>
+<s-arg name="subset">
+expression saying that only a subset of the rows of the data should be used in 
+the fit. 
+</s-arg>
+<s-arg name="na.action">
+a missing-data filter function, applied to the 
+<s-function name="model.frame.sgm">model.frame</s-function>, 
+after any subset 
+argument has been used.  Default is options()$na.action. 
+</s-arg>
+<s-arg name="distribution">
+assumed distribution for the (possibly censored) response variable.  There 
+are ten basic distributions - <code>"extreme"</code> (minimum extreme value), <code>"weibull"</code>, 
+<code>"gaussian"</code> (or <code>"normal"</code>), <code>"lognormal"</code>, <code>"logistic"</code>, <code>"loglogistic"</code>, <code>"exponential"</code>, <code>"logexponential"</code>, <code>"rayleigh"</code> and <code>"lograyleigh"</code>.  All ten distributions have a scale parameter. 
+The rayleigh distribution is the minimum extreme value distribution with the 
+scale parameter fixed at 0.5.  The exponential distribution is the minimum 
+extreme value distribution with the scale parameter fixed at 1. 
+</s-arg>
+<s-arg name="threshold">
+A value to be subtracted from each of the failure and censoring times (and the 
+truncation intervals as well).  This is the time during which no observation 
+can fail. If not specified, this defaults to 0.0.  If a logical value <code>T</code> is 
+input, <code>threshold</code> is computed as the smallest failure time minus 10% of its 
+absolute value.  An alternate estimate of <code>threshold</code> is obtained by 
+specifying <code>threshold = "Linearized-qq"</code> which computes an optimization to 
+minimize the curvature of a quantile-quantile plot of the quantiles of the 
+response versus the quantiles obtained from a Kaplan-Meier estimate of 
+survival. 
+</s-arg>
+<s-arg name="initial">
+optional vector of initial values for the model parameters.  If used, the 
+linear model parameters are first, followed by the scale parameter (not the 
+Log(scale), and providing that the scale parameter is not fixed). 
+</s-arg>
+<s-arg name="fixed">
+a list of fixed parameters.  The names in the list must be valid names of 
+variables in the model. 
+</s-arg>
+<s-arg name="control">
+a list of options for controlling the iterations.  These may include: 
+<p>
+  <code>maxiter</code> - the maximum number of iterations.  This defaults to 500. 
+<p>
+  <code>rel.tolerance</code> - the convergence criterion.  When the scaled change in the 
+     all parameter estimates is less than <code>rel.tolerance</code>, convergence is 
+     assumed.  This defaults to 0.0001. 
+<p>
+  <code>escale</code> - a vector of scale factors, one for each parameter.  By default, 
+     these all equal 10000.  If a scalar is input, it is applied to all 
+     elements. 
+</s-arg>
+<s-arg name="model">
+a logical value, if <code>TRUE</code> then the model frame is included as component model 
+in the object returned by the function. 
+</s-arg>
+<s-arg name="x">
+a logical value, if <code>TRUE</code> then the model matrix is included as 
+component <code>x</code> in the object returned by the function. 
+</s-arg>
+<s-arg name="y">
+a logical value, if <code>TRUE</code> then the response is included as component <code>y</code> 
+in the object returned by the function. 
+</s-arg>
+<s-arg name="method">
+indicates whether to perform the fit (the default action), or to 
+return the model list without fitting (<code>method = "model.list"</code>).  The 
+model list may later be fit by a call to 
+<s-function name="censorReg.model.list.sgm">censorReg.model.list</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+If there are no stratification variables, or if there is only a single strata, 
+then an object of class <code>"censorReg"</code> is returned.  See 
+<s-function name="censorReg.object.sgm">censorReg.object</s-function> 
+for details.   If there are stratification variables, then a list of objects of 
+class <code>"censorReg"</code> is produced; this is a class <code>"censorRegList"</code> 
+object.  If <code>method="model.list"</code>, an object of class <code>"model.list"</code> 
+is returned.  See 
+<s-function name="model.list.object.sgm">model.list.object</s-function> 
+for details. 
+</s-value>
+<s-section name=" COMPUTATION">
+
+A Fletcher-Powell algorithm is used in model fitting. The basic estimation 
+code comes from W. Q. Meeker and is described in Meeker and Duke (1981) which 
+details a program named CENSOR. Recently, W. Q. Meeker has refined the 
+estimation algorithms, making them more general and stable. 
+</s-section>
+<s-section name=" REFERENCES:">
+
+Meeker, W. Q. and Duke, S. D. (1981), 
+"CENSOR - A User-Oriented Computer Program for Life Data Analysis," 
+<it>The American Statistician,</it>
+<bf>35</bf>(2), 112. 
+</s-section>
+<s-see>
+
+<s-function name="lm.sgm">lm</s-function>,  
+<s-function name="solve.sgm">solve</s-function>,  
+<s-function name="censor.sgm">censor</s-function>,  
+<s-function name="censorReg.control.sgm">censorReg.control</s-function>,  
+<s-function name="censorReg.object.sgm">censorReg.object</s-function>,  
+<s-function name="censorReg.model.list.sgm">censorReg.model.list</s-function>,  
+<s-function name="model.list.object.sgm">model.list.object</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# Fit an exponential model 
+censorReg(censor(futime,fustat) ~ ecog.ps + rx, data=ovarian, 
+          distribution="exponential", fixed=list(scale=1)) 
+censorReg(censor(days, event)~voltage, data=capacitor2,  weights=weights, 
+          fixed=list(voltage=-0.30)) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,282 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resamp</s-topic>
+   <s-topic>resamp.object</s-topic>
+   <s-topic>bootstrap.object</s-topic>
+   <s-topic>bootstrap2.object</s-topic>
+   <s-topic>jackknife.object</s-topic>
+   <s-topic>concomitants.bootstrap.object</s-topic>
+   <s-topic>controlVariates.bootstrap.object</s-topic>
+   <s-topic>influence.object</s-topic>
+   <s-topic>limits.abc.object</s-topic>
+   <s-topic>permutationTest.object</s-topic>
+   <s-topic>permutationTest2.object</s-topic>
+   <s-topic>permutationTestMeans.object</s-topic>
+   <s-topic>parametricBootstrapTest.object</s-topic>
+   <s-topic>parametricBootstrap.object</s-topic>
+   <s-topic>smoothedBootstrap.object</s-topic>
+   <s-topic>class.resamp</s-topic>
+   <s-topic>class.bootstrap</s-topic>
+   <s-topic>class.bootstrap2</s-topic>
+   <s-topic>class.jackknife</s-topic>
+   <s-topic>class.concomitants.bootstrap</s-topic>
+   <s-topic>class.controlVariates.bootstrap</s-topic>
+   <s-topic>class.influence</s-topic>
+   <s-topic>class.limits.abc</s-topic>
+   <s-topic>class.permutationTest</s-topic>
+   <s-topic>class.permutationTest2</s-topic>
+   <s-topic>class.permutationTestMeans</s-topic>
+   <s-topic>class.parametricBootstrapTest</s-topic>
+   <s-topic>class.parametricBootstrap</s-topic>
+   <s-topic>class.smoothedBootstrap</s-topic>
+</s-topics>
+<s-title>
+Bootstrap, Jackknife, and Other Objects That Inherit from resamp
+</s-title>
+<s-description>
+Classes that inherit from <code>resamp</code> include: 
+<code>bootstrap</code>, 
+<code>bootstrap2</code>, 
+<code>concomitants.bootstrap</code>, 
+<code>controlVariates.bootstrap</code>, 
+<code>influence</code>, 
+<code>jackknife</code>, 
+<code>limits.abc</code>, 
+<code>parametricBootstrap</code>, 
+<code>parametricBootstrapTest</code>, 
+<code>permutationTest</code>, 
+<code>permutationTest2</code>, 
+<code>permutationTestMeans</code>, 
+<code>reweight</code>, 
+<code>smoothedBootstrap</code>. 
+</s-description>
+<s-section name=" GENERATION">
+
+These objects are created by functions of the same names 
+(except for <code>"resamp"</code>, which is the parent class, for which there 
+is no function. 
+</s-section>
+<s-section name=" METHODS">
+
+The <code>"resamp"</code> class of objects has methods for a large number 
+of generic functions, see below. 
+</s-section>
+<s-value>
+The following components must be included in a legitimate <code>resamp</code> object. 
+
+<s-return-component name="call">
+the call that produced the object 
+</s-return-component>
+<s-return-component name="observed">
+the value of the statistic, calculated on the original data. 
+This is saved as a vector with names, say of length <code>p</code>. 
+</s-return-component>
+<s-return-component name="replicates">
+matrix of dimensions <code>B</code> by <code>p</code>, where <code>B</code> is the number 
+of resamples. 
+</s-return-component>
+<s-return-component name="estimate">
+data frame with <code>p</code> rows, summarizing the results. 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and 
+<s-function name="jackknife.sgm">jackknife</s-function> 
+objects have columns 
+<code>"Mean"</code>, <code>"Bias"</code> (a bias estimate), and <code>"SE"</code> (standard error estimate). 
+Other <code>"resamp"</code> objects have other columns. 
+</s-return-component>
+<s-return-component name="B">
+integer, total number of resamples. 
+Note that 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and other functions may accept an <code>B</code> as vector, 
+e.g. for importance sampling. 
+That information is stored in the call, and only the total number of 
+resamples is stored here. 
+</s-return-component>
+<s-return-component name="n">
+integer, number of observations in the original data. 
+</s-return-component>
+<s-return-component name="dim.obs">
+dimension of the observed statistic 
+</s-return-component>
+
+Additional components are either required or optional in various 
+objects that inherit from <code>"resamp"</code>, including: 
+
+<s-return-component name="label">
+character, used when printing or plotting. 
+</s-return-component>
+<s-return-component name="defaultLabel">
+character, used when plotting if <code>label</code> not present. 
+</s-return-component>
+<s-return-component name="group">
+vector, the unique values of this vector determine groups 
+(for stratified sampling or multiple-sample problems). 
+</s-return-component>
+<s-return-component name="subject">
+vector, the unique values of this vector determine subjects 
+(for sampling by subject). 
+</s-return-component>
+<s-return-component name="treatment">
+vector, the unique values of this vector determine two groups. 
+</s-return-component>
+<s-return-component name="seed.start">
+the value of the seed for initializing the sampler. 
+For random sampling this is typically a legal input to <code>set.seed</code>, 
+i.e. an integer from 0 to 1023 or a value of <code>.Random.seed</code>. 
+</s-return-component>
+<s-return-component name="seed.end">
+object describing that state of sampling at the end of sampling; 
+this may be used as the input seed for adding additional samples. 
+For random sampling this is typically the value of <code>.Random.seed</code> 
+after sampling. 
+</s-return-component>
+<s-return-component name="B.missing">
+integer, number of resamples with missing values (in any of the <code>p</code> 
+components). 
+</s-return-component>
+<s-return-component name="indices">
+matrix with dimensions <code>n</code> by <code>B</code>, vector of indices for resampling. 
+</s-return-component>
+<s-return-component name="compressedIndices">
+object of class  
+<s-function name="compressIndices.sgm">compressIndices</s-function>, 
+a version of the indices. 
+</s-return-component>
+<s-return-component name="weights">
+vector of length <code>B</code> of weights that result from e.g. importance sampling. 
+Summaries of results should use these weights. 
+</s-return-component>
+<s-return-component name="L">
+matrix with dimensions <code>n</code> by <code>p</code>, used for creating linear approximations 
+to a statistic. 
+</s-return-component>
+<s-return-component name="Lstar">
+matrix with dimensions <code>B</code> by <code>p</code>, linear approximations for the resamples. 
+</s-return-component>
+<s-return-component name="n.groups">
+number of groups of observations left out by 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+</s-return-component>
+<s-return-component name="original">
+list containing original parts of a <code>"resamp"</code> object, before they 
+are replaced by a procedure such as 
+<s-function name="concomitants.sgm">concomitants</s-function> 
+that improves 
+accuracy. 
+</s-return-component>
+<s-return-component name="statistic">
+original statistic, as modified to support weights. 
+</s-return-component>
+<s-return-component name="actual.calls">
+a list whose components are <code>call</code> objects.  Some resampling functions 
+such as 
+<s-function name="addSamples.sgm">addSamples</s-function> 
+manipulate the <code>call</code> component of an object; the 
+original call(s) may be added as a component of this list. 
+</s-return-component>
+<s-return-component name="parent.frame">
+generally a frame number.  This is used as the default for 
+<code>frame.eval</code> for many functions. 
+This is used when the <code>resamp</code> object was created within another function. 
+</s-return-component>
+<s-return-component name="bootstrap.objects">
+a list of two bootstrap objects, created by  
+<s-function name="bootstrap2.sgm">bootstrap2</s-function> 
+and  
+<s-function name="permutationTest2.sgm">permutationTest2</s-function> 
+each corresponding to one value of the <code>treatment</code>. 
+<p>
+Other components used by specific functions: 
+</s-return-component>
+<s-return-component name="rsampler">
+the <code>rsampler</code> argument to 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>. 
+</s-return-component>
+<s-return-component name="args.rsampler">
+the <code>args.rsampler</code> argument to 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>. 
+</s-return-component>
+<s-return-component name="dsampler">
+the <code>dsampler</code> argument to 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>. 
+</s-return-component>
+<s-return-component name="samples">
+for 
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>, 
+actual samples used. 
+</s-return-component>
+</s-value>
+
+<s-see>
+The following functions create "resamp" objects: 
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="influence.sgm">influence</s-function>,  
+<s-function name="limits.abc.sgm">limits.abc</s-function>,  
+<s-function name="permutationTest.sgm">permutationTest</s-function>,  
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>,  
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>,  
+<s-function name="parametricBootstrapTest.sgm">parametricBootstrapTest</s-function>,  
+<s-function name="parametricBootstrap.sgm">parametricBootstrap</s-function>,  and 
+<s-function name="smoothedBootstrap.sgm">smoothedBootstrap</s-function>.
+
+These functions modify "resamp" objects, to improve accuracy or perform diagnostics: 
+<s-function name="addSamples.sgm">addSamples</s-function>,  
+<s-function name="concomitants.sgm">concomitants</s-function>,  
+<s-function name="controlVariates.sgm">controlVariates</s-function>,  and 
+<s-function name="reweight.sgm">reweight</s-function>.
+
+These functions use "resamp" objects for inferences or diagnostics: 
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>,  
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>,  
+<s-function name="limits.abc.sgm">limits.abc</s-function>,  
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  and 
+<s-function name="tiltAfterBootstrap.sgm">tiltAfterBootstrap</s-function>.
+
+The following generic functions have methods for "resamp" objects, and in some cases for child classes: 
+<s-function name="boxplot.sgm">boxplot</s-function>,  
+<s-function name="cdf.sgm">cdf</s-function>,  
+<s-function name="colMeans.sgm">colMeans</s-function>  (and Maxs, Mins, Ranges, Sums, Vars), 
+<s-function name="density.sgm">density</s-function>,  
+<s-function name="hist.sgm">hist</s-function>,  
+<s-function name="pairs.sgm">pairs</s-function>,  
+<s-function name="plot.sgm">plot</s-function>,  
+<s-function name="plotCDF.sgm">plotCDF</s-function>,  
+<s-function name="print.sgm">print</s-function>,  
+<s-function name="qqnorm.sgm">qqnorm</s-function>,  
+<s-function name="quantile.sgm">quantile</s-function>,  
+<s-function name="rowMeans.sgm">rowMeans</s-function>  (and Maxs, Mins, Ranges, Sums, Vars), 
+<s-function name="scatterPlot.sgm">scatterPlot</s-function>,  and 
+<s-function name="summary.sgm">summary</s-function>.
+
+Some other functions that operate on "resamp" objects, or parts of them: 
+<s-function name="uncompressIndices.sgm">uncompressIndices</s-function>,  
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>,  
+<s-function name="resampGetArgument.sgm">resampGetArgument</s-function>,  and 
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-keywords>
+<s-keyword>classes</s-keyword>
+<s-keyword>methods</s-keyword>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

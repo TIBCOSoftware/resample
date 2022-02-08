@@ -1,0 +1,388 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>samp.bootstrap</s-topic>
+   <s-topic>samp.MonteCarlo</s-topic>
+   <s-topic>samp.boot.mc</s-topic>
+   <s-topic>samp.boot.bal</s-topic>
+   <s-topic>samp.bootknife</s-topic>
+   <s-topic>samp.finite</s-topic>
+   <s-topic>samp.permute</s-topic>
+   <s-topic>samp.permute.old</s-topic>
+   <s-topic>samp.combinations</s-topic>
+   <s-topic>samp.permutations</s-topic>
+   <s-topic>samp.half</s-topic>
+   <s-topic>samp.blockBootstrap</s-topic>
+   <s-topic>blockBootstrap</s-topic>
+</s-topics>
+<s-title>
+Random Samples of Indices for Bootstrapping 
+</s-title>
+<s-description>
+Generate random indices for use by 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+and other high-level resampling functions. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+samp.bootstrap(n, B, size = n - reduceSize, reduceSize = 0, prob = NULL) 
+samp.boot.bal(n, B, size = n - reduceSize, reduceSize = 0, method = "biased") 
+samp.bootknife(n, B, size = n - reduceSize, reduceSize = 0, njack = 1) 
+samp.finite(n, B, size = n - reduceSize, reduceSize = 0, N, bootknife = F) 
+samp.permute(n, B, size = n - reduceSize, reduceSize = 0, prob = NULL, full.partition = "none") 
+samp.permute.old(n, B) 
+samp.combinations(n, B, k, both = T) 
+samp.half(n, B, size = n/2 - reduceSize, reduceSize = 0) 
+samp.blockBootstrap(n, B, size = n - reduceSize, reduceSize = 0, blockLength) 
+blockBootstrap(blockLength) 
+samp.boot.mc    is deprecated; it is the same as samp.bootstrap 
+samp.MonteCarlo is deprecated; it is the same as samp.bootstrap 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="n, size">
+population and sample sizes, respectively.  Samples of size <code>size</code> 
+are generated from the sequence <code>1:n</code>. 
+(<code>size</code> is not required) 
+</s-arg>
+<s-arg name="B">
+number of resamples to draw. 
+<p>
+The remaining arguments are specific to individual samplers 
+</s-arg>
+<s-arg name="k">
+size of the first group, for two-sample permutation problems, 
+or for returning all combinations of <code>k</code> elements out of <code>n</code>. 
+</s-arg>
+<s-arg name="N">
+superpopulation size, for finite-population sampling. 
+</s-arg>
+<s-arg name="blockLength">
+length of blocks, for block bootstrapping. Must be less than or equal 
+to <code>n</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="reduceSize">
+non-negative integer, by default <code>size = n - reduceSize</code>. 
+Setting <code>reduceSize = 1</code> 
+is useful for avoiding bias, see below. 
+</s-arg>
+<s-arg name="prob">
+vector of probabilities.  Index 
+<code>i</code> is chosen from <code>1:n</code> with probability <code>prob[i]</code>. The vector is 
+normalized internally to sum to one.  Error if <code>length(prob)</code> is not 
+equal to <code>n</code>.  A value of NULL implies equal probabilities for each index. 
+A sampler that has this argument may be used for 
+importance sampling. 
+</s-arg>
+<s-arg name="method">
+character, one of <code>"biased"</code>, <code>"unbiased"</code>, and <code>"semi"</code>; see below. 
+</s-arg>
+<s-arg name="njack">
+integer; create a jackknife sample with <code>njack</code> observations omitted, 
+then draw a bootstrap sample from that. 
+</s-arg>
+<s-arg name="full.partition">
+character, one of <code>"first"</code>, <code>"last"</code>, or <code>"none"</code>; Return, for each 
+sample, the initial (if <code>"first"</code>) or final  
+(if <code>"last"</code>) <code>size</code> elements of a full sample of size <code>n</code>. 
+If <code>"none"</code>, do not generate full samples.  Valid only if  
+<code>size &lt; n</code>; ignored otherwise.  See below.  
+</s-arg>
+<s-arg name="bootknife">
+logical, if <code>TRUE</code> then a variation of bootknife sampling is used; 
+one observation is omitted from the sample before forming the 
+superpopulation.  This is useful for avoiding bias, see below. 
+</s-arg>
+<s-arg name="both">
+logical, if <code>TRUE</code> (the default), 
+then return a matrix with <code>n</code> rows, in which the first <code>k</code> rows 
+are all combinations of <code>k</code> elements out of <code>n</code>. 
+If <code>FALSE</code> then return only the first <code>k</code> rows. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix with <code>size</code> or <code>n</code> rows
+and <code>B</code> columns in which each column is one resample, 
+containing indices from <code>1:n</code> for subscripting the original data. 
+</s-value>
+
+<s-section name="Overview of the Samplers">
+<code>samp.bootstrap</code>
+provides simple bootstrap resamples, with replacement. 
+<p>
+<code>samp.permute</code>
+returns random permutations in the simplest case. 
+More generally, 
+returns random samples drawn with "minimal replacement". 
+If, after normalizing, <code>max(prob) &lt;= 1/size</code>, the 
+indices in each sample are drawn without replacement.  Thus, the 
+default values <code>size=n</code>, <code>prob=NULL</code> 
+generate simple permutations of <code>1:n</code>.  Otherwise 
+there are <code>floor(size*prob[i])</code> or <code>ceiling(size*prob[i])</code> 
+copies of index <code>i</code> in each sample.  The algorithm ensures that the 
+selection probabilities <code>prob</code> apply to the rows of the returned 
+matrix.  That is, the relative frequency of index <code>i</code> per row 
+approaches <code>prob[i]</code> as <code>B</code> increases.  See 
+<s-function name="balancedSample.sgm">balancedSample</s-function> 
+for details of the algorithm. 
+<p>
+Calling <code>samp.permute</code> with <code>full.partition = "first", size = m</code> and 
+then (after re-setting the seed) <code>full.partition = "last", size = n-m</code> 
+produces complementary index samples which, when <code>rbind</code>-ed together, 
+produce an equivalent set of indices with <code>size = n</code>.  For example, if 
+<code>probs</code> is not provided, the <code>rbind</code>-ed results form permutations of 
+<code>1:n</code>.  Note, however, that this will not give the same results for 
+multiple samples as calling <code>samp.permute</code> with <code>size=n</code>, because the 
+algorithm for <code>size</code> equal to <code>n</code> is different than that for <code>size</code> 
+not equal to <code>n</code>. 
+<p>
+<code>samp.permute.old</code>
+is provided for backward compatibility with the 
+version of <code>samp.permute</code> in S-PLUS 6.0 and earlier.
+It is slower and less flexible,
+and may be removed in future versions of Spotfire S+. 
+<code>
+<code>samp.combinations</code>
+is useful for complete enumeration in two-sample permutation testing 
+applications, returning all ways to divide a sample into two groups, 
+or optionally returning only the indices for the first group. 
+This is implemented by calling 
+<s-function name="combinations.sgm">combinations</s-function> 
+and requires that <code>B==choose(n,k)</code>. 
+<p>
+<code>samp.permutations</code>
+is useful for complete enumeration in one-sample permutation testing 
+applications, returning permutations of a sample. 
+This is implemented by calling 
+<s-function name="permutations.sgm">permutations</s-function> 
+and requires that <code>B==factorial(n)</code>. 
+<p>
+<code>samp.bootknife</code>
+provides samples of size <code>size</code> drawn with replacement from jackknife 
+samples (obtained by omitting one of the values <code>1:n</code>). 
+This produces bootstrap estimates 
+of squared standard error which are unbiased for a sample mean, 
+with expected value <code>s^2/n</code>, where <code>s^2</code> is the sample variance 
+calculated with the usual denominator of <code>(n-1)</code>. 
+In a block of <code>B</code> (<code>block.size</code>) observations, 
+each observation is omitted <code>B/n</code> times 
+(rounded up or down if <code>n</code> does not divide <code>B</code>). 
+<p>
+<code>samp.finite</code>
+ does finite-population sampling.  If <code>N</code> is 
+a multiple of <code>n</code> (or of <code>n-1</code>, if <code>bootknife=TRUE</code>), then 
+a superpopulation created by repeating each observation 
+<code>N/m</code> (where <code>m=n</code> or <code>m=n-1</code>) times, and samples without replacement 
+of size <code>size</code> are drawn. 
+<p>
+If <code>N</code> is not a multiple of <code>m</code>, then superpopulations 
+vary in size between sizes, with <code>r</code> copies of each original 
+observation, where <code>r=ceiling(M/m)</code> or <code>trunc(M/m)</code> 
+with probabilities chosen to give approximately the correct 
+bootstrap variance for linear statistics. 
+<p>
+<code>samp.half</code>
+does half-samples -- of size <code>n/2</code> by default.  <code>size</code> 
+may be half-integers; if so then alternate samples contain 
+a zero (i.e. a smaller sample).  This is a quick alternative 
+to the ordinary bootstrap, with approximately the same standard 
+error. 
+<p>
+<code>samp.blockBootstrap</code>
+does ordinary block bootstrapping (useful for 
+time series), with overlapping blocks (no wrap-around). 
+<p>
+<code>blockBootstrap</code>
+simplifies using <code>samp.blockBootstrap</code>; see example at bottom. 
+<p>
+<code>samp.boot.bal</code>
+does (partially-) balanced resampling, 
+separately within each group of resamples. 
+This is useful for estimating the bias of a statistic, but has little 
+effect (or worse, bias) on 
+estimating standard errors or confidence limits. 
+<p>
+The default <code>"biased"</code> method is balanced -- each observation appears 
+exactly <code>B</code> times in the result.  In this case <code>size*B</code> must be a 
+multiple of <code>n</code>. 
+It is biased because rows in its result are not independent. 
+The bias is of order <code>O(1/B)</code>, 
+(where <code>B</code> is the <code>block.size</code> used in calling 
+<s-function name="bootstrap.sgm">bootstrap</s-function>) 
+and tends to underestimate bootstrap standard errors 
+and produce confidence intervals which are too narrow. 
+Variances are too small by a factor of about $(1-1/B)$. 
+<p>
+For the <code>"unbiased"</code> method, each row is generated independently. 
+If <code>n</code> divides <code>B</code> then there are exactly <code>B/n</code> copies of 
+<code>1:n</code> in each row, and the result is balanced. 
+Otherwise there are either <code>floor(B/n)</code> or <code>ceiling(B/n)</code> copies 
+in each row, and the result is not exactly balanced. 
+<p>
+For the <code>"semi"</code> method, if <code>n</code> divides <code>B</code> then results 
+are exactly as for the <code>"unbiased"</code> method. 
+If <code>n</code> divides <code>size*B</code> results are balanced, but there is bias, 
+with variances biased downward by a factor of 
+approximately <code>(1-(B%%n)/B^2)</code>. 
+</s-section>
+
+<s-side-effects>
+These functions cause creation of the dataset <code>.Random.seed</code> 
+if it does not already exist, otherwise its value is updated. 
+</s-side-effects>
+<s-details>
+These samplers are typically called multiple times by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+to generate indices for a block of say <code>B=100</code> replications at a time 
+(the value of <code>B</code> here corresponds to the <code>block.size</code> argument to 
+<code>bootstrap</code>). 
+<p>
+You may write your own sampler. 
+A sampler must have arguments <code>n</code> and <code>B</code>. 
+If a sampler has a <code>prob</code> argument then it may be used for 
+importance sampling. 
+<p>
+Additional arguments may be passed in three ways: 
+(1) using the <code>sampler.args</code> argument to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>; 
+(2) by passing an expression such as 
+<code>samp.bootstrap(size = 100)</code> 
+(arguments set in 
+this way override those set by <code>sampler.args</code>), or 
+(3) using a "constructor" function such as <code>blockBootstrap</code> 
+to create a copy of a sampler function (<code>samp.blockBootstrap</code>) 
+which has default values for additional arguments. 
+<p>
+If importance sampling is not used, then the <code>prob</code> argument may 
+be used as an additional argument, resulting in sampling from a weighted 
+empirical distribution, but the <code>observed</code> statistic will not 
+be consistent with that weighted empirical distribution; instead 
+consider using importance sampling, then calling 
+<s-function name="reweight.sgm">reweight</s-function>. 
+<p>
+Some functions that operate on a 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+object, including 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>, 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+<s-function name="summary.bootstrap.sgm">summary.bootstrap</s-function>, 
+assume that simple random sampling with equal probabilities and 
+<code>size=n</code>  
+(or approximately <code>n</code>, see below) 
+was used, and may give incorrect results if that is not the case. 
+In other words, they expect 
+<code>samp.bootstrap</code> or the similar <code>samp.boot.bal</code> and <code>samp.bootknife</code>. 
+</s-details>
+<s-section name="Avoiding Downward Bias in Standard Errors">
+Bootstrapping typically gives standard error estimates which are 
+biased downward; e.g. the ordinary bootstrap standard error 
+for a mean is <code>sqrt((n-1)/n) s/sqrt(n)</code> 
+(plus random error when <code>B &lt; infinity</code>), where <code>s = stdev(x)</code> 
+is the usual sample standard deviation.  This is too small by a factor 
+<code>sqrt((n-1)/n)</code>.  When stratified sampling is used, the corresponding 
+downward bias depends on stratum sizes, and may be substantial 
+There are two easy remedies for this: 
+use <code>samp.bootknife</code>, or <code>samp.bootstrap(reduceSize = 1)</code>. 
+The latter sets the sampling size for each stratum to <code>1</code>
+less than the stratum size. 
+</s-section>
+
+<s-section name="Stratified Sampling">
+For stratified sampling (the <code>group</code> argument to <code>bootstrap</code>), the 
+sampler is called for each sampler.  If <code>size</code> or <code>reduceSize</code> 
+is used, then you must set 
+<code>group.order.matters = FALSE</code> when calling <code>bootstrap</code> 
+(otherwise size mismatches will occur, as the code attempts to place 
+resampled strata in the same positions as the original data). 
+</s-section>
+
+<s-section name="Note">
+Arguments <code>n</code> and <code>B</code> should be in that order.  The number and order of 
+other arguments may change; e.g. a <code>prob</code> argument may be added 
+to additional samplers to support importance sampling. 
+</s-section>
+
+<s-section name="REFERENCES">
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+<p>
+Hesterberg, T.C. (1999), 
+"Smoothed bootstrap and jackboot sampling," 
+Technical Report No. 87, 
+http://www.insightful.com/Hesterberg 
+Note - the name "jackboot" has been changed to "bootknife". 
+<p>
+Hesterberg, T.C. (2004), 
+"Unbiasing the Bootstrap - Bootknife Sampling vs. Smoothing", 
+<it>Proceedings of the Section on Statistics and the Environment,</it>
+American Statistical Association, pp. 2924-2930. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="balancedSample.sgm">balancedSample</s-function>.
+
+For an annotated list of functions in the S+Resample package, including see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+samp.bootstrap(6, 8) 
+samp.bootstrap(6, 8, size=12) 
+samp.boot.bal(6, 8) # method = "biased" 
+samp.boot.bal(6, 8, method = "unbiased") 
+samp.boot.bal(6, 8, method = "semi") 
+samp.permute(6, 8) 
+samp.permute(6, 8, prob=(1:6)) 
+samp.permute(6, 8, size=12, prob=(1:6)) 
+samp.combinations(6, choose(6,4), 4) 
+samp.combinations(6, choose(6,4), 4, both=F) 
+samp.permutations(4, factorial(4)) 
+samp.bootknife(6, 8) 
+samp.bootknife(6, 8, size=12) 
+samp.half(6, 8) 
+samp.half(5, 8) 
+ 
+# Block bootstrapping 
+bootstrap(1:25, mean) 
+bootstrap(1:25, mean, sampler = blockBootstrap(5), seed=0) 
+# Previous line is equivalent to next two: 
+bootstrap(1:25, mean, sampler = samp.blockBootstrap, 
+                      sampler.args = list(blockLength = 5), seed=0) 
+# The data are positively correlated, so block versions give 
+# larger standard errors. 
+ 
+# Compare versions of balanced bootstrapping 
+set.seed(0) 
+tabulate(samp.boot.bal(6, 8)) # balanced 
+tabulate(samp.boot.bal(6, 8, method = "unbiased")) # not balanced 
+tabulate(samp.boot.bal(6, 8, method = "semi")) # balanced 
+temp <- bootstrap(1:5, mean, block.size=9, seed=0) 
+temp$estimate$SE 
+update(temp, sampler = samp.boot.bal)$estimate$SE # smaller 
+update(temp, sampler = samp.boot.bal, 
+       sampler.args = list(method = "semi"))$estimate$SE 
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

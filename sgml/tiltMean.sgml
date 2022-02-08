@@ -1,0 +1,186 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>tiltMean</s-topic>
+   <s-topic>tiltMeanSolve</s-topic>
+</s-topics>
+<s-title>
+Mean of Tilted Discrete Distributions 
+</s-title>
+<s-description>
+Calculate the mean of exponentially-tilted or 
+maximum-likelihood-tilted discrete distributions, 
+or find the tilting parameter for a desired mean. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+tiltMean(tau, L, tilt="exponential", weights=NULL, group=NULL,  
+              lambda = NULL, tol=1e-06, maxiter=50) 
+tiltMeanSolve(q, L, tilt="exponential", weights=NULL, group=NULL, 
+              initial, tol=1e-06, tol.tau=tol, maxiter=50) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="tau">
+vector of tilting parameters.   
+</s-arg>
+<s-arg name="q">
+vector of desired tilted means. 
+</s-arg>
+<s-arg name="L">
+vector of values which determine a discrete distribution. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="tilt">
+one of "exponential" or "ml", for exponential or maximum likelihood tilting, 
+respectively. 
+</s-arg>
+<s-arg name="weights">
+vector the same length of <code>L</code>,  
+if the discrete distribution has unequal probabilities 
+on the values (before tilting). 
+</s-arg>
+<s-arg name="group">
+vector the same length as <code>L</code>; unique values of this vector determine 
+groups, for multiple-sample applications or stratified sampling. 
+</s-arg>
+<s-arg name="lambda">
+matrix with one row for each group and one column for each 
+value of <code>tau</code> containing normalizing constants for maximum 
+likelihood tilting with groups (see DETAILS below, and 
+<s-function name="tiltDetails.sgm">tiltDetails</s-function>). 
+These are computed if not provided. 
+</s-arg>
+<s-arg name="initial">
+vector the same length as <code>q</code>, initial values used in iteratively 
+solving for <code>tau</code>.  
+</s-arg>
+<s-arg name="tol">
+For <code>tiltMeanSolve</code>, find <code>tau</code> so the tilted mean is within 
+<code>tol</code> of <code>q</code>. 
+For <code>tiltMean</code>, find <code>lambda</code> values such 
+that tilting weights sum within each group to within <code>tol</code> of 1. 
+</s-arg>
+<s-arg name="tol.tau">
+tolerance for solving for <code>tau</code> on the scale of <code>tau</code>. 
+</s-arg>
+<s-arg name="maxiter">
+maximum number of iterations allowed for finding values of <code>tau</code> which 
+bracket the solution for each <code>q</code> (after the root is bracketed additional 
+iterations may be performed). 
+</s-arg>
+</s-args-optional>
+<s-value>
+For <code>tiltMean</code>, a list with components 
+<s-return-component name="tau">
+the input tilting parameter, and 
+</s-return-component>
+<s-return-component name="q">
+vector of the same length as <code>tau</code>, 
+containing weighted means for the tilted distributions. 
+</s-return-component>
+<s-return-component name="lambda">
+matrix of normalizing constants, one column for each value 
+of <code>tau</code> and number of rows (or length) equal to the unique values of 
+<code>group</code>.   
+This is present only if <code>tilt="ml"</code> and there are multiple groups. 
+<p>
+For <code>tiltMeanSolve</code>, the returned list has component 
+</s-return-component>
+<s-return-component name="q">
+the input 
+</s-return-component>
+<s-return-component name="tau.exp">
+vector the same length as <code>q</code>, tilting parameters 
+that give the desired tilted mean. 
+</s-return-component>
+<s-return-component name="tau.ml">
+maximum likelihood tilting parameter(s); present only if <code>tilt="ml"</code>. 
+</s-return-component>
+<s-return-component name="lambda">
+matrix of normalizing constants, as for <code>tiltMean</code>; 
+present only if <code>tilt="ml"</code> and there are multiple groups. 
+</s-return-component>
+</s-value>
+
+<s-details>
+In the univariate case (<code>L</code> a vector and <code>tau</code> a scalar) with only one 
+group, exponential 
+tilting places probability proportional to  
+<verb>
+    weights * exp((L-Lbar) * tau) 
+</verb>
+on the values in <code>L</code>, where <code>Lbar</code> is the weighted mean of <code>L</code>. 
+Maximum likelihood tilting places probabilities proportional to 
+<verb>
+    weights / (1 - (L-Lbar) * tau) 
+</verb>
+For further details, and formulae in the group case (multiple samples, 
+or stratified sampling), see 
+<s-function name="tiltDetails.sgm">tiltDetails</s-function>. 
+</s-details>
+
+<s-section name="REFERENCES">
+Hesterberg, T.C. (2003), 
+"Tilting Calculations for Resampling Inferences and Approximations", 
+Research Report No. 103, Research Department, Insightful Corp., 
+1700 Westlake Ave. N., Suite 500, Seattle, WA 98109. 
+</s-section>
+
+<s-see>
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>,  
+<s-function name="qDiscreteMean.sgm">qDiscreteMean</s-function>,  
+<s-function name="saddlepointP.sgm">saddlepointP</s-function>,  
+<s-function name="saddlepointPSolve.sgm">saddlepointPSolve</s-function>
+</s-see>
+
+<s-examples>
+<s-example type = text>
+# Hypothesis testing; find a weighted empirical distribution 
+# for which the weighted mean is 0.0: 
+x <- rnorm(20) 
+tau <- tiltMeanSolve(0.0, x, tilt="ml")$tau.ml 
+wt <- tiltWeights(tau, x, tilt="ml") 
+mean(x, weights=wt)  # equal to zero, within given tolerance 
+# likelihood ratio statistic for empirical likelihood test 
+-2 * sum(log(20 * wt)) 
+ 
+# stratified data: tilt so weighted mean is average of the group 
+# medians. 
+set.seed(0) 
+gs <- c(10,20,10) 
+L1 <- rnorm(gs[1],mean=0,sd=1) 
+L2 <- rnorm(gs[2],mean=1,sd=1) 
+L3 <- rnorm(gs[3], mean=2, sd=3) 
+L <- c(L1,L2,L3) 
+group <- rep(1:3,gs) 
+Q <- mean(c(median(L1), median(L2), median(L3))) 
+tiltMeanSolve(Q, L, group=group, tilt="ml") 
+ 
+# Demonstrate relationship between overall and group tilting parameters 
+set.seed(1) 
+x <- runif(25) 
+tiltMean(.1, x, group=rep(1:2, c(10,15)))$q 
+(mean(x[1:10],  weights=exp(.1 /(10/25) * x[1:10]))  + 
+ mean(x[11:25], weights=exp(.1 /(15/25) * x[11:25])) ) 
+tiltMean(.1 /(10/25), x[1:10])$q + tiltMean(.1 /(15/25), x[11:25])$q 
+# all three match 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

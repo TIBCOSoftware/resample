@@ -1,0 +1,130 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampGetIndices</s-topic>
+   <s-topic>resampGetArgument</s-topic>
+</s-topics>
+<s-title>
+Extractor Functions for <code>bootstrap</code> and other <code>resample</code> objects. 
+</s-title>
+<s-description>
+These functions extract information from 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and other <code>resample</code> objects, or create it if necessary. 
+<p>
+<code>resampGetIndices</code> extracts a matrix of resampling indices from a resampling 
+object, or creates it from scratch if necessary. 
+<p>
+<code>resampGetArgument</code> extracts arguments used to create resample 
+objects. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampGetIndices(object, frame.eval = &lt;&lt;see below&gt;&gt;) 
+resampGetArgument(object, argument, checkObject = &lt;&lt;see below&gt;&gt;, 
+                  frame.eval = &lt;&lt;see below&gt;&gt;) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="object">
+a 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or other <code>resample</code> object (not all such objects are appropriate for 
+these functions). 
+</s-arg>
+<s-arg name="argument">
+the quoted or unquoted name of an argument to the resample function 
+used to create <code>object</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="checkObject">
+logical; if <code>TRUE</code>, look first in <code>object</code> for a component with name equal to 
+<code>argument</code>.  This is the default action unless <code>argument</code> equals <code>"B"</code>, in 
+which case the value is recreated from the original call to the 
+resample function. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects used when creating <code>object</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+<code>resampGetIndices</code> returns a matrix of indices. 
+<p>
+<code>resampGetArgument</code> returns the value of <code>argument</code>, 
+evaluated in an appropriate context. 
+<p>
+The context is important in two cases.  First, if the object were created 
+inside a function and made use of objects defined in that function, 
+then those objects, or identical copies, should be accessible; 
+this is done by letting <code>frame.eval</code> be the number of the frame 
+of that function, or a new frame containing copies of those objects. 
+Second, if the <code>data</code> argument to the resample function is a data 
+frame, that data frame, then arguments like <code>group</code> and <code>subject</code> are 
+searched for there first. 
+</s-value>
+<s-details>
+<code>resampGetIndices</code> just extracts an <code>indices</code> component if one exists 
+in the object.  Otherwise it creates a new call to the original function, with 
+the <code>statistic</code> set to a function that returns <code>NULL</code>. 
+Results will be incorrect if the sampler is adaptive, where indices 
+depend on the value of the statistic returned in earlier replications. 
+<p>
+If <code>checkObject=TRUE</code>, <code>resampGetArgument</code> first checks <code>object</code> for a 
+component with name equal to <code>argument</code> and, if found, returns that 
+value.  If the 
+component is not found (or if <code>checkObject=FALSE</code>), the argument is 
+reconstructed from the original call.  Symbolic references in the call 
+(as in the case where the bootstrap <code>data</code> argument is a data frame, 
+and <code>group</code> is the name of a column of <code>data</code>) are evaluated so 
+that the actual value of the argument is returned.  Note that this may 
+cause unintended results in the case <code>argument="statistic"</code>:  if 
+<code>statistic</code> is an expression, the expression is evaluated (if 
+possible) and that value returned.  If you want the unevaluated 
+expression for an argument, access the component directly, using, for 
+example, <code>object$call$statistic</code>. 
+<p>
+The special default action when <code>argument="B"</code> addresses the case when 
+<code>bootstrap</code> argument <code>B</code> is a vector.  In this case, the value stored 
+in the bootstrap object is not the vector, but <code>sum(B)</code>, 
+the total number of resamples.  The original vector <code>B</code> can be 
+recreated from the call. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function>,  
+<s-function name="frame.eval.sgm">frame.eval</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+# get indices 
+boot <- bootstrap(stack.loss, mean, B=50) 
+resampGetIndices(boot) 
+ 
+# get group argument 
+df <- data.frame(x=stack.loss, a=rep(1:3, 6:8)) 
+boot <- bootstrap(df, mean(x), group=a, B=50) 
+resampGetArgument(boot, "group") 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

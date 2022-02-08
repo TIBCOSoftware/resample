@@ -1,0 +1,285 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrap2</s-topic>
+</s-topics>
+<s-title>
+Bootstrap for Comparing Two Samples 
+</s-title>
+<s-description>
+Bootstrap the difference or ratio of a statistic computed on two samples. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrap2(data, statistic, treatment, data2, ratio = F, B = 1000, 
+           group, subject, seed = .Random.seed,  
+           trace = resampleOptions()$trace, 
+           save.group, save.subject, save.treatment, L = NULL, 
+           twoSample.args = NULL, ...)
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+numerical vector or matrix, or data frame.  Each column is treated as 
+a separate variable.  The name <code>"data"</code> must not be used for any 
+column name. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be computed; 
+a function or expression that returns a vector or matrix. 
+It may be a function which accepts data as the first argument. 
+<p>
+Alternatively it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>"data"</code> in the 
+expression (e.g. <code>mean(data,trim=.2)</code>.  An exception to this rule is 
+when argument <code>data2</code> is used.  In 
+that case, you must use the name <code>"data"</code> in the expression, regardless 
+of whether argument <code>data</code> or <code>data2</code> is given by name. 
+In any case, the name <code>"data"</code> is reserved for use to refer to the 
+data to be bootstrapped, and should not be used in <code>statistic</code> to 
+refer to any other object. 
+<p>
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+For examples see 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="treatment">
+vector of length equal to the number of observations in 
+<code>data</code>.  This must have two unique values, which determine the two 
+samples to be compared.  If 
+<code>data</code> is a data frame, this may be a variable in the data frame, or 
+an expression involving such variables.  One of <code>treatment</code> or <code>data2</code> 
+(but not both) must be used. 
+</s-arg>
+<s-arg name="data2">
+numerical vector or matrix, or data frame, like 
+<code>data</code>.  Observations in <code>data</code> are taken 
+to be one sample, and those in <code>data2</code> are taken to be the other.  If 
+<code>data2</code> is a matrix or data frame, it must have the same number of 
+columns (and column names, if any), as <code>data</code>.  One of <code>treatment</code> or 
+<code>data2</code> (but not both) must be used. 
+</s-arg>
+<s-arg name="ratio">
+logical value, if <code>FALSE</code> (the default) then bootstrap the 
+difference in statistics between the two samples; if <code>TRUE</code> 
+then bootstrap the ratio. 
+</s-arg>
+<s-arg name="B">
+integer, number of random bootstrap samples to use. 
+</s-arg>
+<s-arg name="group">
+vector of length equal to the total number of observations 
+(in <code>data</code> if <code>treatment</code> supplied, or in <code>data</code> and <code>data2</code>), 
+for stratified sampling. 
+Within each of the two samples defined by <code>treatment</code> or 
+<code>data2</code>, sampling is done separately 
+for each stratum (determined by unique values of the <code>group</code> vector). 
+If <code>data</code> is a data frame and <code>treatment</code> is used, 
+this may be a variable in the data frame, or 
+an expression involving such variables. 
+</s-arg>
+<s-arg name="subject">
+vector of length equal to the total number of observations 
+If present then subjects (determined by unique values of this vector) 
+are resampled rather than individual observations. 
+If <code>data</code> is a data frame and <code>treatment</code> is used, 
+this may be a variable in the data frame, 
+or an expression involving such variables. 
+This must be nested 
+within <code>treatment</code>, and within <code>group</code>, if <code>group</code> is used (all 
+observations for a subject must be in the same treatment or group sample). 
+<br>
+Under certain conditions <code>bootstrap</code> makes resampled subjects 
+unique before calling the statistic. 
+</s-arg>
+<s-arg name="seed">
+seed for generating resampling indices; a legal seed, e.g. an integer 
+between 0 and 1023.  See 
+<s-function name="set.seed.sgm">set.seed</s-function>. 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether to print messages indicating progress. 
+The default is determined by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="save.group">
+</s-arg>
+<s-arg name="save.subject">
+</s-arg>
+<s-arg name="save.treatment">
+logical flags indicating whether to return  the <code>group</code>, 
+<code>subject</code> and <code>treatment</code> vectors. 
+Default 
+is <code>TRUE</code> if number of observations is <code>&lt;= 10000</code> or if <code>data2</code> supplied, 
+<code>FALSE</code> otherwise. 
+If not saved these can generally be recreated by 
+<s-function name="resampGetArgument.sgm">resampGetArgument</s-function> 
+when needed 
+if <code>treatment</code> was supplied, but not if <code>data2</code> was supplied. 
+</s-arg>
+<s-arg name="L">
+empirical influence values. 
+This may be a string indicating which method 
+to use for calculation one of <code>"jackknife"</code>, <code>"influence"</code>, 
+<code>"regression"</code>, <code>"ace"</code>, or <code>"choose"</code>. 
+See 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function> 
+for further information and references. 
+Or it may be 
+a matrix with <code>n</code> (number of observations or subjects in <code>data</code>, 
+or in <code>data</code> and <code>data2</code>) rows 
+and <code>p</code> (length of the returned statistic) columns; 
+in this case the <code>L</code> values for the second 
+treatment group (or <code>data2</code>) should be -1 times the value they would 
+have for e.g. <code>bootstrap(data2, statistic)</code>. 
+</s-arg>
+<s-arg name="...">
+additional arguments to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+These arguments are used for both samples. 
+</s-arg>
+<s-arg name="twoSample.args">
+a list of length two, each component itself a list containing 
+additional args to 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+An object of class <code>bootstrap2</code> 
+which inherits from <code>bootstrap</code> and <code>resamp</code>.  This has components 
+<code>call</code>, 
+<code>observed</code>, 
+<code>replicates</code>, 
+<code>estimate</code>, 
+<code>B</code>, 
+<code>n</code>, 
+<code>dim.obs</code>, 
+<code>treatment</code>, 
+<code>parent.frame</code>, 
+<code>seed.start</code>, 
+<code>seed.end</code>, and 
+<code>bootstrap.objects</code>. 
+It may have components 
+<code>ratio</code>, 
+<code>group</code>, 
+<code>subject</code>, 
+<code>L</code>, 
+<code>Lstar</code>, 
+<code>indices</code>, 
+<code>compressedIndices</code>, 
+and others. 
+See 
+<s-function name="resamp.object.sgm">resamp.object</s-function> 
+for a description of most components. Components particularly relevant 
+are: 
+<s-return-component name="observed">
+vector of length <code>p</code> (the number of variables in <code>data</code>), containing 
+the difference in the statistic computed on each of the two samples, 
+for the original data. 
+</s-return-component>
+<s-return-component name="replicates">
+matrix of dimension <code>B</code> by <code>p</code>, containing the difference 
+in the statistic computed on each the two samples, for each resample. 
+</s-return-component>
+<s-return-component name="estimate">
+data.frame with <code>p</code> rows and columns <code>"Mean"</code>, <code>"Bias"</code> and <code>"SE"</code>. 
+</s-return-component>
+<s-return-component name="bootstrap.objects">
+list containing the two bootstrap objects used to generate the above 
+results. See below. 
+</s-return-component>
+<s-return-component name="ratio">
+this is present only when bootstrapping the ratio between samples; 
+in that case this is the logical value <code>TRUE</code>. 
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+The function <code>bootstrap2</code> 
+causes creation of the dataset <code>.Random.seed</code> if it does 
+not already exist, otherwise its value is updated. 
+</s-side-effects>
+<s-details>
+This function resamples within each of the two treatment samples 
+separately.  The results are logically equivalent to 
+
+<code>bootstrap(data, statistic(data[treatment1,]) - statistic(data[treatment2,]), group = treatment, ...) </code>
+
+although different random sampling is used, 
+and only <code>bootstrap2</code> supports stratified sampling. 
+<p>
+Internally, <code>bootstrap2</code> calls 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+twice, once for each treatment value. 
+<p>
+For comparison, 
+<s-function name="permutationTest2.sgm">permutationTest2</s-function> 
+and 
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function> 
+permute the entire data set 
+and then divide it into two samples before computing the statistic on 
+each sample. 
+</s-details>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="bootstrap2.object.sgm">bootstrap2.object</s-function>.
+
+For more details on many arguments see: 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.
+
+Confidence intervals: 
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.percentile.sgm">limits.percentile</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>.
+
+For a hypothesis test comparing two samples, see: 
+<s-function name="permutationTest2.sgm">permutationTest2</s-function>,  
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+set.seed(0) 
+x <- matrix(rnorm(15*3), 15) 
+treatment <- rep(c(T,F), length=15) 
+bootstrap2(x, statistic = colMeans, treatment = treatment, seed = 1) 
+ 
+# data2 and group arguments 
+set.seed(10) 
+data1 <- data.frame(x = runif(30), g = rep(1:2, c(10, 20))) 
+data2 <- data.frame(x = runif(20), g = rep(1:2, 10)) 
+boot <- bootstrap2(data = data1, statistic = mean(x), data2 = data2, 
+          group = g, L="regression") 
+boot 
+ 
+# twoSample.args 
+boot <- update(boot, 
+          twoSample.args = list( list(seed=5), list(seed=6))) 
+boot 
+boot$bootstrap.objects[[1]] 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

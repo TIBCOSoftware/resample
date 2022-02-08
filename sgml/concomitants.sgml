@@ -1,0 +1,196 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>concomitants</s-topic>
+   <s-topic>concomitants.default</s-topic>
+</s-topics>
+<s-title>
+Concomitants variance reduction 
+</s-title>
+<s-description>
+Adjust an empirical distribution to control for the difference 
+between the difference between the empirical distribution of 
+a covariate and its known distribution.  This is a generic 
+function; methods include: 
+<s-function name="concomitants.bootstrap.sgm">concomitants.bootstrap</s-function> 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+concomitants(x, ...) 
+concomitants(x, y, qfun, args.qfun = NULL, qx = NULL, 
+             df = 3, weights = NULL) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+a vector, containing values of a covariate. 
+</s-arg>
+<s-arg name="...">
+additional arguments, passed to methods.  The remaining arguments 
+here are for the default method, <code>concomitants.default</code>. 
+</s-arg>
+<s-arg name="y">
+a vector, the same length as <code>x</code>, containing the empirical 
+distribution to be adjusted. 
+</s-arg>
+<s-arg name="qfun">
+a quantile function -- <code>qfun(runif(n))</code> should give random values 
+from the known distribution for <code>x</code>. 
+</s-arg>
+<s-arg name="args.qfun">
+a list, containing additional arguments to pass to <code>qfun</code>.  For 
+example, if <code>qfun=qnorm</code>, then this could be <code>list(mean=2, sd=3)</code>. 
+</s-arg>
+<s-arg name="qx">
+vector the same length as <code>x</code>.  Supply either <code>qx</code> or <code>qfun</code>. 
+If supplied, this should contain values from the known distribution 
+for <code>x</code>.  This defaults to <code>qfun(ppoints(n))</code>, where <code>n</code> is the 
+length of <code>x</code>. 
+</s-arg>
+<s-arg name="df">
+scalar real value, giving the degrees of freedom estimating 
+the relationship between <code>x</code> and <code>y</code>.   
+This should be at least <code>2</code>; a linear relationship results if 
+<code>df=2</code>, while a smoothing spline is used for larger values. 
+</s-arg>
+<s-arg name="weights">
+<code>NULL</code> (indicating no weights) or a vector the same length as <code>x</code>, 
+containing probabilities for a weighted distribution of <code>x</code> and <code>y</code>. 
+</s-arg>
+</s-args-required>
+<s-value>
+a vector like <code>y</code>, but adjusted based on the difference between 
+<code>x</code> and <code>qx</code>.  This is basically <code>y</code> plus (prediction for <code>y</code> 
+given <code>qx</code>) minus (prediction for <code>y</code> given <code>x</code>); in the linear 
+case this reduces to <code>y + beta * (qx - x)</code>. 
+<p>
+Methods may return other objects; in particular,  
+<s-function name="concomitants.bootstrap.sgm">concomitants.bootstrap</s-function> 
+returns an object of class <code>concomitants.bootstrap</code> that inherits from  
+<code>"bootstrap"</code>. 
+</s-value>
+<s-details>
+This implementation uses <code>smooth.spline</code> to allow 
+the relationship between <code>x</code> and <code>y</code> to be curvilinear. 
+<p>
+The higher the correlation between <code>x</code> and a smooth monotone 
+transformation of <code>y</code>, the more accurate the result is. 
+With a perfect nonlinear relationship (conditional variance 
+of <code>y</code> given <code>x</code> equal to zero) 
+the result would be 
+equal to <code>qfuny(ppoints(n))</code> where <code>qfuny</code> is the quantile 
+function for <code>y</code> (aside from errors due to imperfect estimation 
+of the nonlinear relationship). 
+<p>
+If weights are present, then we presume that <code>x</code> and <code>y</code> were 
+obtained by importance sampling or some other mechanism that yields 
+weighted samples 
+Let F be the target distribution and G the design distribution for <code>x</code>; 
+i.e. mean(x &lt;= a) ~= G(a) and mean(x &lt;= a, weights=weights) ~= F(a). 
+In this case, <code>qfun</code> should be the inverse of F, and the weighted 
+distribution of <code>qx</code> should be approximately F 
+(the unweighted <code>qx</code> values correspond to G). 
+The output <code>y</code> are values from the weighted distribution for <code>y</code>. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Do, K. and Hall, P. (1992), 
+"Distribution Estimation using Concomitants of Order Statistics, 
+with Application to Monte Carlo Simulation for the Bootstrap," 
+<it>Journal of the Royal Statistical Society</it>
+Series B, <bf>54</bf>(2), 595-607. 
+<p>
+Efron, B. (1990), 
+"More Efficient Bootstrap Computations," 
+<it>Journal of the American Statistical Society,</it>
+<bf>85</bf>, 79-89. 
+<p>
+Hesterberg, T.C. (1995), 
+"Tail-Specific Linear Approximations for Efficient Bootstrap Simulations," 
+<it>Journal of Computational and Graphical Statistics,</it>
+<bf>4</bf>, 113-133. 
+<p>
+Hesterberg, T.C. (1997), 
+"Fast Bootstrapping by Combining Importance Sampling and Concomitants," 
+<it>Computing Science and Statistics,</it>
+<bf>29</bf>(2), 72-78. 
+</s-section>
+<s-see>
+
+<s-function name="concomitants.bootstrap.sgm">concomitants.bootstrap</s-function>,  
+<s-function name="controlVariates.sgm">controlVariates</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+set.seed(0) 
+x <- rnorm(100) 
+y <- .95*x+sqrt(1-.95^2) * rnorm(100) 
+qx <- qnorm(ppoints(100)) 
+adj.y <- concomitants(x, y, qx=qx) 
+ 
+qx.o <- qx 
+qx.o[order(x)] <- qx 
+plot(x, y) 
+arrows(x, y, x2=qx.o, y2=adj.y, size=.05, col=5) 
+# The arrows run from the original unadjusted points to 
+# the adjusted values.  In the original data there are too 
+# many large values of x; given the relationship between 
+# x and y, this probably means that the values of y are 
+# also too large.  The arrowheads are at the adjusted points 
+ 
+# Show the empirical and theoretical values of x 
+axis(3, labels=F, at=x) 
+axis(3, labels=F, at=qx, tck=.02, col=5) 
+ 
+# Show the empirical and adjusted values of y 
+axis(4, labels=F, at=y) 
+axis(4, labels=F, at=adj.y, tck=.02, col=5) 
+ 
+# Normal probabiity plots, for empirical y and adjusted y 
+par(mfrow=c(2,1)) 
+qqnorm(y); abline(0,1) 
+qqnorm(adj.y); abline(0,1) 
+par(mfrow=c(1,1)) 
+# Note that the adjusted values of y are closer to the 
+# exact distribution 
+ 
+# Nonlinear relationship 
+set.seed(1) 
+y <- x + x^2/9 + .05*rnorm(100) 
+plot(x,y) 
+adj.y <- concomitants(x, y, qx=qx, df=4) 
+arrows(x, y, x2=qx.o, y2=adj.y, size=.05, col=5) 
+# The adjustments folow the curve of the relationship 
+axis(3, labels=F, at=x) 
+axis(3, labels=F, at=qx, tck=.02, col=5) 
+axis(4, labels=F, at=y) 
+axis(4, labels=F, at=adj.y, tck=.02, col=5) 
+ 
+# Nonlinear relationship, with weights 
+set.seed(1)  
+y2 <- x2+x2^2/9 +  .05*rnorm(100)  
+adj.y2 <- concomitants(x2, y2, weights = w2, qx=qx2, df=4) 
+plot(x2, y2) 
+arrows(x2, y2, x2=qx2.o, y2=adj.y2, size=.05, col=5)  
+# The adjustments folow the curve of the relationship  
+axis(3, labels=F, at=x2)  
+axis(3, labels=F, at=qx2, tck=.02, col=5)  
+axis(4, labels=F, at=y2)  
+axis(4, labels=F, at=adj.y2, tck=.02, col=5)  
+ 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

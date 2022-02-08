@@ -1,0 +1,308 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>limits.abc</s-topic>
+</s-topics>
+<s-title>
+ABC Confidence Limits
+</s-title>
+<s-description>
+Calculate ABC (Approximate Bootstrap Confidence) limits.
+This is a generic function.
+</s-description>
+<s-usage>
+<s-old-style-usage>
+limits.abc(data, statistic, args.stat = NULL, group = NULL,
+          subject = NULL, probs = c(25, 50, 950, 975)/1000,
+          positive = T,
+          tilt = "exponential", subset.statistic=1:p,
+          assign.frame1 = F, weights = NULL,
+          epsilon = 0.01/n, unbiased = F, returnL = F,
+          save.group, save.subject, subjectDivide = F,
+          modifiedStatistic)
+
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+Some of the arguments to <code>limits.abc</code> are the same as for
+<s-function name="bootstrap.sgm">bootstrap</s-function>.
+See
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>
+for details in addition to those provided below.
+<s-arg name="data">
+data; may be a vector, matrix, or data frame.  Variable naming
+restrictions apply in case <code>data</code> is a data frame
+-- see "Details", below.
+<p>
+Alternately, <code>data</code> may be a <code>bootstrap</code>,
+<code>jackknife</code>, <code>influence</code>,
+or other <code>resamp</code> object.
+In this case, <code>statistic</code> and other
+arguments are not required, instead are assumed to be the same as
+for the earlier object.
+</s-arg>
+<s-arg name="statistic">
+statistic to be calculated;
+a function or expression that returns a vector or matrix.
+Not all expressions work; see below.
+It may be a function which
+accepts data as the first argument and an argument named
+<code>weights</code>;
+other arguments may be passed using <code>args.stat</code>.
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>.
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name
+in the expression,
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression.
+If <code>data</code> is a data frame, the expression may involve variables
+in the data frame.
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="args.stat">
+list of other arguments, if any, passed to <code>statistic</code> when calculating
+the statistic.
+</s-arg>
+<s-arg name="group">
+vector of length equal to the number of observations in <code>data</code>, for
+stratified sampling or multiple-sample problems.
+Sampling is done separately for each group
+(determined by unique values of this vector).
+If <code>data</code> is a data frame, this may be a variable in the data frame,
+or expression involving such variables.
+</s-arg>
+<s-arg name="subject">
+vector of length equal to the number of observations in <code>data</code>;
+if present then subjects
+(determined by unique values of this vector) are resampled rather than
+individual observations.
+If <code>data</code> is a data frame, this may be a variable in the data frame,
+or an expression involving such variables.
+If <code>group</code> is also present, <code>subject</code> must be nested within <code>group</code>
+(each subject must be in only one group).
+</s-arg>
+<s-arg name="probs">
+probabilities for one-sided confidence limits; e.g. c(.025, .975) gives
+a two-sided 95% confidence interval.
+Note that limits are undefined at 0 and 1.
+</s-arg>
+<s-arg name="positive">
+logical, if <code>TRUE</code> then negative weights (for the linear method)
+are changed to zero;
+the resulting intervals may be too narrow.  If <code>FALSE</code> negative
+weights are passed unchanged to the statistic.
+</s-arg>
+<s-arg name="tilt">
+one of "exponential", "ml", "both", or "none",
+indicating whether exponential tilting or maximum likelihood tilting
+versions of the ABC limits should be done in addition to the usual
+linear ABC limits.
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic that was bootstrapped has
+length greater than 1, use this to request intervals for only some
+elements (parameters) of the statistic.
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned
+to frame 1 before evaluating the statistic.
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower).
+</s-arg>
+<s-arg name="weights">
+a vector of length equal to the number of observations (or subjects).
+The empirical influence function is calculated at the empirical
+distribution with these probabilities (normalized to sum to 1)
+on the observations or subjects.  When sampling by subject
+the vector may be named, in which case the names must correspond to
+the unique values of <code>subject</code>.  Otherwise the weights are taken to be
+ordered with respect to the sorted values of <code>subject</code>.
+If <code>data</code> is a data frame, this may be a variable in the data frame,
+or an expression involving such variables.  The default implies equal
+weights.
+<br>
+Weights are not yet supported for ABC inferences; if supplied the
+result is similar to the result of calling
+<s-function name="influence.sgm">influence</s-function>.
+</s-arg>
+<s-arg name="epsilon">
+small value used for numerical evaluation of derivatives.
+A larger value should be used for non-smooth functions.
+</s-arg>
+<s-arg name="unbiased">
+logical value; if <code>TRUE</code> then standard error estimates are computed
+using a divisor of <code>(n-1)</code> instead of <code>n</code>; then squared standard error
+estimates are more nearly unbiased.
+</s-arg>
+<s-arg name="returnL">
+logical flag, if <code>TRUE</code> then only the <code>L</code> matrix is returned, rather
+than the list described below.
+</s-arg>
+<s-arg name="save.group, save.subject">
+logical flags, if <code>TRUE</code> then <code>group</code> and <code>subject</code> vectors, respectively,
+are saved in the returned object.  Both defaults are <code>TRUE</code> if <code>n&lt;=10000</code>.
+</s-arg>
+<s-arg name="subjectDivide">
+logical flag, meaningful only if sampling by subject.  Internal calculations
+involve assigning weights to subjects;
+if <code>TRUE</code> then the weight for each subject is divided among observations
+for that subject before calculating the statistic;
+if <code>FALSE</code> the subject weight is replicated to observations for that subject.
+Also, if <code>TRUE</code> and input weights are supplied for observations
+(as a vector with length equal to the number of observations),
+then initial subject weights are the sums of weights for the observations.
+</s-arg>
+<s-arg name="modifiedStatistic">
+if your <code>statistic</code> is an expression that calls a function with a "hidden"
+<code>weights</code> argument, then pass this to indicate how to call your function.
+See below.
+</s-arg>
+</s-args-optional>
+<s-value>
+object of class <code>c("limits.abc", "influence", "resamp")</code>, with
+components <code>call</code>, <code>observed</code>, <code>L</code>, <code>estimate</code>, <code>n</code>, <code>B</code>, <code>dim.obs</code>,
+and <code>epsilon</code> (see
+<s-function name="influence.object.sgm">influence.object</s-function>
+for components not described below):
+<s-return-component name="abc.limits">
+the ABC confidence limits.
+</s-return-component>
+<s-return-component name="exp.limits, ml.limits">
+if present, these contain the exponential and maximum likelihood
+tilting versions of the ABC limits.
+</s-return-component>
+<s-return-component name="replicates">
+value of <code>statistic</code> evaluated at distance <code>epsilon</code>
+in each direction from <code>weights</code>. If sampling by subject, the rows
+are named with the unique values of <code>subject</code>.
+</s-return-component>
+<s-return-component name="replicates2">
+value of <code>statistic</code> evaluated in the steepest descent directions
+(for each statistic).  These are used to calculate curvature
+of the statistic in that direction, which is component of the bias
+of the statistic.
+</s-return-component>
+<s-return-component name="L">
+the empirical influence function values. If sampling by subject, the rows
+are named with the unique values of <code>subject</code>.
+</s-return-component>
+<s-return-component name="estimate">
+data frame with columns containing the
+mean of the <code>replicates</code>, and estimated bias and standard error.
+In addition, if <code>weights</code> is missing, columns containing
+estimates of acceleration, <code>z0</code>, and <code>cq</code> used by other bootstrap
+procedures.
+</s-return-component>
+</s-value>
+
+<s-details>
+This function shares much code in common with
+<s-function name="influence.sgm">influence</s-function>.
+Calculations involve perturbing the empirical (weighted) distribution
+represented by <code>data</code> and measuring the effect on <code>statistic</code>.
+The statistic is evaluated using a number of different weight
+vectors:
+once with the input weights (or no weights),
+<code>n</code> times in order to estimate the empirical influence function
+and asymptotic bias, and <code>2p</code> times in order to estimate curvature
+in the steepest descent directions for each component of a multivariate
+statistic (where <code>p</code> is the number of components).
+Then the statistic is evaluated again at certain distances from
+the original weights in the steepest descent direction
+(either linearly in that direction, or using tilting), with
+distances determined by the confidence limits desired
+(determined by <code>probs</code>), adjusted for the estimated
+bias, curvature, and skewness of the empirical influence function
+in order to obtain accurate confidence limits.
+<p>
+The name <code>"Splus.resamp.weights"</code> is reserved for internal use by
+<code>influence</code>.  To avoid naming conflicts, that name can not be used as
+a variable name in <code>data</code>, if <code>data</code> is a data frame.
+<p>
+When statistic is an expression, for example
+<code>mean(x)</code>, a modified expression
+<code>mean(x, weights = Splus.resamp.weights)</code> is created.
+Only calls to functions that have an argument named <code>weights</code>
+are modified; e.g. <code>sum(x)/length(x)</code> would fail.
+If your expression calls a function with a "hidden" weights argument,
+e.g. you may pass weights as part of the <code>...</code> list, then
+use the <code>modifiedStatistic</code> argument to specify that, e.g.
+<code>modifiedStatistic = myFun(x, weights = Splus.resamp.weights)</code>.
+An expression such as
+<code>mean(y[a==1])</code> is converted to
+<code>mean(y[a==1], weights = Splus.resamp.weights)</code>
+which will fail because the weights vector was not subscripted along
+with <code>y</code>.
+In cases such as these pass a function that performs the desired
+calculations, or use
+<br>
+<code>modifiedStatistic = mean(y[a==1], weights = Splus.resamp.weights[a==1])</code>
+<p>
+The usual ABC intervals may require evaluating the statistic
+with negative or zero weights.  The "exponential" and "ml" methods always
+use positive weights.
+</s-details>
+
+<s-section name="REFERENCES">
+Davison, A.C. and Hinkley, D.V. (1997),
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press.
+<p>
+Efron, B. and Tibshirani, R.J. (1993),
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall.
+</s-section>
+
+<s-see>
+<s-function name="influence.sgm">influence</s-function>  and
+<s-function name="jackknife.sgm">jackknife</s-function>  do similar calculations.
+
+More details on many arguments, see
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.
+
+Print, summarize, plot:
+<s-function name="print.influence.sgm">print.influence</s-function>,
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>.
+
+Description of a "limits.abc" object, extract parts:
+<s-function name="limits.abc.object.sgm">limits.abc.object</s-function>,
+<s-function name="resampGet.sgm">resampGet</s-function>,
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+Modify a "limits.abc" object:
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see:
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+set.seed(1)
+x <- rcauchy(40)
+limits.abc(x, location.m)
+influence.obj <- influence(x, location.m)
+
+limits.abc(stack.loss, var)
+
+set.seed(0)
+y <- cbind(1:15, runif(15))
+limits.abc(y, cor(y)[2,1])  # gives warning, negative weights
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

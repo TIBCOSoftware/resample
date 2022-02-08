@@ -1,0 +1,603 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>bootstrap.args</s-topic>
+</s-topics>
+<s-title>
+Bootstrap arguments 
+</s-title>
+<s-description>
+Detailed descriptions of arguments to <code>bootstrap</code>; 
+the same arguments are used in many other resampling functions. 
+A shorter description, omitting some arguments, is found in 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+bootstrap(data, statistic, B = 1000, args.stat, 
+          group, subject, 
+          sampler = samp.bootstrap, seed = .Random.seed, 
+          sampler.prob, 
+          sampler.args, sampler.args.group, 
+          resampleColumns, 
+          label, 
+          statisticNames, 
+          block.size = min(100,B), 
+          trace = resampleOptions()$trace, 
+          assign.frame1 = F,  
+          save.indices = &lt;&lt;see below&gt;&gt;, 
+          save.group = &lt;&lt;see below&gt;&gt;, 
+          save.subject = &lt;&lt;see below&gt;&gt;, 
+          statistic.is.random, 
+          group.order.matters = T, 
+          order.matters, 
+          seed.statistic = 500, 
+          L = NULL, model.mat, argumentList,  
+          observed.indices = 1:n, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="data">
+data to be bootstrapped.  May be a vector, matrix, or data frame. 
+Bootstrapping is generally faster if <code>data</code> is an ordinary matrix 
+or vector rather than a data frame. 
+Rows of a data frame or matrix are resampled.
+If <code>data</code> is a data frame or matrix,
+the <code>statistic</code> function or expression must be appropriate for 
+resampled rows.
+If you want to sample in some other way,
+then let `data' be a vector, and let your `statistic' be a function
+that accepts a vector of resampled indices and subscripts your
+data.
+<p>
+May also be the output of a modeling function like <code>lm</code>; 
+see Details below. 
+</s-arg>
+<s-arg name="statistic">
+statistic to be bootstrapped: 
+a function or expression that returns a vector or matrix 
+(not a data frame). 
+<p>
+The statistic may be a function (e.g. <code>mean</code>) which 
+accepts data as the first unmatched argument; other arguments may 
+be passed to the function through <code>args.stat</code>, e.g. 
+<code>args.stat=list(trim=.2)</code>. 
+<p>
+By "unmatched", we mean the first argument that is not given by 
+name in <code>args.stat</code>.  E.g. if your function is <code>f(a,b,...)</code> 
+and you specify <code>args.stat=list(a=3)</code> then the data is passed as the 
+<code>b</code> argument to your function. 
+<p>
+Or the statistic may be an expression such as <code>mean(x, trim=.2)</code>. 
+If the <code>data</code> object has a simple name (e.g. <code>data=x</code>)  
+then use that name (<code>"x"</code>) 
+in the expression, 
+otherwise (e.g. <code>data=df$y</code>) use the name <code>"data"</code> in the expression, 
+e.g. <code>mean(data, trim=.2</code>). 
+<p>
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame, 
+e.g. <code>data=air,statistic=mean(ozone/wind)</code>. 
+<p>
+The following types of expressions are not allowed:  an expression 
+that returns a function or a function name (e.g. <code>statistic = object$fun</code>, where 
+<code>object$fun</code> contains the function <code>function(x) mean(x)</code> or the name 
+<code>mean</code>); an expression  
+that returns an expression (e.g. <code>statistic = object$stat</code>, where 
+<code>object$stat</code> contains the expression <code>mean(x, trim=.2)</code>.   On the other 
+hand, <code>statistic</code> may be the name of a function or an expression.  For 
+example, <code>statistic = fun</code>, where <code>fun</code> contains function(x) 
+mean(x), or <code>statistic = stat.expr</code>, where <code>stat.expr</code> contains 
+<code>mean(x, trim=.2)</code>.  
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="B">
+number of bootstrap resamples to be drawn.  We recommend at least 250 to 
+estimate standard errors and 1000 to estimate percentiles, 
+or at least 2000 for BCa confidence intervals (the last figure is a topic 
+of current research and may change). 
+<br>
+This may be a vector, whose sum is the total number of resamples. 
+In this case the first <code>B[1]</code> samples are generated, then the next 
+<code>B[2]</code>, and so on; also see the <code>sampler.prob</code> argument. 
+</s-arg>
+<s-arg name="args.stat">
+if <code>statistic</code> is a function, a 
+list of other arguments, if any, to pass to <code>statistic</code> when calculating 
+the statistic on the resamples. 
+The names of the list are used as argument names. 
+<p>
+If <code>statistic</code> is an expression, then <code>args.stat</code> 
+a list of objects which should 
+be included in the frame where the expression is evaluated; 
+names of the list are used as object names. 
+e.g. <code>statistic=mean(x,trim=alpha),args.stat=list(alpha=alphaVector[i])</code> 
+indicates that <code>alpha</code> is given the value of <code>alphaVector[i]</code> 
+in a place it can be found when the statistic is evaluated. 
+</s-arg>
+<s-arg name="group">
+vector of length equal to the number of observations in <code>data</code>, for 
+stratified sampling or multiple-sample problems. 
+Sampling is done separately for each group 
+(determined by unique values of this vector), 
+and indices are combined to create a full resample. 
+The statistic is calculated for the resample as a whole. 
+<p>
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables, 
+e.g. <code>data=lung, group=sex</code> or <code>data=lung, group=age&lt;50</code>. 
+</s-arg>
+<s-arg name="subject">
+vector of length equal to the number of observations in <code>data</code>; 
+if present then subjects 
+(determined by unique values of this vector) are resampled rather than 
+individual observations. 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables. 
+If <code>group</code> is also present this must be nested within <code>group</code> 
+(a single subject may not be present in multiple groups). 
+<p>
+If <code>subject</code> is the name 
+of a variable in the data frame 
+(for example <code>data=Orthodont, subject=Subject</code>), 
+then <code>bootstrap</code> makes 
+resampled subjects unique; that is, duplicated subjects in a 
+given resample are assigned distinct <code>subject</code> values in the resampled 
+data frame before the 
+statistic is evaluated; this is useful for longitudinal and other 
+modeling where the statistic expects subjects to have unique values. 
+<p>
+Unique subject values are not assigned if <code>subject</code> is not a variable in the 
+data frame, or if the <code>subject</code> variable is not referred to solely by name; 
+(e.g. <code>subject=Orthodont$Subject</code>  
+<code>subject=Orthodont[,3]</code>, or 
+<code>subject=Orthodont[,"Subject"]</code>) 
+</s-arg>
+<s-arg name="sampler">
+function which generates resampling indices.  The  
+<s-function name="samp.bootstrap.sgm">samp.bootstrap</s-function> 
+function generates simple bootstrap resamples. 
+See  
+<s-function name="samp.bootstrap.sgm">samp.bootstrap</s-function> 
+for other existing samplers, and for details on writing your own 
+sampler.   
+<p>
+<code>sampler</code> may also be an expression such as  
+<code>samp.bootstrap(size = 100)</code>  
+for setting optional arguments to the sampler.  Arguments set in 
+this way override those set by <code>sampler.args</code>.   
+If you do this, do not include the <code>n</code> and <code>B</code> arguments to the sampler; 
+they are generated automatically. 
+</s-arg>
+<s-arg name="seed">
+seed for generating resampling indices; an integer between 0 and 1023, 
+or other legal input to 
+<s-function name="set.seed.sgm">set.seed</s-function>. 
+</s-arg>
+<s-arg name="sampler.prob">
+<code>NULL</code>, vector of probabilities of length <code>n</code> (the number of 
+observations or subjects), or 
+list of the same length as <code>B</code>, each of whose elements 
+is <code>NULL</code> or a vector of length <code>n</code>; the <code>j</code>th element of 
+this list is used for <code>B[j]</code> samples. 
+<p>
+This argument is used to do importance sampling. 
+Sampling is done with specified probabilities, 
+but <code>bootstrap</code> will also create a vector <code>weights</code> 
+which is used when computing estimates (mean, bias, 
+estimates, quantiles, etc.) to counteract 
+the importance sampling bias. 
+The result is that all estimates are for a 
+target distribution of sampling without replacement. 
+In the long run you'll get the same results using importance sampling 
+as with equal-probability sampling; in the short term there may 
+be less Monte Carlo variability, with appropriately chosen probabilities. 
+<p>
+To get estimates for other target distributions (if you want bootstrap 
+distributions that correspond to weighted empirical distributions) use 
+<s-function name="reweight.sgm">reweight</s-function>, 
+as a post-processing step; this may be done whether or not 
+you specified <code>sampler.prob</code>. 
+</s-arg>
+<s-arg name="sampler.args">
+list of additional arguments to pass to <code>sampler</code>. 
+An alternative to passing <code>sampler.args</code> is to give the arguments 
+when calling <code>sampler</code>, see above. 
+</s-arg>
+<s-arg name="sampler.args.group">
+list of length equal to the number of groups. Each 
+component is a list (possibly NULL), containing 
+additional arguments to pass to <code>sampler</code> for that group.  The 
+list <code>sampler.args.group</code> may be named, in which case the names must 
+match the unique values of argument <code>group</code>.  Otherwise the list is 
+assumed to be ordered with respect to the sorted, unique values of 
+<code>group</code>.  Arguments <code>sampler.args</code> and <code>sampler.args.group</code> may be 
+used simultaneously, in which case the values from 
+<code>sampler.args.group</code> take precedence.  
+This is ignored if not sampling by <code>group</code>. 
+<p>
+Suppose you are doing stratified sampling, say with strata sizes 50 
+and 70, and that you want bootstrap samples of size 49 and 69 
+(to avoid downward bias in standard errors).  You may do this 
+using <code>sampler.args = list(list(size=49), list(size=49))</code>. 
+Alternately, you may use <code>sampler.args=list(reduceSize=1)</code>. 
+</s-arg>
+<s-arg name="resampleColumns">
+numerical, logical, or character, for subscripting columns of the data. 
+If supplied, then only those columns of the data are resampled.  This 
+is useful for permutation tests; for example, for a permutation test 
+of the correlation between two variables, permute only one of them. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting.  Otherwise a default label is used when plotting, and no label 
+is used when printing. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+<s-arg name="block.size">
+control variable specifying the number of resamples to calculate at once. 
+<code>bootstrap</code> uses nested <code>for()</code> loops; 
+an outermost loop if <code>B</code> is a vector, 
+a loop over blocks, 
+in which all indices for <code>block.size</code> resamples are generated simultaneously, 
+and an inner loop in which the statistic is calculated for each resample. 
+The tradeoff is that if <code>block.size*n</code> is too large then the matrix 
+of resampling indices may be large, while if <code>block.size</code> is small 
+then random number generators are called more often, which entails 
+extra overhead. 
+<p>
+The <code>block.size</code> argument also affects the quality of some samplers. 
+For example, 
+balanced bootstrapping 
+<s-function name="samp.boot.bal.sgm">samp.boot.bal</s-function> 
+gives balancing done separately within each group of resamples. 
+This is biased, of order O(1/<code>block.size</code>), so increasing <code>block.size</code> 
+reduces the bias. 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether the algorithm should print a message indicating 
+which set of replicates is currently being drawn. 
+The default is determined by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned to frame 
+1 before evaluating the statistic.  This may be necessary if the statistic 
+is reevaluating the call of a model object. 
+If all <code>bootstrap</code> estimates are identical, try setting <code>assign.frame1=T</code>. 
+For examples where this is necessary see 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function>. 
+Note that this slows down the algorithm, and may cause memory use to grow. 
+</s-arg>
+<s-arg name="save.indices">
+either a logical flag indicating whether to return the matrix of resampling indices, 
+the integer <code>2</code> indicating to return a compressed version of the indices, 
+or <code>NULL</code> (the default) indicating to decide based on <code>n</code> and <code>B</code>. 
+If not saved these can generally be recreated, by 
+<s-function name="resampGetIndices.sgm">resampGetIndices</s-function>. 
+Saving them speeds up some later calculations such as for 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function> 
+and 
+<s-function name="jackknifeAfterBootstrap.sgm">jackknifeAfterBootstrap</s-function> 
+that need these indices. 
+By default the indices are saved if <code>n*B &lt;= 20,000</code>, and a compressed 
+version (about 16 times smaller) if <code>n*B &lt;= 500,000</code>. 
+The compressed version is based on frequencies and loses information 
+about the order that observations appear in bootstrap samples, so 
+should be avoided if your statistic depends on the order of the data. 
+</s-arg>
+<s-arg name="save.group">
+logical flag indicating whether to return  the <code>group</code> vector.  Default 
+is <code>TRUE</code> if number of observations is <code>&lt;= 10000</code>, <code>FALSE</code> otherwise. 
+If not saved these can generally be recreated if needed, by 
+<s-function name="resampGetArgument.sgm">resampGetArgument</s-function>. 
+</s-arg>
+<s-arg name="save.subject">
+logical flag indicating whether to return  the <code>subject</code> vector.  Default 
+is <code>TRUE</code> if number of observations is <code>&lt;= 10000</code>, <code>FALSE</code> otherwise. 
+If not saved these can generally be recreated if needed, by 
+<s-function name="resampGetArgument.sgm">resampGetArgument</s-function>. 
+</s-arg>
+<s-arg name="statistic.is.random">
+logical flag indicating whether the statistic itself performs randomization, 
+in which case we need to keep track of two parallel seeds, one for the 
+sampling and one for the statistic.  If this argument is missing, the algorithm 
+attempts to determine if the statistic involves randomization by 
+evaluating it and checking whether the random seed has changed. 
+</s-arg>
+<s-arg name="group.order.matters">
+indicates whether to maintain the order of groups during 
+resampling.  For example, if the data for one group 
+occupy rows 51-100 and 110-115 of <code>data</code> and <code>group.order.matters = T</code>, then 
+data for that group occupy those rows in each resample. 
+Note that if you want group sample sizes different from those of the 
+original sizes you need 
+<code>group.order.matters = F</code> (see Examples, below). 
+Ignored if not sampling by <code>group</code>. 
+</s-arg>
+<s-arg name="order.matters">
+this should be <code>NULL</code> or <code>FALSE</code> for the ordinary bootstrap. 
+If <code>TRUE</code> or character such as <code>"resampling residuals"</code>, 
+then the order of observations matters, 
+and some functions such as 
+<s-function name="limits.bca.sgm">limits.bca</s-function> 
+and 
+<s-function name="limits.tilt.sgm">limits.tilt</s-function> 
+that are only for the ordinary bootstrap are disabled; 
+the character string is printed. 
+This is set by 
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function> 
+when resampling residuals. 
+</s-arg>
+<s-arg name="seed.statistic">
+random number seed to be used for the statistic if it uses randomization. 
+</s-arg>
+<s-arg name="L">
+empirical influence values.   
+This may be 
+a matrix with <code>n</code> rows (number of observations or subjects in <code>data</code>) 
+and <code>p</code> columns (length of the returned statistic). 
+Or it may be a string, one of <code>"jackknife"</code>, <code>"influence"</code>, 
+<code>"regression"</code>, <code>"ace"</code>, or <code>"choose"</code>; the influence function values 
+are then calculated using the coresponding method; see 
+<s-function name="resampGetL.sgm">resampGetL</s-function> 
+and 
+<s-function name="linearApproxReg.sgm">linearApproxReg</s-function>. 
+<code>L="choose"</code> corresponds to calling  
+<s-function name="resampGetL.sgm">resampGetL</s-function> 
+with <code>method=NULL</code>.  
+The default <code>L=NULL</code> corresponds to not computing influence values. 
+Influence values are used by 
+a variety of downstream functions, and can be created as needed if not 
+stored initially.  
+<p>
+If <code>subject</code> is supplied, if <code>L</code> is numerical the rows of <code>L</code> should 
+correspond to the sorted unique values of <code>subject</code> 
+<p>
+In the case of <code>bootstrap</code> when the statistic is either <code>mean</code> 
+or <code>colMeans</code>, there are no additional arguments (like <code>na.rm</code> or <code>trim</code>), 
+and <code>subject</code> is not used, 
+if <code>L</code> is NULL it is set equal to the data. 
+</s-arg>
+<s-arg name="model.mat">
+matrix with <code>n</code> rows, one for each observation or subject, 
+or a formula that defines such a model matrix. 
+If supplied, and <code>L</code> is one of <code>"regression"</code>, or <code>"ace"</code>, 
+then this is used when calculating influence functions values; 
+see 
+<s-function name="linearApproxReg.sgm">linearApproxReg</s-function>. 
+</s-arg>
+<s-arg name="argumentList*">
+list of arguments to bootstrap.  All arguments except <code>data</code>, 
+<code>statistic</code>, <code>group</code>, and <code>subject</code> may be specified in this list, and 
+their values override the values set by their regular placement in the 
+argument list.  
+</s-arg>
+<s-arg name="observed.indices">
+vector of indices; the observed value of the statistic will be 
+computed using these rows of <code>data</code>.  For hierarchical data, the 
+indices are applied to the sorted values of <code>subject</code>.  The default is 
+to use all observations or subjects.  
+</s-arg>
+<s-arg name="...">
+additional arguments which are passed to methods for <code>bootstrap</code>. 
+Currently only the <code>lm</code> method has an extra argument, <code>lmSampler</code>. 
+</s-arg>
+</s-args-optional>
+<s-side-effects>
+If <code>assign.frame1=T</code>, you must be sure that this assignment does not 
+overwrite some quantity of interest stored in frame 1. 
+<p>
+The function causes creation of the dataset <code>.Random.seed</code> if it does 
+not already exist, otherwise its value is updated. 
+</s-side-effects>
+<s-details>
+If <code>statistic</code> is an expression, then 
+<code>bootstrap</code> does 
+<code>eval(statistic, local=list(dataName = (resampled data)))</code> 
+where 
+<code>dataName</code> is either <code>"data"</code> or the name of the original data object. 
+If <code>args.stat</code> is supplied, it should be a list, and <code>eval</code> 
+is called with 
+<code>local=c(list(dataName = (resampled data)), args.stat)</code> 
+<p>
+Special methods are used when <code>data</code> is the output from a modeling 
+function like 
+<s-function name="lm.sgm">lm</s-function>. 
+In this case, the special syntax 
+<br>
+<code>bootstrap(fit, statistic)</code> 
+<br>
+is allowed, where <code>fit</code> is the output of a modeling function.  For example 
+<br>
+<code>fit.lm &lt;- lm(Mileage~Weight, data=fuel.frame)</code> 
+<br>
+<code>bootstrap(fit.lm, coef, B=500, seed=0)</code> 
+<br>
+The results are identical to 
+<br>
+<code>bootstrap(fuel.frame, coef(lm(Mileage~Weight, data=fuel.frame), B=500, seed=0)</code> 
+<br>
+The former invokes the 
+<s-function name="lm.sgm">lm</s-function> 
+method for <code>bootstrap</code>, which is faster. 
+Other modeling methods for bootstrap include 
+<s-function name="glm.sgm">glm</s-function> 
+and 
+<s-function name="censorReg.sgm">censorReg</s-function>. 
+See 
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>, 
+etc. for more details. 
+For consistency the above syntax is 
+allowed for other model fit objects (which have 
+a <code>call</code> component or attribute 
+whose call contains a <code>data</code> argument).  See Examples below. 
+</s-details>
+<s-examples>
+<s-example type = text>
+# Bootstrap a mean; demonstrate summary(), plot(), qqnorm() 
+bootstrap(stack.loss, mean) 
+temp <- bootstrap(stack.loss, mean) 
+temp 
+summary(temp) 
+plot(temp) 
+qqnorm(temp) 
+ 
+# Percentiles of the distribution 
+limits.percentile(temp) 
+ 
+# Confidence intervals 
+limits.bca(temp) 
+limits.bca(temp,detail=T) 
+limits.tilt(temp) 
+ 
+# Here the "statistic" argument is an expression, not a function. 
+stack <- cbind(stack.loss, stack.x) 
+bootstrap(stack, l1fit(stack[,-1], stack[,1])$coef, seed=0) 
+ 
+# Again, but if the data is created on the fly, then 
+# use the name "data" in the statistic expression: 
+bootstrap(cbind(stack.loss, stack.x), 
+          l1fit(data[,-1], data[,1])$coef, seed=0) 
+temp <- bootstrap(stack, var)  # Here "statistic" is a function. 
+parallel(~ temp$replicates)     # Interesting trellis plot. 
+ 
+# Demonstrate the args.stat argument 
+#   without args.stat: 
+bootstrap(stack.loss, mean(stack.loss, trim=.2)) 
+ 
+#   statistic is a function: 
+bootstrap(stack.loss, mean, args.stat = list(trim=.2)) 
+ 
+#   statistic is an expression, object "h" defined in args.stat 
+bootstrap(stack.loss, mean(stack.loss, trim=h), 
+          args.stat = list(h=.2)) 
+ 
+# Bootstrap regression coefficients (in 3 equivalent ways). 
+fit.lm <- lm(Mileage ~ Weight, fuel.frame) 
+bootstrap(fuel.frame, coef(lm(Mileage ~ Weight, fuel.frame))) 
+bootstrap(fuel.frame, coef(eval(fit.lm$call))) 
+bootstrap(fit.lm, coef) 
+ 
+# Bootstrap a nonlinear least squares analysis 
+fit.nls <- nls(vel ~ (Vm * conc)/(K + conc), Puromycin, 
+               start = list(Vm = 200, K = 0.1)) 
+temp.nls <- bootstrap(Puromycin, coef(eval(fit.nls$call)), B=1000) 
+pairs(temp.nls$rep) 
+plot(temp.nls$rep[,1], temp.nls$rep[,2]) 
+contour(hist2d(temp.nls$rep[,1], temp.nls$rep[,2])) 
+image(hist2d(temp.nls$rep[,1], temp.nls$rep[,2])) 
+ 
+# Jackknife after bootstrap 
+jackknifeAfterBootstrap(temp.nls) 
+jackknifeAfterBootstrap(temp.nls, stdev) 
+ 
+# Bootstrap the calculation of a covariance matrix 
+my.x <- runif(2000) 
+my.dat <- cbind(x=my.x, y=my.x+0.5*rnorm(2000)) 
+bootstrap(my.dat, var, B=1000) 
+ 
+# Perform a jackknife analysis. 
+jackknife(stack.loss, mean) 
+ 
+# Two-sample problems 
+# Bootstrap the distribution of the difference of two group means 
+#  (group sizes vary across bootstrap samples) 
+West <- (as.character(state.region) == "West") 
+Income <- state.x77[,"Income"] 
+bootstrap(data.frame(Income, West), 
+          mean(data[ data[,"West"],"Income"]) - 
+          mean(data[!data[,"West"],"Income"])) 
+ 
+# Two-sample problem, using the group argument 
+# (resampling is done separately within "West" and "not West", so 
+#  group sizes are constant across bootstrap samples) 
+bootstrap(Income, mean(Income[West])-mean(Income[!West]), group = West) 
+ 
+# Passing arguments to the sampler (same argument for every group) 
+bootstrap(Income, mean(Income[West])-mean(Income[!West]), group = West, 
+          sampler = samp.bootstrap(size = 100), group.order.matters = F) 
+ 
+# Passing arguments to the sampler (arguments vary by group) 
+bootstrap(Income, mean(Income[West])-mean(Income[!West]), group = West, 
+          sampler.args.group = list("TRUE"=list(size = 100), 
+                                    "FALSE"=list(size = 50)), 
+          group.order.matters = F) 
+ 
+ 
+#Different sampling mechanisms 
+ 
+# Permutation distribution for the difference in two group means, 
+#  under the hypothesis of one population. 
+# Note that either the group or response variable is permuted, not 
+# both. 
+bootObj <- bootstrap(Income, sampler = samp.permute, 
+                     mean(Income[West])-mean(Income[!West])) 
+1 - mean(bootObj$replicates < bootObj$observed)  # one-sided p-value 
+ 
+# Balanced bootstrap 
+bootstrap(stack.loss, mean, sampler=samp.boot.bal) 
+ 
+# Bootstrapping unadjusted residuals in lm (2 equivalent ways) 
+fit.lm <- lm(Mileage~Weight, fuel.frame) 
+resids <- resid(fit.lm) 
+preds  <- predict(fit.lm) 
+bootstrap(resids, lm(resids+preds~fuel.frame$Weight)$coef, B=500, seed=0) 
+bootstrap(fit.lm, coef, lmsampler="resid", B=500, seed=0) 
+ 
+# Bootstrapping other model fit objects: gam 
+fit.gam <-gam(Kyphosis ~ s(Age,4) + Number, family = binomial, 
+              data = kyphosis) 
+bootstrap(fit.gam, coef, B=100) 
+ 
+# Bootstrap when patients have varying number of cases. 
+DF <- data.frame(ID=rep(101:103, c(4,5,6)), x=1:15) 
+DF  # Patient 101 has 4 cases, 102 has 5, 103 has 6. 
+bootstrap(DF, mean(DF$x), subject=ID) 
+ 
+## Importance sampling 
+# 
+importanceSampling <- function(data, statfun, B=1000){ 
+  # Returns a list of arguments (B, sampler.prob and L)  
+  # suitable for using importance sampling during bootstrap. 
+  # 20% of samples with equal probabilities and 40% each from the  
+  # left and right-tilted distributions.  The tilted distributions 
+  # are centered at the .025 and .975 quantiles of the original data.  
+  L <- influence(data, statfun)$L 
+  tau <- saddlepointPSolve(probs=c(.025, .975), L) 
+  weights1 <- tiltWeights(tau[1], L) 
+  weights2 <- tiltWeights(tau[2], L) 
+  list(B = c(.2, .4, .4)*B,  
+       sampler.prob = list(NULL, weights1, weights2),  
+       L = L) 
+} 
+set.seed(3) 
+x <- rmvnorm(40, d=2, rho=.5) 
+statfun <- function(x, weights = NULL)  
+  cor(x[,1], x[,2], weights = weights) 
+bootstrap(x, statfun, argumentList = importanceSampling(x, statfun)) 
+   
+ 
+## Run in background 
+For(1, temp <- bootstrap(stack.loss, mean, B=1000), wait=F) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

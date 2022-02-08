@@ -1,0 +1,81 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>cdf.resamp</s-topic>
+</s-topics>
+<s-title>
+Cumulative Distribution Function 
+</s-title>
+<s-description>
+Empirical cumulative distribution function. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+cdf(x, q, weights = x$weights, na.rm=F, normalize=T) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+a <code>resamp</code> object; the <code>replicates</code> component is extracted and passed 
+to the usual 
+<s-function name="cdf.sgm">cdf</s-function> 
+default method. 
+</s-arg>
+<s-arg name="q">
+numerical, values at which to compute the distribution function. 
+This may also be a matrix with <code>p</code> columns (where  
+<code>x$replicates</code> has <code>B</code> rows and <code>p</code> columns). 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="weights">
+a vector of length <code>B</code>, containing non-negative weights 
+(probabilities) 
+to define a distribution function with unequal jumps. 
+The weights are normalized to sum to 1. 
+</s-arg>
+<s-arg name="na.rm">
+if <code>TRUE</code>, missing values (<code>NA</code>) in <code>x</code> or <code>weights</code> cause 
+the corresponding observations to be removed. 
+If <code>FALSE</code>, missing values in <code>x</code> and <code>weights</code> are an error. 
+</s-arg>
+<s-arg name="normalize">
+if <code>FALSE</code>, then return the number (rather than proportion) 
+of the <code>x</code> values less than or equal to each q, 
+or the sum of the corresponding unnormalized weights. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix with <code>length(q)</code> rows and <code>p</code> columns, column <code>j</code> 
+containing F(<code>q</code>), where F is 
+the empirical distribution function defined by column <code>j</code> of <code>x$replicates</code>. 
+Missing values in <code>q</code> cause missing values in the result. 
+</s-value>
+<s-see>
+
+<s-function name="cdf.sgm">cdf</s-function>,  
+<s-function name="pdiscrete.sgm">pdiscrete</s-function>,  
+<s-function name="quantile.sgm">quantile</s-function>,  
+<s-function name="plotCDF.sgm">plotCDF</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+boot <- bootstrap(1:9, mean) 
+cdf(boot, 3:7) 
+cdf(boot$replicates, 3:7) 
+cdf(boot, boot$observed) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

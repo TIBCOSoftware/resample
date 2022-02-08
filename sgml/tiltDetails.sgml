@@ -1,0 +1,253 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>tiltDetails</s-topic>
+</s-topics>
+<s-title>
+Details on tilting formulae 
+</s-title>
+<s-description>
+Here are details of tilting formula for exponential and 
+maximum-likelihood tilting, particular for multiple groups 
+(e.g. two-sample problems, or stratified sampling). 
+These formulae are used in multiple functions, including: 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+tiltMean(tau, L, tilt="exponential", weights, group,  
+              lambda = NULL, ...) 
+tiltMeanSolve(q, L, tilt="exponential", weights, group, ...) 
+               
+tiltWeights(tau, L, tilt="exponential", weights, group, lambda, ...) 
+ 
+saddlepointP(tau, L, ..., weights, group, ...) 
+saddlepointPSolve(p, L, ..., weights, group, ...) 
+ 
+tiltBootProbs(tau, boot.obj, tilt="exponential", ..., L, group, ...) 
+limits.tilt(boot.obj, probs, L, ..., group, ...) 
+ 
+revSaddlepointP(tau, L, tilt = "exponential", weights, group, ...) 
+revSaddlepointPSolve(probs, L, tilt = "exponential", weights, group, ...) 
+ 
+</s-old-style-usage>
+</s-usage>
+<s-section name=" Dimensions">
+
+We use the following dimensions below: 
+<p>
+  N = sample size (number of observations in the orignal data) 
+  B = number of bootstrap samples 
+  P = number of statistics (e.g. number of regression coefficients). 
+      Often equal to 1 
+  K = number of tilting parameters, quantiles, or probabilities; 
+      e.g. for a simple confidence interval K=2, for lower and upper tails. 
+      Often equal to 1. 
+  G = number of groups (in multiple-sample problems, or strata) 
+<p>
+Then for example "vector <code>[N]</code>" is short for "a vector of length <code>N</code>", and 
+"matrix <code>[N,P]</code>" indicates an <code>N</code> by <code>P</code> matrix. 
+</s-section>
+<s-args>
+<s-arg name="L">
+vector <code>[N]</code> of values or matrix <code>[N,1]</code> 
+which determine a discrete distribution, or 
+a matrix <code>[N,P]</code> of values with each column giving 
+a different distribution.  Only <code>limits.tilt</code> supports the latter, 
+and it gives results equivalent to calling it with one column at 
+a time. 
+<p>
+These are typically empiricial influence values; see 
+<s-function name="resampGetL.sgm">resampGetL</s-function> 
+for available methods for calculating this. 
+</s-arg>
+<s-arg name="tau">
+vector <code>[K]</code> of tilting parameters.   
+Each value determines a single weighted distribution. 
+Values of <code>tau</code> above zero place more weight on the rightmost 
+values of <code>L</code>,  
+and conversely for negative <code>tau</code>. 
+</s-arg>
+<s-arg name="tilt">
+one of "exponential" or "ml", for exponential or maximum likelihood tilting, 
+respectively.  Only exponential tilting is used for saddlepoint calculations. 
+</s-arg>
+<s-arg name="weights">
+<code>NULL</code>, or vector <code>[N]</code> of weights, if the discrete distribution has 
+unequal probabilities on the values (before tilting). 
+</s-arg>
+<s-arg name="group">
+<code>NULL</code>, or vector <code>[N]</code> indicating stratified sampling or 
+multiple-group problems; unique values of this vector determine groups.  
+</s-arg>
+<s-arg name="lambda">
+matrix <code>[G,K]</code> (a vector is allowed if <code>K==1</code>) 
+containing normalizing constants for maximum 
+likelihood tilting with groups (see DETAILS, below).  These are 
+computed if not provided.   A warning is 
+issued if these do not result in tilting weights that sum to 1 in each 
+group.  If <code>lambda</code> has row names they must match the unique values 
+of <code>group</code>; otherwise the order of rows  
+should match the sorted unique values of <code>group</code>.  
+</s-arg>
+<s-arg name="q">
+vector <code>[K]</code> of desired tilted means (weighted means, with weights determined 
+by tilting); solve for <code>tau</code>. 
+</s-arg>
+<s-arg name="p">
+vector <code>[K]</code> of desired probabilities (saddlepoint estimates); 
+solve for <code>tau</code>. 
+</s-arg>
+<s-arg name="probs">
+vector <code>[K]</code> of desired probabilities for one-sided bootstrap tilting 
+confidence intervals; solve for <code>tau</code>, calculated tilted weights, 
+then calculate statistic for the weighted distribution. 
+</s-arg>
+<s-arg name="...">
+other arguments to the functions; see the respective help files 
+for these arguments. 
+</s-arg>
+</s-args>
+<s-details>
+Consider first the simplest case,  
+where the statistic of interest is scalar (<code>P=1</code>) 
+for a single sample with no stratified sampling (<code>G=1</code>), 
+and a single value of <code>tau</code> (<code>K=1</code>). 
+<code>L</code> should be a vector or column 
+matrix with <code>N</code> elements. 
+Then exponential 
+tilting places probability 
+<verb>
+    c weights * exp((L-Lbar) * tau) 
+</verb>
+on the values in <code>L</code>, where <code>Lbar</code> is the weighted mean of <code>L</code> 
+and <code>c</code> is a normalizing constant. 
+Maximum likelihood tilting places probabilities 
+<verb>
+    c weights / (1 - (L-Lbar) * tau) 
+</verb>
+For both maximum likelihood and exponential tilting, results are 
+normalized to sum to 1.  
+<p>
+The <code>"ml"</code> weights are empirical maximum likelihood weights, that 
+maximize the product of probabilities subject to the weighted mean 
+matching a specified value. 
+<p>
+Note that in order for the <code>"ml"</code> weights to be positive, the values of 
+<code>tau</code> are restricted to the interval <code>1/range(L-Lbar)</code>.   
+If <code>tau</code> is outside of the 
+acceptable range, the corresponding returned weights are set to 
+<code>NA</code>.  
+</s-details>
+<s-section name=" Multiple Samples or Stratified Sampling">
+
+When <code>group</code> is supplied (for multiple-sample or stratified sampling  
+applications), if there is only one group then results are equivalent 
+to the case without groups. 
+<p>
+With multiple groups, 
+exponential tilting weights are equal to  
+<verb>
+    c[g] weights[gi] * exp((L[gi] - Lbar[g]) * tau * N / N[g]) 
+</verb>
+where <code>g</code> indicates the <code>g</code>th group, 
+<code>N[g]</code> is the size of group <code>g</code>, 
+<code>Lbar[g]</code> the (weighted) mean of group <code>g</code>, 
+<code>[gi]</code> indicates the <code>i</code>th observation in group <code>g</code>, 
+and 
+<code>c[g]</code> are normalizing constants so the tilted weights sum to 1 in each group. 
+(Note that <code>weights</code> and <code>L</code> are still vectors.) 
+<p>
+This is equivalent to using a tilting parameter 
+of <code>tau[g]=tau*N/N[g]</code> in group <code>g</code>. 
+<p>
+Maximum likelihood weights for the multiple group case use a different 
+parameterization. 
+In this case weights are equal to  
+<verb>
+    weights[gi] / (lambda[g] - (L[gi] - Lbar[g]) * tau * N / N[g]) 
+</verb>
+Here, <code>lambda[g]</code> are normalizing constants so that weights sum to 1 in 
+each group, and the prior weights <code>weights[gi]</code> must sum to 1 
+in each group (in other cases prior weights need not be normalized). 
+Newtons method is used to solve for <code>lambda[g]</code> given <code>tau</code>.   
+<p>
+The parameterization involving <code>lambda</code> could be used in the single-group 
+case, but is less convenient to work with, as it typically requires  
+numerically solving two equations in two unknowns.   
+The other parameterization 
+requires solving for only a single unknown, <code>tau</code> 
+(there is also a normalizing 
+constant, but it does not require a numerical search). 
+In the multiple group case, the appropriate optimization 
+problem for ML tilting does not yield a closed-form relationship 
+between the <code>tau[g]</code> values for different groups when the usual 
+parameterization is used.  Using the <code>lambda</code> parameterization, 
+the relationship is that <code>tau[g]=t/N[g]</code>, for some constant <code>t</code>. 
+The same relationship holds for exponential tilting. 
+We then use the form <code>tau[g] = tau / (N[g]/N)</code> for consistency with 
+the case of only a single group. 
+</s-section>
+<s-section name=" Vector tau">
+
+Except for <code>tiltWeights</code> 
+Most of the functions listed above are vectorized; <code>tau</code> or other arguments 
+(<code>q</code>, <code>p</code>, <code>probs</code>) may be vectors <code>[K]</code>, with each value 
+determining a different tilted mean, confidence level, etc. 
+The above formulae are applied on one of the <code>K</code> values at a time. 
+</s-section>
+<s-section name=" Multivariate Case">
+
+The code does not currently handle the true multivariate case, 
+where the statistic is vector-valued, 
+<code>L</code> is an <code>[N,P]</code> matrix, <code>tau</code> a vector <code>[P]</code>, 
+and tilting should be done based 
+on a linear combination of the variables in <code>L</code>. 
+<p>
+Most calculations one 
+would perform in this case can be done using matrix multiplication 
+to reduce to the univariate case; e.g.  
+<code>tiltWeights(tau=1, L=myL %*% mytau)</code> computes weights based on 
+the linear combination of influence values <code>myL</code> and tilting vector 
+<code>mytau</code>. 
+</s-section>
+<s-section name=" Relationships">
+
+For scalar <code>tau</code> 
+<verb>
+tiltMean(tau, L, ...) = colMeans(L, weights = tiltWeights(tau, L, ...)) 
+</verb>
+For <code>tiltMeanSolve</code>, tilting parameters (and potentially <code>lambda</code>) are 
+found so that the above equals <code>q</code>.  
+</s-section>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. (2003), 
+"Tilting Calculations for Resampling Inferences and Approximations", 
+Research Report No. 103.
+</s-section>
+<s-see>
+
+<s-function name="tiltMean.sgm">tiltMean</s-function>,  
+<s-function name="tiltMeanSolve.sgm">tiltMeanSolve</s-function>,  
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>,  
+<s-function name="saddlepointP.sgm">saddlepointP</s-function>,  
+<s-function name="saddlepointPSolve.sgm">saddlepointPSolve</s-function>,  
+<s-function name="tiltBootProbs.sgm">tiltBootProbs</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="revSaddlepointP.sgm">revSaddlepointP</s-function>.  </s-see>
+<s-keywords>
+<s-keyword>distribution</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

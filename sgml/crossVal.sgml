@@ -1,0 +1,288 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>crossValidation</s-topic>
+   <s-topic>crossValidation.default</s-topic>
+   <s-topic>crossValidation.formula</s-topic>
+</s-topics>
+<s-title>
+Cross-validation 
+</s-title>
+<s-description>
+Performs cross-validation; i.e., fits a model with certain observations left 
+out and forms predictions for the observations that were left out, thus 
+allowing a more accurate estimate of prediction error (compared with 
+the sample prediction error of the model fitted to the entire data set). 
+The <code>crossValidation</code> function is generic (see Methods); method 
+functions can be written to handle specific classes of 
+data. Classes which already have methods for this function include: 
+<br>
+<code>formula</code> 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+crossValidation(x, &lt;&lt;y or data&gt;&gt;, 
+         modelFit, K = n, args.modelFit = NULL, 
+         predFun = &lt;&lt;see below&gt;&gt;, args.predFun = NULL, 
+         passOldData.predFun = F, 
+         errFun = &lt;&lt;see below&gt;&gt;, args.errFun = NULL, 
+         seed =.Random.seed, label, 
+         trace = resampleOptions()$trace, assign.frame1 = F, 
+         save.indices = F) 
+crossValidation.default(x, y, 
+         &lt;&lt;modelFit and subsequent arguments&gt;&gt;) 
+crossValidation.formula(x, data, 
+         &lt;&lt;modelFit and subsequent arguments&gt;&gt;) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+For <code>crossValidation.default</code>, a data frame or matrix containing 
+the explanatory variables. 
+For <code>crossValidation.formula</code>, a formula object that specifies the model, with 
+the response on the left of a <code>~</code> operator and the explanatory terms, 
+separated by <code>+</code> operators, on the right. 
+</s-arg>
+<s-arg name="y">
+the response variable. 
+</s-arg>
+<s-arg name="data">
+data frame used to fit the model. 
+</s-arg>
+<s-arg name="modelFit">
+function that fits the model under consideration. 
+<p>
+For <code>crossValidation.formula</code>: 
+the function must accept a formula as its first argument, 
+and have a <code>data</code> argument; 
+e.g. <code>modelFit(x, data=data)</code>. 
+<p>
+For <code>crossValidation.default</code>: this function must take arguments <code>x</code> and <code>y</code>, 
+not necessarily in that order. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="K">
+number of groups to be formed.  Each group is left out once, 
+the model fit with the remaining data, and predictions made for observations 
+within the group.  Default value is the number of observations 
+(leave-one-out cross-validation). 
+</s-arg>
+<s-arg name="args.modelFit">
+list of arguments to pass to <code>modelFit</code> when fitting the model. 
+</s-arg>
+<s-arg name="predFun">
+function that returns predicted values for a given model 
+object and new data values.   
+The first two arguments to this function  
+are the model object and new data (except see Details below). 
+The default is a version of <code>predict</code>. 
+</s-arg>
+<s-arg name="args.predFun">
+list of additional arguments to pass to <code>predFun</code> 
+when calculating predicted values. 
+</s-arg>
+<s-arg name="passOldData.predFun">
+logical flag indicating if the prediction algorithm refits 
+the original model.  If so, the training data must be passed to 
+the prediction function; this is done with an assignment to frame 1. 
+</s-arg>
+<s-arg name="errFun">
+function that computes a measure of error, based on actual values 
+of the response variable and fitted values. 
+The first two arguments to this function are the actual and fitted values 
+(except see Details below). 
+The default computes squared error. 
+</s-arg>
+<s-arg name="args.errFun">
+list of arguments to pass to the function given in <code>errFun</code> 
+when calculating the prediction error. 
+</s-arg>
+<s-arg name="seed">
+seed for randomly choosing group membership.  May be a legal random number 
+seed or an integer between 0 and 1023 which is passed to <code>set.seed</code>. 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing. 
+</s-arg>
+<s-arg name="trace">
+logical flag indicating whether the algorithm should print a message indicating 
+which cross-validation group is currently being processed. 
+The default is determined by 
+<s-function name="resampleOptions.sgm">resampleOptions</s-function>. 
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before fitting the model. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="save.indices">
+logical flag indicating whether to save the indices.  See 
+return component <code>indices</code> below. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <code>crossValidation</code>, with the following components: 
+
+<s-return-component name="call">
+the call to <code>crossValidation</code>, but with all the arguments explicitly named. 
+</s-return-component>
+<s-return-component name="fitted">
+the values fitted in the cross-validation routine, listed in order of 
+the original observations. 
+</s-return-component>
+<s-return-component name="K">
+the number of groups that were formed. 
+</s-return-component>
+<s-return-component name="err">
+the prediction error, averaged over all cases. 
+</s-return-component>
+<s-return-component name="seed.start">
+the initial value of the random seed for dividing the data into groups, 
+in the same format as <code>.Random.seed</code>. 
+</s-return-component>
+<s-return-component name="seed.end">
+the final value of the random seed, after the groups have all 
+been generated, in the same format as <code>.Random.seed</code>. 
+</s-return-component>
+<s-return-component name="indices">
+optionally, a vector of length equal to the sample size, containing integer 
+values corresponding to group numbers; e.g. if <code>indices[2] = 4</code>, the second 
+observation was placed in the fourth group for cross-validation. 
+</s-return-component>
+<s-return-component name="label">
+optionally, a label to be used for printing. 
+</s-return-component>
+<s-return-component name="defaultLabel">
+a default label constructed from the call, may be used for printing. 
+</s-return-component>
+</s-value>
+
+<s-side-effects>
+To avoid scoping problems, the model fitting function is assigned to frame 
+1 using the name <code>modelFit</code>.  If <code>passOldData.predFun=T</code>, the prediction 
+algorithm assigns the training data to frame 1 using the name <code>oldData</code>. 
+(Note that <code>passOldData.predFun</code> gets set to <code>T</code> automatically when <code>gam</code> 
+is used.) If <code>assign.frame1=T</code>, the data is assigned to frame 1 using 
+the name of the data frame or the name <code>data</code>.  You must be sure that 
+these assignments to frame 1 do not overwrite some quantity of interest 
+stored in frame 1. 
+</s-side-effects>
+<s-details>
+Performs cross-validation modeling for a wide scope of expressions. 
+The algorithm samples by leaving out certain rows of a data frame or matrix, 
+so this function is not generally applicable to grouped-data problems that 
+use modeling functions like <code>lme</code> and <code>nlme</code>, unless you use the <code>subject</code> 
+variable. 
+<p>
+Normally the first two arguments to <code>predFun</code> are the model object 
+and new data.  Most methods for <code>predict</code> (the default <code>predFun</code>) 
+satisfy this. 
+However, <code>predict.censorReg</code> currently has 
+first four arguments <code>object, p, q, newdata</code>.   
+To use this, you could either write your 
+own <code>predFun</code> which calls <code>predict.censorReg</code> with arguments in a different 
+order, or supply  
+<code>args.predFun = list(p=c(.1,.5,.9),q=NULL)</code>; 
+this results in internal calls of the form 
+<code>predict(model object, new data, p=c(.1,.5,.9), q=NULL)</code>. 
+Because named arguments (<code>p</code> and <code>q</code>) take precedence, the new 
+data will end up being used as the fourth argument to 
+<code>predict.censorReg</code>, as desired. 
+<p>
+Similarly, the first two arguments to <code>errFun</code> are normally the 
+actual and fitted values of the response variable, but these may be 
+displaced to later positions by named arguments in <code>args.errFun</code>. 
+<p>
+The combination of <code>predFun</code> and <code>errFun</code>, and their arguments, 
+should be appropriate for your model. 
+For example, in a logistic regression (<code>glm</code> with <code>family=binomial</code>), 
+<code>args.predFun=list(type="response")</code> puts predictions on the 
+probability scale, and <code>errFun</code> could compute a weighted sum of squares. 
+The defaults are appropriate for the usual linear least-squares regression. 
+</s-details>
+
+<s-section name=" REFERENCES">
+Stone, M. (1974), 
+"Cross-validatory choice and assessment of statistical predictions," 
+<it>Journal of the Royal Statistical Society,</it>
+Ser. B, 
+<bf>36</bf>, pp. 111-147. 
+<p>
+Breiman L., Friedman J.H., Olshen R.A., and Stone, C.J. (1984), 
+<it>Classification and Regression Trees,</it>
+Wadsworth International Group, Belmont CA. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+
+<s-see>
+<s-function name="bootstrapValidation.sgm">bootstrapValidation</s-function>,  
+<s-function name="resamp.object.sgm">resamp.object</s-function>,  
+<s-function name="update.sgm">update</s-function>.  <p>
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+crossValidation(ozone ~ ., air, lm, K = 10) 
+ 
+crossValidation(skips ~ ., data = solder2, glm, 
+  K = 10, args.modelFit = list(family = poisson)) 
+ 
+# crossValidation.default method 
+crossValidation(air$wind, air$ozone, smooth.spline, K = 10, predFun = 
+ function(object, newdata) predict(object, x = newdata)$y) 
+ 
+# model selection with smooth.spline 
+attach(air) 
+plot(ozone,temperature) 
+tempErr <- rep(NA, 11) 
+for(i in 1:11){ 
+  res <- crossValidation(ozone, temperature, 
+    smooth.spline, args.modelFit = list(df = i+1), 
+    predFun = function(object, newdata){ predict(object, 
+    x = newdata)$y}, K = 10) 
+  tempErr[i] <- res$error 
+  } 
+argminErr <- which(tempErr == min(tempErr))[1] + 1 
+lines(smooth.spline(ozone,temperature, df = argminErr)) 
+# note: this simple example ignores the variability 
+# in the CV estimates, and just picks the 
+# minimum error as the winner 
+ 
+crossValidation(NOx ~ C * E, data = ethanol, loess, K = 10, 
+  args.modelFit = list(span = 1/2, degree = 2, 
+  parametrix = "C", drop.square = "C", 
+  control = loess.control("direct"))) 
+ 
+crossValidation(ozone^(1/3) ~ radiation + s(wind, df = 3), 
+  data = air, modelFit = gam, K = 10) 
+ 
+# supply the prediction function 
+crossValidation(ozone ~ ., air, lm, K = 10, predFun = 
+  function(object, newdata, se.fit) predict.lm(object, 
+  newdata, se.fit = T)$fit) 
+ 
+# supply the error function 
+crossValidation(ozone ~ ., air, lm, K = 10, errFun = 
+  function(y, fitted) sum((y - fitted)^2)) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

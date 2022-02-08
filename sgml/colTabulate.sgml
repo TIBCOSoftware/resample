@@ -1,0 +1,64 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>colTabulate</s-topic>
+</s-topics>
+<s-title>
+Column summary 
+</s-title>
+<s-description>
+Tabulate each column of a matrix 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+colTabulate(bin, nbins = max(bin), weights = NULL) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="bin">
+matrix of bin numbers, values between <code>1</code> and <code>nbins</code>, inclusive. 
+Missing values are not accepted. 
+</s-arg>
+<s-arg name="nbins">
+maximum number of bins, at least as large as <code>max(bin)</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="weights">
+if supplied, numeric vector with length equal to the number of rows in <code>bin</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix with <code>nbins</code> rows and the same number of columns as <code>bin</code>. 
+The <code>[i,j]</code> element of the value is 
+the number of <code>i</code>s that occured in <code>bin[,j]</code>. 
+The result is equivalent to <code>apply(bin, 2, tabulate, nbins=max(bin))</code>, 
+except that column names are ignored. 
+<p>
+Or, if <code>weights</code> is supplied, the [i,j] element of the value 
+is the sum of <code>weights</code> for observations with <code>bin[,j] == i</code>. 
+</s-value>
+<s-see>
+
+<s-function name="tabulate.sgm">tabulate</s-function>,  
+<s-function name="apply.sgm">apply</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+colTabulate(cbind(rep(1:4, 4:1), rep(1:2, each=5))) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>array</s-keyword>
+<s-keyword>manip</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

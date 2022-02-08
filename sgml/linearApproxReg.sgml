@@ -1,0 +1,188 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>linearApproxReg</s-topic>
+</s-topics>
+<s-title>
+Calculate linear approximations using regression on bootstrap samples 
+</s-title>
+<s-description>
+Calculate regression approximation to influence function values, 
+using bootstrap (or other resampling) replicates and indices. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+linearApproxReg(replicates, indices, n=max(indices), 
+                model.mat, formula, data, 
+                group, subject, weights, 
+                transform=T, df=3, details=T, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="replicates">
+matrix containing the bootstrapped statistic values, 
+with <code>B</code> rows (the number of bootstrap samples) and 
+one or more columns (for univariate or multivariate statistics). 
+</s-arg>
+<s-arg name="indices">
+matrix containing resampling indices, with <code>B</code> columns, 
+and normally with <code>n</code> rows (the number of observations or subjects 
+in the original data). 
+</s-arg>
+<s-arg name="n">
+number of observations (or subjects, if sampling by subject). 
+By default this is set to <code>max(indices)</code>, but it is better to supply it. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="model.mat">
+model matrix, with one row for each observation (or subject) and columns 
+which together will yield a high multiple correlation with the statistic 
+of interest. 
+</s-arg>
+<s-arg name="formula">
+a formula object, with the response on the left of a <code>~</code> 
+operator, and the terms, separated by <code>+</code> operators, on the 
+right.  Used to create the model matrix; if supplied then <code>model.mat</code> 
+is ignored. 
+</s-arg>
+<s-arg name="data">
+a data.frame in which to interpret the variables named in the 
+formula. 
+</s-arg>
+<s-arg name="group">
+the <code>group</code> vector, if the original resampling was by group. 
+</s-arg>
+<s-arg name="subject">
+the <code>subject</code> vector, if the original resampling was by subject. 
+</s-arg>
+<s-arg name="weights">
+vector of length <code>B</code>, importance sampling weights. 
+</s-arg>
+<s-arg name="transform">
+logical, if <code>TRUE</code> (the default) then after an initial regression 
+transform the response variable (the replicates) to obtain a more 
+linear relationship with the predicted values, and perform a second 
+regression. 
+</s-arg>
+<s-arg name="df">
+degrees of freedom to for the transformation; this is passed to 
+<s-function name="smooth.spline.sgm">smooth.spline</s-function>. 
+</s-arg>
+<s-arg name="details">
+logical, if <code>TRUE</code> (the default) then attach the multiple correlation 
+of the (transformed) <code>replicates</code> and the predicted values as an 
+attribute when returning the linear approximation values. 
+</s-arg>
+<s-arg name="...">
+not currently used. 
+</s-arg>
+</s-args-optional>
+<s-value>
+vector or matrix containing 
+approximate empirical influence function values for each data point. 
+<p>
+In the univariate case a vector <code>L</code> such that 
+<br>
+        <code>replicates[i] ~= c + mean(L[indices[,i]])</code> 
+<br>
+where <code>c</code> is the statistic value for the observed data. 
+<p>
+In the multivariate case this relationship holds for each column. 
+<p>
+There are <code>n</code> rows, where <code>n</code> is the original number of observations 
+or subjects; and <code>p</code> columns, where the 
+statistic is <code>p</code>-valued.   In the subject case the 
+rows names of the result are the unique values of the 
+<code>subject</code> argument taken from the call to 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="jackknife.sgm">jackknife</s-function>. 
+<p>
+The results are normalized to sum to zero 
+(by group, if sampling by <code>group</code>; see below). 
+<p>
+If <code>details==TRUE</code> the result has a 
+<code>"correlation"</code> attribute giving the multiple correlation between 
+(transformed) bootstrap replicates and the linear approximation. 
+</s-value>
+<s-details>
+This function is normally called by <code>resampGetL.bootstrap</code>, but may 
+also be called directly. 
+<p>
+The <code>model.mat</code> matrix should have one row for each observation 
+(or for each subject). 
+An initial column of 1's is optional (it is added if not present). 
+It should contain columns which together 
+have a high "multiple correlation" with the statistic of interest. 
+For example, if the statistic is <code>var(x)</code>, then <code>cbind(x, x^2)</code> 
+or <code>cbind(x, (x-mean(x))^2)</code> would be suitable. 
+Here  "multiple correlation" is between 
+the original bootstrapped statistic (<code>replicates</code>) 
+and the (multivariate) bootstrapped sample means of the model matrix, 
+using the same bootstrap indices. 
+In other words, you can view each column of the model matrix as a set 
+of data whose sample mean is bootstrapped; these sample means 
+should have high multiple correlation with the actual statistics 
+in order for the resulting linear approximations to be accurate. 
+<p>
+The <code>indices</code> argument normally has <code>n</code> rows. 
+However, it may have more or less, when bootstrap sampling with size 
+not equal to the original sample size. 
+Or, in permutation testing for two-sample problems, this may be 
+the indices corresponding to just one of the samples. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Application,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+<p>
+Hesterberg, T.C. (1995), 
+"Tail-Specific Linear Approximations for Efficient Bootstrap Simulations," 
+<it>Journal of Computational and Graphical Statistics,</it>
+<bf>4</bf>, 113-133. 
+<p>
+Hesterberg, T.C. and Ellis, S.J. (1999), 
+"Linear Approximations for Functional Statistics in Large-Sample Applications," 
+Technical Report No. 86, 
+http://www.insightful.com/Hesterberg 
+</s-section>
+<s-see>
+
+<s-function name="resampGetL.sgm">resampGetL</s-function>,  
+<s-function name="influence.sgm">influence</s-function>,  
+<s-function name="bootstrap.sgm">bootstrap</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+### Example: correlation for bivariate data 
+set.seed(1); x <- rmvnorm(100, d=2, rho=.5) 
+bfit2 <- bootstrap(x, cor(x[,1], x[,2]), save.indices=T) 
+L1 <- resampGetL(bfit2)  # "ace" method 
+L2 <- resampGetL(bfit2, model.mat = cbind(x, x^2, x[,1]*x[,2])) 
+L3 <- linearApproxReg(bfit2$replicates, bfit2$indices) 
+L4 <- linearApproxReg(bfit2$replicates, bfit2$indices, 
+                      model.mat = cbind(x, x^2, x[,1]*x[,2])) 
+# L1 and L3 are identical; L2 and L4 are identical. 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

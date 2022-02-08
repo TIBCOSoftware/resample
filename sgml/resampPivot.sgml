@@ -1,0 +1,105 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampPivotT</s-topic>
+   <s-topic>resampPivotDiff</s-topic>
+   <s-topic>resampPivotRatio</s-topic>
+</s-topics>
+<s-title>
+Pivotal statistics, for bootstrap-t confidence intervals 
+</s-title>
+<s-description>
+These functions are input to 
+<s-function name="bootstrapT.sgm">bootstrapT</s-function> 
+and consist of a list of two functions, <code>pivot</code> and <code>inverse</code>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampPivotT 
+resampPivotDiff 
+resampPivotRatio 
+   each have two components, functions with these arguments: 
+pivot(replicates, observed) 
+inverse(observed, quantiles) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="replicates">
+a matrix with <code>B</code> rows (the number of bootstrap samples) and <code>k</code> 
+columns; 
+the <code>replicates</code> component of a <code>bootstrap</code> object. 
+</s-arg>
+<s-arg name="observed">
+a vector of length <code>k</code>; 
+the <code>observed</code> component of a <code>bootstrap</code> object. 
+</s-arg>
+<s-arg name="quantiles">
+matrix with <code>K</code> rows and <code>r</code> columns, where <code>r</code> is the number 
+of parameters for which intervals are desired. 
+</s-arg>
+</s-args-required>
+<s-value>
+The <code>pivot</code> function returns a matrix with <code>B</code> rows and <code>K</code> 
+columns. 
+<p>
+the <code>inverse</code> function returns a matrix with <code>K</code> rows and <code>r</code> 
+columns. 
+<p>
+For bootstrap-T intervals for the means of multivariate 
+data with <code>p</code> columns, 
+<code>k=2p</code> (means and standard errors for each column) 
+<code>K=p</code> (t-statistics for each column), and 
+<code>r=p</code> (confidence intervals for each column). 
+If intervals were desired for only certain columns of the data, 
+then <code>K</code> and <code>r</code> could be smaller. 
+</s-value>
+<s-details>
+<code>resampPivotT$pivot</code> calculates 
+<br>
+<code>(bootstrap estimates - observed estimates) / standardErrors</code> 
+<br>
+<p>
+for each bootstrap sample. 
+Then <code>bootstrapT</code> calculates 
+quantiles of the bootstrap distribution of this pivotal quantity 
+and calls <code>resampPivotT$inverse</code>, which solves 
+<br>
+<code>(observed estimates - parameters) / (observed standardErrors)</code> 
+<br>
+for the parameter values. 
+<p>
+For multivariate statistics those calculations are performed for each column, 
+assuming that the estimates are in positions 1, 3, ... 
+(these columns of <code>replicates</code> and positions in <code>observed</code>) 
+and the standard errors in positions 2, 4, ... 
+<p>
+The corresponding pivots for <code>resampPivotDiff</code> and <code>resampPivotRatio</code> 
+are 
+<br>
+bootstrap estimates - observed estimates 
+<br>
+bootstrap estimates / observed estimates 
+<br>
+respectively. 
+<p>
+See code of <code>resampPivotT</code>, <code>resampPivotDiff</code> or <code>resampPivotRatio</code> 
+for examples, if you write your own pair of functions. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>  for examples which use these functions. </s-see>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

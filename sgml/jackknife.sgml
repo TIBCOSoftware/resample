@@ -1,0 +1,251 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>jackknife</s-topic>
+</s-topics>
+<s-title>
+General Nonparametric Jackknife 
+</s-title>
+<s-description>
+Performs delete-one jackknifing of observations from specified data. 
+Calculates jackknife statistics for parameters of interest and produces 
+an object of class <code>jackknife</code>. 
+The <code>jackknife</code> function is generic (see Methods); method 
+functions can be written to handle specific classes of 
+data. Classes which already have methods for this function include: 
+<br>
+<s-function name="lm.sgm">lm</s-function>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+jackknife(data, statistic, args.stat, 
+          group, subject, 
+          label, statisticNames, 
+          seed = .Random.seed, 
+          group.size = 1, assign.frame1 = F, 
+          save.group, save.subject, ...) 
+
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+See 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function> 
+for further details of arguments marked with "*"
+(including important capabilities not described here). 
+<s-arg name="data*">
+data to be jackknifed.  May be a vector, matrix, data frame, 
+or output from a modeling function like 
+<s-function name="lm.sgm">lm</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="statistic*">
+statistic to be jackknifed: 
+a function or expression that returns a vector or matrix. 
+It may be a function which 
+accepts data as the first argument; 
+other arguments may be passed using <code>args.stat</code>. 
+<br>
+Or it may be an expression such as <code>mean(x,trim=.2)</code>. 
+If <code>data</code> is given by name (e.g. <code>data=x</code>) then use that name 
+in the expression, 
+otherwise (e.g. <code>data=air[,4]</code>) use the name <code>data</code> in the expression. 
+If <code>data</code> is a data frame, the expression may involve variables 
+in the data frame. 
+</s-arg>
+<s-arg name="args.stat*">
+list of other arguments, if any, passed to <code>statistic</code> when calculating 
+the statistic on the resamples. 
+</s-arg>
+<s-arg name="group*">
+vector of length equal to the number of observations in <code>data</code> 
+indicating that the data is stratified, for multiple-sample problems. 
+Unique values of this vector determine the groups.  This does not 
+affect resampling, as it does with <code>boostrap</code>, but it does affect the 
+calculation of jackknife statistics.  
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or expression involving such variables. 
+</s-arg>
+<s-arg name="subject*">
+vector of length equal to the number of observations in <code>data</code>; 
+if present then subjects 
+(determined by unique values of this vector) are resampled rather than 
+individual observations. 
+If <code>data</code> is a data frame, this may be a variable in the data frame, 
+or an expression involving such variables. 
+If <code>group</code> is also present, <code>subject</code> must be nested within <code>group</code> 
+(each subject must be in only one group). 
+</s-arg>
+<s-arg name="label">
+character, if supplied is used when printing, and as the main title  
+for plotting. 
+</s-arg>
+<s-arg name="statisticNames">
+character vector of length equal to the number of statistics calculated; 
+if supplied is used as the statistic names for printing and plotting. 
+</s-arg>
+<s-arg name="seed">
+seed for randomization done by statistic, and for random assignment of 
+observations to groups if <code>group.size</code> is not equal to one. 
+May be a legal random 
+number seed or an integer between 0 and 1023 which is passed to 
+<code>set.seed</code>. 
+</s-arg>
+<s-arg name="group.size">
+integer giving the number of observations to remove in each resample.  If 
+<code>group.size=1</code>, the standard delete-1 jackknife is performed. 
+Otherwise, the observations are divided into <code>B = floor(n/group.size)</code> 
+groups of equal size 
+and these groups are jackknifed.  Although this is similar to delete-d 
+jackknifing, all possible subsets of the specified size are not used, and 
+the jackknife statistics treat the replicates as a standard jackknife sample 
+of size <code>B</code>.  This is provided primarily to allow grouped 
+jackknifing when calculating acceleration for BCa confidence 
+intervals.  The value is restricted to 1 if the <code>group</code> argument is 
+present.  
+</s-arg>
+<s-arg name="assign.frame1">
+logical flag indicating whether the resampled data should be assigned 
+to frame 1 before evaluating the statistic. 
+Try <code>assign.frame1=T</code> if all estimates are identical (this is slower). 
+</s-arg>
+<s-arg name="save.group, save.subject">
+logical flags, if <code>TRUE</code> then <code>group</code>
+and <code>subject</code> vectors, respectively, 
+are saved in the returned object.
+Both defaults are <code>TRUE</code> if <code>n&lt;=10000</code>. 
+</s-arg>
+</s-args-optional>
+
+<s-value>
+an object of class <code>jackknife</code> which inherits from
+<code>resamp</code>.
+This has components <code>call</code>, <code>observed</code>,
+<code>replicates</code>, <code>estimate</code>, <code>B</code>,
+<code>n</code> (the number of observations, or subjects),
+<code>dim.obs</code>, 
+<code>seed.start</code>, <code>defaultLabel</code>, 
+<code>n.groups</code>,
+and <code>parent.frame</code>
+(the frame of the caller of <code>jackknife</code>),
+possibly <code>label</code>, <code>group</code> and <code>subject</code>. 
+The data frame <code>estimate</code> has three 
+columns containing the bootstrap estimates
+of <code>Bias</code>, <code>Mean</code>, and <code>SE</code>. 
+See <s-function name="jackknife.object.sgm">jackknife.object</s-function> 
+for a description of many components. 
+</s-value>
+
+<s-side-effects>
+If <code>assign.frame1=T</code>, you must be sure that this assignment does not 
+overwrite some quantity of interest stored in frame 1. 
+</s-side-effects>
+<s-details>
+Performs nonparametric jackknifing of observations for a wide scope of 
+statistics and expressions. 
+<p>
+If <code>group</code> is present, then <code>group.size</code> must be 1, and 
+one observation is removed at a time.  In some settings this gives 
+samples that are not representative of the original sampling 
+plan, e.g. in stratified sampling where the original sampling plan 
+drew exactly equal number of observations 
+from each stratum.  If the statistic is sensitive to the number 
+of observations present in each group then results may be incorrect; 
+e.g. if the statistic is the difference between 
+means of two samples (groups) then results are probably fine, but not if it 
+is an overall average.  Hence use 
+caution in interpreting bias and standard error estimates produced 
+by this function. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Davison, A.C. and Hinkley, D.V. (1997), 
+<it>Bootstrap Methods and Their Applications,</it>
+Cambridge University Press. 
+<p>
+Efron, B. and Tibshirani, R.J. (1993), 
+<it>An Introduction to the Bootstrap,</it>
+San Francisco: Chapman &#38; Hall. 
+</s-section>
+
+<s-section name="BUGS">
+See 
+<s-function name="resamp.problems.sgm">resamp.problems</s-function> 
+</s-section>
+
+<s-see>
+<s-function name="influence.sgm">influence</s-function>  and 
+<s-function name="limits.abc.sgm">limits.abc</s-function>  do similar calculations.
+
+More details on many arguments, see 
+<s-function name="bootstrap.args.sgm">bootstrap.args</s-function>.
+
+Jackknife 
+<s-function name="lm.sgm">lm</s-function>  and other objects: 
+<s-function name="jackknife.lm.sgm">jackknife.lm</s-function>,  
+<s-function name="jackknife.glm.sgm">jackknife.glm</s-function>,  
+<s-function name="jackknife.censorReg.sgm">jackknife.censorReg</s-function>.  Other model objects are handled without special methods.
+
+Print, summarize, plot: 
+<s-function name="print.resamp.sgm">print.resamp</s-function>,  
+<s-function name="summary.resamp.sgm">summary.resamp</s-function>,  
+<s-function name="plot.resamp.sgm">plot.resamp</s-function>,  
+<s-function name="qqnorm.resamp.sgm">qqnorm.resamp</s-function>.
+
+Description of a "jackknife" object, extract parts: 
+<s-function name="jackknife.object.sgm">jackknife.object</s-function>,  
+<s-function name="resampGet.sgm">resampGet</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>.
+
+Confidence intervals: 
+<s-function name="limits.abc.sgm">limits.abc</s-function>,  
+<s-function name="limits.t.sgm">limits.t</s-function>.
+
+Modify a "jackknife" object: 
+<s-function name="update.sgm">update</s-function>.
+
+For an annotated list of functions in the package, including other high-level resampling functions, see: 
+<s-function name="resampleOverview.sgm">resampleOverview</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+jackknife(stack.loss, var) 
+# See help(bootstrap) and help(bootstrap.args) for more examples of syntax. 
+ 
+# The jackknife can be used to approximate the empirical influence 
+# function 
+x <- longley.x[,2:3] 
+jfit <- jackknife(x, cor(x[,1], x[,2])) 
+influence1 <- subtractMeans(-(jfit$n - 1) * (jfit$replicates - jfit$observed)) 
+# by hand 
+influence2 <- resampGetL(jfit) 
+ 
+# resampGetL does the same calculations, then standardizes 
+influence3 <- resampGetL(jfit, method="influence") 
+ 
+# using a finite-delta calculation 
+cor(cbind(influence1, influence2, influence3)) # nearly equivalent 
+print(influence1) 
+plot(x[,1], x[,2]) 
+text(x[,1], x[,2] + 10, as.character(round(influence1, 2))) 
+# Note that points to the upper right and lower left have positive 
+# influence values -- they contributed to positive correlation.  Points 
+# to the upper left and lower right have negative influence. 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

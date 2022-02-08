@@ -1,0 +1,125 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampMakeFitObjResults</s-topic>
+   <s-topic>resampMakeFitObjResults.censorReg</s-topic>
+</s-topics>
+<s-title>
+Resample Fitted Model Objects 
+</s-title>
+<s-description>
+Perform resampling (bootstrap and jackknife) 
+when the data argument is a 
+the output from a modeling 
+function.  This function is called 
+internally by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and their methods, and is not intended to be called directly. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampMakeFitObjResults(resampCall, fitCall, frame.eval, model.method=NULL) 
+resampMakeFitObjResults.censorReg(resampCall, frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="resampCall">
+a call to 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+of the form 
+<br>
+bootstrap(fit, ...), 
+<br>
+where <code>fit</code> is the output a modeling function, like <code>lm</code>. 
+</s-arg>
+<s-arg name="fitCall">
+call to a modeling function. 
+Typically this is 
+the <code>call</code> component or attribute of the <code>fit</code> argument in <code>resampCall</code>. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the data and other objects referenced in <code>resampCall</code> and 
+<code>fitCall</code> can be found.  See 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+Typically the frame of the function that called the resample function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="model.method">
+if the resample function has a method for the fitting routine 
+(for example 
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>), 
+this should 
+contain the name of the generic fitting function (<code>"glm"</code>, 
+for example).  In this 
+case it is assumed that the fitting routine has a <code>model.list</code> 
+method (e.g. 
+<s-function name="glm.model.list.sgm">glm.model.list</s-function>), 
+and that the default method 
+for the fitting routine 
+accepts argument <code>method="model.list"</code>. 
+<p>
+has no such method. 
+</s-arg>
+</s-args-optional>
+<s-value>
+a call to 
+<s-function name="bootstrap.sgm">bootstrap</s-function> 
+or 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+in syntax understood by the default method of those functions. 
+</s-value>
+<s-details>
+This function allows bootstrap and jackknife to recognize 
+the syntax 
+<p>
+# 
+<br>
+bootstrap(fit, ...) 
+<br>
+# 
+<p>
+where <code>fit</code> is a fitted object (typically output of a modeling function). 
+This function 
+creates and then evaluates a new call with syntax appropriate to the 
+default method of the resample function, making use of <code>model.list</code> methods 
+for fitting routines if they are available.  Here, a fitted object is 
+defined to be any object not of class <code>model.list</code> with component or 
+attribute <code>call</code>, and such that <code>call</code> contains a non-null <code>data</code> 
+argument. 
+<p>
+Special consideration is given when the fitted object is of class 
+<s-function name="censorReg.sgm">censorReg</s-function> 
+by <code>resampMakeFitObjResults.censorReg</code> because of special issues that 
+arise in the stratified-sampling case, when the object is of class 
+<code>censorRegList</code>. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="bootstrap.lm.sgm">bootstrap.lm</s-function>,  
+<s-function name="bootstrap.glm.sgm">bootstrap.glm</s-function>,  
+<s-function name="bootstrap.censorReg.sgm">bootstrap.censorReg</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>,  
+<s-function name="jackknife.lm.sgm">jackknife.lm</s-function>,  
+<s-function name="jackknife.glm.sgm">jackknife.glm</s-function>,  
+<s-function name="jackknife.censorReg.sgm">jackknife.censorReg</s-function>,  
+<s-function name="model.list.object.sgm">model.list.object</s-function>  </s-see>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

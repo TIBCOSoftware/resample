@@ -1,0 +1,718 @@
+# Copyright 2021. TIBCO Software Inc.
+# This file is subject to the license terms contained
+# in the license file that is distributed with this file.
+
+Notes for the resample Package
+
+This version requires Spotfire S+ 8.1 or later.
+
+Table of Contents
+* High-level overview
+* Annotated list of most important functions and changes
+* Additional notes and greater detail
+  + Existing general-purpose S-PLUS functions
+  + New general-purpose S-PLUS functions
+  + Modeling functions
+  + Nonparametric bootstrap and jackknife
+  + Permutation Tests
+  + Bootstrap tilting inferences and diagnostics.
+  + Influence and limits.abc
+  + Cross Validation and bootstrapping prediction errors
+  + Parametric and smoothed bootstrapping
+* Additional utility functions (that you would not normally call directly).
+* GUI features
+* Bugs, known problems, and workarounds.
+* Bugs specific to some versions of Spotfire S+
+
+--------------------------------------------------
+        High-level overview
+
+The code falls into four general categories:
+
+(1) General-purpose Spotfire S+ software,
+    upgrades of existing S-PLUS functions to support resampling.
+
+(2) New versions of `bootstrap' and related code.
+
+(3) New resampling functions, 
+    for permutation tests, cross validation, bootstrapping prediction
+    errors, parametric and smoothed bootstrapping.
+
+(4) New functions for bootstrap tilting inferences and diagnostics.
+
+(5) New GUI features for Windows users.
+
+--------------------------------------------------
+        Annotated list of most important functions and changes
+
+(1a) Existing general-purpose S-PLUS functions
+find.doc                this version ensures that resample help is found
+
+(1b) Modeling functions
+censorReg               now generic
+censorReg.model.list    model list method for faster bootstrapping
+glm                     now generic
+glm.model.list          model list method for faster bootstrapping
+lm                      now generic
+lm.model.list           model list method for faster bootstrapping
+
+(1c) New general-purpose S-PLUS functions
+balancedSample          random sample with minimal replacement
+indexMeans              means     of subscripted data
+indexProducts           products  of subscripted data
+indexSums               sums      of subscripted data
+indexVars               variances of subscripted data
+cdf                     calculate cumulative distribution function
+plotCDF                 plot cumulative distribution function
+controlVariates         control variates
+[pdq]DiscreteMean       Saddlepoint estimates for means of discrete distns
+inverseFunction         inverse of a function, solve nonlinear equation
+randomSample            simple random sample without replacement
+
+
+
+(2) `bootstrap' and related code
+bootstrap               Many enhancements
+jackknife               Many enhancements
+bootstrapT              (new) bootstrap T intervals, bootstrapping pivots
+concomitants            (new) adjust a bootstrap object for greater accuracy
+samp.bootstrap          (replaces samp.boot.mc)
+                        new arguments size and prob, renamed to samp.bootstrap
+samp.boot.bal           new arguments size and prob
+samp.permute            new arguments size, prob and full.partition
+samp.bootknife          (new)
+makeBootstrap
+jackknifeAfterBootstrap (was jackknife.after.bootstrap)
+                        fixed bug related to diagnostics for "bias"
+                        Default is now to show quantiles.
+                        Can handle wider range of functionals that before.
+resampGetIndices        Extract or reproduce resampling indices
+limits.bca              Allows hypothesis testing
+                        Now more accurate intervals (wider) by default.
+limits.percentile       (replaces limits.emp)
+                        Now more accurate quantiles (wider) by default.
+plot.jackknifeAfterBootstrap  plot resample objects
+plot.resamp                           "
+qqnorm.resamp           qqnorm plots of resample replicates
+
+
+(3) New resampling capabilities
+bootstrap2              two-sample bootstrapping
+permutationTest         permutation tests
+permutationTest2        permutation tests for comparing two samples
+permutationTestMeans    permutation tests for comparing means of two samples
+influence               influence function calculations, and more
+limits.abc              abc confidence limits
+limits.t                compute t-intervals using resampling for std. error
+linearApproxReg         regression approximation to influence function
+resampGetL              linear approximation, variety of methods
+bootstrapValidation     perform bootstrap prediction
+crossValidation         perform cross-validation
+smoothedBootstrap       smoothed bootstrap
+parametricBootstrap     parametric bootstrapping
+parametricBootstrapTest parametric bootstrap test
+smoothedBootstrap       smoothed bootstrapping
+
+
+(4) Bootstrap tilting functions
+limits.tilt             bootstrap tilting confidence intervals
+revSaddlepointP         reverse saddlepoint approximation calculations
+revSaddlepointPSolve    "
+reweight                Reweight bootstrap distribution (diagnostics, ...)
+tiltAfterBootstrap      Bootstrap tilting diagnostics
+saddlepointP            saddlepoint calculations for discrete distribution
+saddlepointPSolve       "
+tiltWeights             Calculate weights obtained by tilting.
+tiltBootProbs           bootstrap tilting probabilities
+tiltMean                mean of tilted distribution
+tiltMeanSolve           "
+saddlepoint.test        t.test + saddlepoint tilting intervals and p-values
+
+
+
+--------------------------------------------------
+        Additional notes and greater detail
+
+        New general-purpose S-PLUS functions
+
+There are a number of new general-purpose functions.
+
+New function `balancedSample()' generates samples with minimal replacement,
+with equal or unequal probabilities.  It is similar to `sample(..., replace=F)'
+except:
+* it gives correct results when sampling with unequal probabilities;
+  the selection probabilities are equal to `size*prob' (after `prob' is
+  normalized to sum to 1), and every permutation with the same values
+  has the same likelihood; sample() is incorrect on both counts.
+* It is substantially faster, both in theory and in practice.
+  For sampling without probabilities, with `size=n' it uses an algorithm
+  that requires time O(n) to run, vs O(n log(n)) for sample().  
+  Similarly, for sampling with probabilities it requires O(n), vs either
+  O(n log(n)) (typical) or O(n log(n)^2) (worst-case).
+* It supports a generalization of sampling without replacement,
+  "sampling with minimal replacement", for where `size>n'.
+  In this case it returns a sample where each original observation is
+  returned `size/n' times on average, with actual counts rounded up or
+  down to the nearest integer.
+  For example, you can now do
+        balancedSample(5, 100)
+  in place of
+        sample(rep(1:5, length=100), 100, replace=F)
+  When sampling with probabilities, observations are returned
+  `size*prob' times on average, again rounded up or down.
+
+
+`indexMeans()', `indexProducts()',
+`indexSums()' and `indexVars()'
+summarize subscripted data.  These are more general than their names
+imply (we welcome suggestions for other names).  If `x' is a matrix
+and `indices' a vector, then
+        indexSums(x, indices)
+is equivalent to
+        colSums(x[indices,,drop=F])
+The calculations are fast because `x[indices,,drop=F]' is never
+actually created.
+If `indices' is a matrix the result has one row for every
+column of `indices', e.g.
+        indexSums(x, combinations(nrow(x), 2))
+gives sums of every combination of two elements from each column of x.
+
+
+`controlVariates()' performs control variate calculations -- to adjust
+estimates for the mean or quantiles of a response variable based on
+one or more covariates.  This is implemented by by finding weights
+that adjust for the difference between observed and expected means of
+covariates; the weights are then used for weighted means or quantiles.
+This offers two advantages over the traditional view using linear
+regression:
+* the weights are independent of the respond variable, so a single
+  set of weights can be used for all moments and all quantiles
+  of one or more response variables
+* the function provides alternatives which are less biased than
+  the common linear procedure, and avoid negative weights.
+
+`cdf()' calculates the cumulative distribution function, optionally
+for weighted data (unequal probabilities on observed points),
+and optionally returning counts rather than proportions of values
+which are less than specified quantiles.  There is a method for `resamp'
+objects.
+
+`plotCDF()' plots the empirical cumulative distribution function for a
+set of data, optionally with weights provided.  There is a method for
+`resamp' objects.
+
+`inverseFunction()' is used for solving f(x)=y, where f is a monotone
+function (at least over a specified interval).  It is similar to `uniroot()',
+except that
+* y need not be zero
+* you need not supply a range of x values known to contain the solution
+* y may be vector-valued.  When solving for later elements of y the function
+  makes use of results from earlier elements when obtaining initial
+  estimates.
+
+
+--------------------------------------------------
+        Modeling functions
+
+The structure of some modeling functions has been changed:
+        lm()
+        glm()
+        censorReg()
+These functions involve a substantial amount of setup, extracting
+variables from data frames and creating design matrices, followed
+by parameter estimation.  When bootstrapping or using other
+resampling techniques, the setup was performed for every replication.
+Now it is possible to perform the setup only once, and resample
+only the design matrix and response variables when bootstrapping.
+
+The way that this is implemented is that these functions are now
+generic, with the default method performing the same calculations
+as before, except that if you specify
+        method="model.list"
+when calling the function only the setup is performed, and the design
+matrices and other information are returned as an object of class
+"model.list".  Calling the same generic again, with a model.list
+object as the first argument results in parameter estimation.
+E.g.
+        ml <- lm(Mileage~Weight+Fuel, fuel.frame, method="model.list")
+        fit <- lm(ml)  # calls lm.model.list
+
+For bootstrapping, the model.list object is created once; then for every
+bootstrap iteration, a random sample of rows (of the design matrix and
+response variable) taken to create a new model.list object, for which
+parameters are estimated.  Similarly for the jackknife.  E.g.
+        ml.boot <- lm(ml[sample(60, 60, replace=T),]
+
+The `bootstrap()' and `jackknife()' functions will handle this transparently.
+If you have already done
+        fit <- lm(Mileage~Weight+Fuel, fuel.frame)
+you may do e.g.
+        bootstrap(fit, statistic = coef)
+the functions will add `method="model.list"' to the call and create
+the model.list object once, then for every iteration will
+resample rows, estimate parameters, and call your statistic (in this
+case `coef', to extract coefficients).
+
+In addition to speed, this process has another advantage when one
+or more response variables are factors --- that factors are converted
+into columns in the design matrix in the same way for every
+bootstrap iteration.  In previous versions of the bootstrap code,
+if a random bootstrap sample happened exclude all rows with a level
+of a factor variable (or combination of interacting factors),
+the resulting design matrix would have fewer columns.
+Now the columns of the design matrix always match up across bootstrap
+samples.  There is a caveat, the fit will be singular;
+you should use singular.ok=T when doing the fit.
+
+When bootstrapping factor variables, if your statistic is `coef'
+then missing levels would cause the returned statistic to have
+shorter length, which is not allowed.  Now if you fit using
+`singular.ok=T' it will almost work; the lm model for each bootstrap
+sample will have a "coefficients" component which is always the same
+length, with missing values corresponding to missing levels.
+However, the `coef' function omits the missing values; to avoid
+that extract the coefficients directly, e.g.
+        bootstrap(fit, statistic = function(fit) fit$coefficients)
+
+
+--------------------------------------------------
+        New versions of `bootstrap' and related code
+
+Overview:  `bootstrap()', `jackknife()', and related functions have been
+substantially revised.  Most of the changes are to add capabilities,
+e.g. a wider variety ways to sample; we note those below.
+
+A few changes are backwardly incompatible; we mention those here:
+* confidence intervals produced by `limits.bca()' use a different method
+  for producing quantiles by default, which gives wider and more generally
+  more-accurate intervals.  Similarly for quantiles produced by 
+  `limits.percentie()' (formerly `limits.emp()'),
+  and `summary()' methods which call these functions.
+* `limits.bca' gives different results when the original bootstrap sampling
+  was by group (previous results were incorrect).
+* the "group.size" argument to jackknife() may no longer be abbreviated.
+* `bootstrap()' no longer includes the `group' component in the output by
+  default if `n >= 10000'.
+* `update()' is no longer used to add samples to a bootstrap object;
+  use `addSamples()' instead.
+* `samp.permute()' produces different permutations.
+* some low-level functions have different names, e.g.
+  `resampMakeFunc()' replaces `resamp.get.fit.func()'.
+* in the `estimates' component of `bootstrap' and `jackknife' objects,
+  the order of the columns has been changed -- `Mean' is now before `Bias'.
+
+
+Sampling functions now have additional arguments:
+        samp.bootstrap: size, prob
+        samp.boot.bal:  size, method
+        samp.permute:   size, prob, full.partition
+The `size' argument supports sample sizes different than the original data.
+The `prob' argument supports importance sampling.  The
+`full.partition' argument is used to generate complementary sets of
+permutation indices of different sizes (this is used internally by
+`permutationTest2()').
+
+`bootstrap()' now supports importance sampling, via the "sampler.prob"
+argument.  This results in a "weights" component in the output;
+downstream functions such as `summary.bootstrap()' and `plot.resamp()'
+take the weights into account when doing their calculations.
+
+`samp.boot.bal()' now provides less-biased alternatives to the common
+balanced bootstrap.
+
+There are new sampler functions:
+        samp.blockBootstrap - block bootstrap for time series
+        blockBootstrap  - front end to samp.blockBootstrap
+        samp.bootknife  - avoids (n-1)/n bias in bootstrap variance estimates
+        samp.finite     - finite-population sampling
+        samp.MonteCarlo - same as samp.boot.mc, better name. 
+These may be passed as the `sampler' argument to `bootstrap()'.
+
+You can now pass arguments to a sampler function, using the
+        sampler.args
+        sampler.args.group
+argument to `bootstrap()'.  The latter is for arguments which vary
+across groups (multiple samples or strata, defined using the "group"
+argument to `bootstrap()').
+
+The following functions have a new argument "subject",
+        `bootstrap' and its methods
+        `jackknife' and its methods
+        `influence
+        `linearApproxReg'
+to support sampling by subject.  If supplied then subjects are resampled,
+rather than individual observations.
+
+The following functions have a new argument "group",
+        `jackknife' and its methods
+to support stratified and multiple-sample sampling.
+The "group.size" argument to jackknife() may no longer be abbreviated.
+
+`jackknife()' and `limits.bca()' now handle sampling by "group" correctly.
+
+`bootstrap()' has additional arguments "L" and "model.mat", used for
+supplying or creating linear approximations, which are needed for
+many bootstrap combinations, including bootstrap tilting, bootstrap
+BCa confidence limits, other bootstrap inferences, at least three
+variance reduction techniques, and some sampling procedures.  You may
+specify the approximation itself, or as a character string specifying
+how to compute the approximation.  The approximation is stored with
+the bootstrap object.
+
+A number of functions have new arguments `save.group' and `save.subject',
+indicating whether the group and subject variables should be saved within
+the returned object.
+
+`bootstrap()', `jackknife()', and many other functions now add a
+"parent.frame" component to their output, indicating the frame the function
+is called from.  This is used as the default value of the "frame.eval"
+argument by some downstream functions (that take a "resamp" object as
+input).  This lets them work correctly if e.g. the object was created
+by a call to `bootstrap()' from inside another function.
+
+The name "frame.eval" is now standardized; functions that previously
+had "frame.eval.boot" or "frame.eval.jack" now use the new name.
+
+`jackstats()' is deprecated; `jackknife()' now does those calculations
+internally.
+
+`jackknife()' and `bootstrap()' now allow the statistic to return a
+zero-length result -- this is useful when resampling to produce
+graphics.
+
+`bootstrap()' accepts new argument `observed.indices', to indicate
+which samples to use for computing the observed value of the
+statistic. 
+
+`makeBootstrap()' now accepts optional arguments using ..., which if supplied
+are included in the result.  There are no longer separate "group" and
+"indices" arguments; these are supported using ...
+
+`makeBootstrap()' accepts a ``weights' argument; if supplied should be
+of length B, and weights are used when calculating moments
+
+`limits.percentile()' has a new argument `subset.statistic'; this allows
+limits to be calculated for just part of a multivariate statistic.
+
+`limits.percentile()' has a new argument `narrow'; by default this is set
+to give wider confidence intervals (with more accurate coverage
+probability) than previously.
+
+`update()' is no longer used to add samples to a bootstrap object.
+Use `addSamples()' instead.  This is also used to add samples to
+"parametricBootstrap" and "smoothedBootstrap" objects.
+
+`update()' may now be used in the way it is used in other contexts,
+to change arguments to an function that created an object.  E.g.
+        fit1 <- bootstrap(1:9, mean)
+        fit2 <- update(fit1, statistic=median)
+is equivalent to
+        fit2 <- bootstrap(1:9, median)
+
+
+The new `concomitants()' function performs the concomitants
+variance-reduction adjustment on a bootstrap object.  Given a
+bootstrap object as input, it returned a modified object, with
+statistic values (and corresponding bias and standard error estimates)
+slightly modified to adjust for the discrepancy between the bootstrap
+values of a linear approximation to the statistic and saddlepoint
+estimates of the quantiles of the distribution of the linear
+approximation.  This can offer substantial efficiency improvements for
+all quantiles of a bootstrap distribution simultaneously.
+
+
+The new `bootstrapT()' function supports bootstrapping arbitrary
+"pivotal" transformations of statistic values, including (as the
+default) the usual form (estimate - true value)/(standard error of
+estimate).
+
+The new `limits.t()' function calculates t confidence intervals using
+standard errors from resampling   This does not produce what are
+commonly known as "bootstrap t" confidence limits--use bootstrapT for
+that. This produces t intervals using standard errors calculated using
+the bootstrap, jackknife, or another resampling method.  These
+intervals are not particularly accurate; under general conditions they
+are first-order accurate (coverage errors O(1/sqrt(n))), while BCa,
+tilting, and bootstrap t limits are second-order accurate (O(1/n)).
+
+The new `bootstrap2()' function can be used to bootstrap the
+difference of a statistic computed on two samples.
+
+--------------------------------------------------
+        Permutation Tests
+
+There are three functions for permutation testing in the package:
+`permutationTest()' for arbitrary statistics and permutation
+structures, `permutationTest2()' for comparing an arbitrary statistic
+on two samples, and `permutationTestMeans()' for comparing the means
+of two samples. 
+
+`permutationTest()' and `permutationTest2()' act as front ends to
+`bootstrap()', using `sampler=samp.permute'.  Hence they allow many of
+the options of `bootstrap()', including the `group' argument (for
+doing permutations separately within each subset of the data
+determined by levels of the `group' variable). 
+
+A special feature is the nonparametric combinations of p-values from
+multiple variables to form composite p-values, with various
+options provided by functions
+`combinePValues.Fisher()', `combinePValues.Liptak()',
+`combinePValues.chisquare()', `combinePValues.halfnormal()', and
+`combinePValues.Tippet()'.
+
+`permutationTestMeans()' is specifically for comparing the means
+of two samples of data, determined by a `treatment' variable.
+This also supports the group argument and nonparametric combinations
+of p-values, and uses a fast implementation specifically for this problem.
+
+
+--------------------------------------------------
+        Bootstrap tilting inferences and diagnostics.
+
+A major advance in this package is the inclusion of bootstrap tilting
+inferences and diagnostics.  Tilting confidence intervals offer
+advantages in
+  * computation efficiency -- roughly 37 times faster than bootstrap BCa
+    intervals.  Roughly 100 bootstrap samples provide the same simulation
+    variability as bootstrap BCa intervals with 3700 bootstrap samples.
+  * statistical properties -- 
+    + second order correct (like BCa and bootstrap t); in contrast,
+      standard intervals based on normal or t-distributions are only
+      first-order correct.
+    + transformation invariance (like BCa)
+    + good finite-sample coverage accuracy,
+    + shorter intervals than bootstrap t.
+These intervals are based on the familiar statistical principles of maximum
+likelihood, and were one of the earliest bootstrap procedures proposed
+by Efron, but did not enter statistical practice due to implementation
+difficulties.  Our code uses importance sampling to avoid the major
+difficulty; and as a by-product this produces the computational gains
+mentioned above.
+
+Bootstrap tilting diagnostics test the fundamental bootstrap assumption,
+that the sampling distribution of a statistic under the empirical
+distribution (sampling from the observed data) accurately estimates
+the sampling distribution if one could sample from the true distribution.
+Compared to other diagnostic procedures (iterated bootstrapping,
+jackknife-after-bootstrap), tilting diagnostics hone in on the question
+of particular interest -- how does the sampling distribution depend
+on a parameter of interest.
+
+The `limits.tilt()' function produces tilting confidence intervals,
+given an ordinary bootstrap object as input.
+
+`saddlepoint.test()' is a replacement for the standard t.test function
+in Spotfire S+; it adds bootstrap tilting intervals and p-values calculated
+using saddlepoint approximations.  This is a prototype for the
+possibility of adding second-order accurate inferences to many
+existing S-PLUS functions.
+
+The `tiltAfterBootstrap()' function does bootstrap tilting diagnostics.
+These are similar to jackknife after bootstrap diagnostics, but over
+a wider range of statistic values, and focused more directly on how
+changes in the statistic of interest affect sampling distributions.
+
+`reweight()' also can be used for bootstrap diagnostics.  It produces
+a reweighted version of the bootstrap distribution, estimating what
+the distribution would look like had sampling been with a specified
+vector of unequal probabilities.  It does this without doing extra
+sampling, using importance sampling reweighting.
+
+Other functions are used as utility functions by the above procedures,
+or may be used in their own right:
+* dDiscreteMean(), pDiscreteMean(), qDiscreteMean() for saddlepoint estimates
+* saddlepointP() and saddlepointPSolve(), for saddlepoint estimates
+  related to tilting parameters
+* tiltMean() and tiltMeanSolve(), for (solving for) means of tilted
+  distributions,
+* tiltWeights(), for calculating weights on observed data given a
+  tilting parameter
+* tiltBootProbs(), for calculating the likelihood of bootstrap samples
+  for given tilting parameter
+* revSaddlepointP() and revSaddlepointPSolve(), for certain inverse
+  problems involving saddlepoint estimates.
+
+
+--------------------------------------------------
+        Influence, limits.abc, linear approximations
+
+The new influence() function calculates numerical approximations to
+the empirical influence function, estimates the asymptotic bias of a
+statistic, and the directional curvature in the steepest-descent
+direction.  The bias and directional curvature are used for
+nonparametric ABC and bootstrap BCa confidence intervals, and the
+directional curvature may be used for an approximate linearizing
+transformation of the statistic.
+
+It supports variations group (multiple samples or stratified sampling)
+and subject arguments.
+It can do jackknife, positive jackknife, and butcher knife calculations.
+
+The new `limits.abc()' function produces nonparametric ABC confidence
+intervals.  Note that the standard version of ABC found in the statistical
+literature can require evaluating a statistic with some negative 
+weights on observations; this version offers alternatives based on tilting
+that avoid negative weights.  Most of the calculations (and code) 
+for this function are identical to `influence()'.
+
+The `resampGetL()' function extracts or calculates linear approximations
+from a variety of resampling objects, including `jackknife', `influence',
+and `bootstrap', using a variety of methods.  The `linearApproxReg'
+function does the core calculations for four of those methods, regression
+methods based on bootstrap results.
+
+
+--------------------------------------------------
+        Validation - estimating prediction error
+
+New functions `crossValidation()' and `bootstrapValidation()' provide
+cross-validation and bootstrap estimates of prediction error,
+respectively.  The latter calculate both the .632 and .632+ estimates.
+
+Both functions are generic, providing support for both modeling
+functions like `lm()' which have arguments `formula' and `data', and
+functions like `lsfit()' which have arguments `x' and `y'.
+
+
+--------------------------------------------------
+        Parametric and smoothed bootstrapping
+
+New function `parametricBootstrap' provides parametric bootstrapping.
+
+New function `smoothedBotstrap' provides nonparametric smoothed bootstrapping,
+implemented by calling `parametricBootstrap'.
+
+--------------------------------------------------
+        Additional functions, not in the annotated list.
+
+There are numerous functions not listed above for performing auxiliary
+calculations, or for printing, plotting, summarizing the various
+objects listed above.
+
+[.model.matrix
+[.model.list
+addWeightsInCall
+all.equal.excluding
+callTo
+censorReg.dofit
+coef.censorRegList
+combinePValues.Fisher
+combinePValues.Liptak
+combinePValues.chisquare
+combinePValues.halfnormal
+combinePValues.Tippet
+dim.model.list
+match.arg (bug fix)
+modifyCall
+notNested
+numRows.model.list
+makeParametricBootstrap
+plot.concomitants
+print.bootstrapValidation
+print.bootstrap2
+print.concomitants
+print.jackAfterBootstrap
+print.parametricBootstrapTest
+print.permutationTest
+print.permutationTestMeans
+print.resamp
+print.resampHtest
+print.summary.bootstrap
+print.summary.parametricBootstrap
+print.summary.smoothedBootstrap
+print.summary.resamp
+resampCor               lower diagonal elements of correlation matrix
+resampVar               lower diagonal elements of covariance matrix
+resampMakeFunc          formerly: resamp.get.fit.func
+resampMakeFuncWeighted
+resampMakeFuncBootPred
+resampGetIndices        formerly: resamp.get.indices
+resampMakeNames         formerly: resamp.get.dimnames
+resampSubDF
+resampleOptions         control some options for printing
+summary.bootstrap
+summary.parametricBootstrap
+summary.smoothedBootstrap
+summary.resamp
+update.concomitants
+updatemlY
+
+
+--------------------------------------------------
+GUI features
+
+For Windows users, GUI features have been added or enhanced.  
+
+There are new bootstrap and jackknife menus incorporating many of the
+new features for `bootstrap()' and `jackknife()' mentioned above,
+including tilting limits.  They may be found under
+
+    `Statistics : Resample : Bootstrap'
+    `Statistics : Resample : Jackknife'
+
+The original Bootstrap and Jackknife menus are now removed.
+There is a new menu for general-purpose permutation testing, both for
+comparing groups and testing relationship between variables
+
+    `Statistics : Resample : Permutation Test'
+
+A number of existing menus have been augmented with a new Bootstrap
+tab, for bootstrapping those statistics.  For example, alongside the
+existing
+
+    `Statistics : Regression : Linear' 
+
+GUI for performing linear regression may now be found 
+
+    `Statistics : Regression : Linear/Resample'  
+
+The new GUI is identical to the original, except for the
+additional Bootstrap tab.  Other menus receiving similar treatment are:
+
+    `Statistics : Data Summaries : Summary Statistics'
+    `Statistics : Data Summaries : Correlations'
+    `Statistics : Compare Samples : One Sample : t Test'
+    `Statistics : Compare Samples : Two Samples : t Test'
+    `Statistics : Compare Samples : Counts and Proportions : Proportions Parameters'
+
+In some of these cases, the new version is not identical, even aside
+from resampling.  For example, for two-sample t tests, the new default
+is not to assume equal variances.  Similarly, for Proportions, the new
+version perform Wilson's estimates and confidence intervals.  These
+changes are made to encourage good statistical practice.
+
+These menus all include a new bootstrap tab, and some include a new
+permutation test tab.  Copies of these menus are also available under
+
+    `Statistics : Resample : (appropriate names for each)'
+
+--------------------------------------------------
+Bugs, known problems, and workarounds
+
+This list is not complete.  See the resamp.problems help file for a
+list of some issues that arise when using the package, and their
+workarounds.  We note two issues here.
+
+1) Links from help files in this package to functions in the rest of
+   Spotfire S+ do not work.  You can call up the help explicitly,
+   e.g. help(median). 
+
+2) On Windows, the .Prefs folder and its contents must be unwriteable
+   or the menus for both the resample package and Spotfire S+ in general
+   may get messed up.
+
+   To make the .Prefs unwriteable, Using Windows Explorer, open the
+   resample folder (typically in e.g.
+   C:/Program Files/TIBCO/splus81/library/resample ),
+   right-click on the ".Prefs" folder, and select "Properties".  Check
+   the box marked "Read-only" (twice if necessary, so it is checked
+   and not grayed out), and hit OK.  You should see a dialog, with
+   "Apply changes to this folder, subfolders, and files" selected --
+   hit OK.
+
+   If menus get messed up, reinstall resample, and delete the .Prefs
+   files in your own projects directories (Spotfire S+ will volunteer to
+   create new ones when needed).
+
+3) On Windows, when using the GUI menus, when you scroll back some of
+   the fields may not be filled out correctly.

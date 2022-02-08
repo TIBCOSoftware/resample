@@ -1,0 +1,117 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>limits.t</s-topic>
+</s-topics>
+<s-title>
+Calculate t confidence intervals 
+</s-title>
+<s-description>
+Calculate t confidence intervals using standard errors from resampling 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+limits.t(x, probs=c(25, 50, 950, 975)/1000, 
+         df = "choose", adjust = T, z = F, 
+         subset.statistic = 1:p, 
+         frame.eval = x$parent.frame) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+object of class <code>resamp</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="probs">
+probabilities for one-sided confidence limits; e.g. c(.025, .975) gives 
+a two-sided 95% confidence interval. 
+Note that values are undefined at 0 and 1. 
+</s-arg>
+<s-arg name="df">
+degrees of freedom to use for the test, may be numerical. 
+Other choices <code>"smaller"</code>, <code>"normal"</code>, <code>"pooled"</code> and <code>"choose"</code> 
+are described below. 
+</s-arg>
+<s-arg name="adjust">
+logical flag, if <code>TRUE</code> then degrees of freedom is adjusted to reflect 
+extra variability caused by using a finite number of bootstrap samples. 
+</s-arg>
+<s-arg name="z">
+logical flag, if <code>TRUE</code> then z-intervals (using Gaussian quantiles) 
+are computed instead of t-intervals; equivalent to 
+<code>df = Inf</code> and <code>adjust = F</code>, and arguments <code>df</code> and <code>adjust</code> are ignored. 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic that was bootstrapped has 
+length greater than 1, use this to request intervals for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the group argument (if any)  used when creating <code>x</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix of confidence limits with one row per parameter. 
+</s-value>
+<s-details>
+This does not produce what are commonly known as "bootstrap t"  
+confidence limits--use  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function> 
+for that.  This produces t intervals using standard errors calculated 
+using the bootstrap, jackknife, or another resampling method. 
+<p>
+These intervals are not particularly accurate; under general 
+conditions they are 
+first-order accurate (coverage errors O(1/sqrt(n))), 
+while BCa, tilting, and bootstrap t limits are second-order accurate (O(1/n)). 
+<p>
+Among choices for <code>df</code>, <code>"smaller"</code> is the most conservative; 
+it sets the degrees of freedom to the smallest 
+sample or group size, minus 1.  The least conservative is <code>"pooled"</code>; 
+it assumes the same within-group variance within each sample 
+(for two-sample problems created using <code>bootstrap2</code>, 
+and within each group (across both samples) when sampling by group 
+(stratified sampling). 
+A compromise is <code>"normal"</code>; it assumes the same within-group variance 
+within each group, but allows the variance to differ between two samples 
+for <code>bootstrap2</code>.  In the absence of strata, this uses the same basic 
+calculation for degrees of freedom and <code>t.test</code> does when <code>var.equal==FALSE</code>. 
+The default <code>"choose"</code> selects <code>"smaller"</code> if sampling by group 
+and <code>"normal"</code> otherwise. 
+</s-details>
+<s-see>
+
+<s-function name="limits.bca.sgm">limits.bca</s-function>,  
+<s-function name="limits.tilt.sgm">limits.tilt</s-function>,  
+<s-function name="bootstrapT.sgm">bootstrapT</s-function>,  
+<s-function name="resamp.sgm">resamp</s-function>,  
+<s-function name="t.test.sgm">t.test</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+x <- rt( 100, df=6) 
+boot <- bootstrap(x, c(mean=mean(x), 
+                       trim=mean(x, trim=.2), median=median(x)), B=100) 
+limits.t(boot) 
+ 
+# Can also be used with jackknife, influence, and other "resamp" objects. 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,233 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>limits.tilt</s-topic>
+</s-topics>
+<s-title>
+Bootstrap tilting confidence limits 
+</s-title>
+<s-description>
+Calculate bootstrap tilting confidence limits 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+limits.tilt(boot.obj, probs = c(25, 50, 950, 975)/1000, 
+            L = resampGetL(boot.obj), 
+            t.adjustment = F, 
+            subset.statistic = 1:p,  
+            subjectDivide = F,  
+            modifiedStatistic = NULL,  
+            initial, tol = 1e-6, tol.tau = tol, maxiter = 20, 
+            indices, group, treatment, weights, frame.eval) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="boot.obj">
+object of class 
+<s-function name="bootstrap.sgm">bootstrap</s-function>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="probs">
+probabilities for one-sided confidence limits; e.g. c(.025, .975) gives 
+a two-sided 95% confidence interval. 
+Note that values are undefined at 0 and 1. 
+</s-arg>
+<s-arg name="L">
+matrix containing empirical influence values or other values to use 
+in creating a linear approximation to the statistic being bootstrapped, 
+with one column for each dimension (parameter) of the statistic.  The 
+number of rows should be the same as the size of the bootstrap data.  
+</s-arg>
+<s-arg name="t.adjustment">
+logical; if <code>TRUE</code> then intervals are slightly wider, using an 
+adjustment for uncertainty in standard error estimates 
+(like using t-quantiles rather than normal-quantiles in the usual 
+confidence intervals for a mean). 
+</s-arg>
+<s-arg name="subset.statistic">
+subscript expression; if the statistic that was bootstrapped has 
+length greater than 1, use this to request intervals for only some 
+elements (parameters) of the statistic. 
+</s-arg>
+<s-arg name="subjectDivide">
+logical flag, meaningful only if the sampling in <code>boot.obj</code> was by 
+subject.  Internal calculations involve assigning weights to subjects; 
+if <code>TRUE</code> then the weight for each subject is divided among observations 
+for that subject before calculating the statistic; 
+if <code>FALSE</code> the subject weight is replicated to observations for that subject. 
+</s-arg>
+<s-arg name="modifiedStatistic">
+if the bootstrap statistic is an expression that calls a function 
+with a "hidden" <code>weights</code> argument, then pass this to indicate how to 
+call your function.  
+See "DETAILS", below. 
+</s-arg>
+<s-arg name="initial">
+matrix of initial values, one column for each parameter in the statistic 
+and one row for each value in probs, containing initial values 
+used in iteratively solving for tilting parameters <code>tau</code>. 
+</s-arg>
+<s-arg name="tol">
+Find <code>tau</code> values such 
+that one-sided coverage probabilities are within <code>tol</code> of the specified values. 
+</s-arg>
+<s-arg name="tol.tau">
+tolerance for solving for <code>tau</code> on the scale of <code>tau</code>. 
+</s-arg>
+<s-arg name="maxiter">
+maximum number of iterations allowed for finding values of tau which 
+bracket the solution for each p (after the root is bracketed additional 
+iterations may be performed). 
+</s-arg>
+<s-arg name="indices">
+matrix of resampling indices, by default extracted from <code>boot.obj</code>. 
+</s-arg>
+<s-arg name="group">
+vector indicating multiple samples or sampling by group,  
+by default extracted from <code>boot.obj</code>. 
+</s-arg>
+<s-arg name="treatment">
+vector indicating a two-sample application created by 
+<s-function name="bootstrap2.sgm">bootstrap2</s-function>, 
+by default extracted from <code>boot.obj</code>. 
+</s-arg>
+<s-arg name="weights">
+vector of importance sampling weights, by default extracted from <code>boot.obj</code>. 
+</s-arg>
+<s-arg name="frame.eval">
+frame where the statistic and other objects used when creating <code>boot.obj</code> can be found. 
+You need to specify this if objects can't be found by their 
+original names, or have changed; see 
+<s-function name="frame.eval.sgm">frame.eval</s-function>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+matrix of overall confidence limits with  
+one column for each element of <code>probs</code> and one row per parameter. 
+The matrix has class <code>limits.tilt</code>, and attributes: 
+<s-return-component name="exp.limits">
+matrix like the overall limits, giving exponential tilting limits. 
+</s-return-component>
+<s-return-component name="ml.limits">
+matrix like the overall limits, but giving ML tilting limits 
+</s-return-component>
+<s-return-component name="exp.tau">
+matrix like the overall limits, giving exponential tilting parameters 
+</s-return-component>
+<s-return-component name="ml.tau">
+matrix like the overall limits', giving ML tilting parameters 
+<p>
+The overall limits are the most conservative of the exponential and 
+maximum likelihood limits. 
+<p>
+There is a <code>print</code> method, that prints just the overlal confidence limits; 
+to print all attributes  use <code>print(unclass(x))</code>. 
+</s-return-component>
+</s-value>
+
+<s-details>
+This function recalculates the bootstrap statistic by adding tilting 
+weights.   
+<p>
+For purposes of adding weights, the name <code>"Splus.resamp.weights"</code> 
+is reserved for internal use.  To  
+avoid naming conflicts, that name can not be used as  
+a variable name in the <code>data</code> argument to <code>boot.obj</code>, if <code>data</code> 
+is a data frame.  
+<p>
+When the bootstrap statistic is an expression, for example 
+<code>mean(x)</code>, a modified expression 
+<code>mean(x, weights = Splus.resamp.weights)</code> is created. 
+Only calls to functions that have an argument named <code>weights</code> 
+are modified; e.g. <code>sum(x)/length(x)</code> would fail because <code>sum</code> 
+does not have a <code>weights</code> argument. 
+If the expression calls a function with a "hidden" weights argument, 
+e.g. you may pass weights as part of the <code>...</code> list, then 
+use the <code>modifiedStatistic</code> argument to specify that, e.g. 
+<code>modifiedStatistic = myFun(x, weights = Splus.resamp.weights)</code>. 
+(You must use the name <code>Splus.resamp.weights</code> in <code>modifiedStatistic</code>.) 
+An expression such as 
+<code>mean(y[a==1])</code> is converted to 
+<code>mean(y[a==1], weights = Splus.resamp.weights)</code> 
+which will fail because the weights vector was not subscripted along 
+with <code>y</code>. 
+In cases such as these pass a function that performs the desired 
+calculations, or use 
+<br>
+<code>modifiedStatistic = mean(y[a==1], weights = Splus.resamp.weights[a==1])</code>. 
+<p>
+An error occurs if the bootstrap statistic can not be successfully 
+modified to accomodate weights and <code>modifiedStatistic</code> is not provided.   
+<p>
+The derivation of the intervals assumes that the bootstrap statistic 
+is "functional", depending only on the empirical proportions, 
+not the sample size.  For example, <code>var(x)</code> is not functional, because 
+it uses a divisor of <code>n-1</code> rather than <code>n</code>; <code>var(c(x,x))</code> gives a different 
+answer; <code>var(x, unbiased=F)</code> is the functional version. 
+However, in practice the interval is forgiving, provided that any 
+non-functionality affects the bootstrap observed value and replicates 
+the same, and the statistic uses the functional form when weights 
+are supplied.  In particular, intervals for <code>var</code> and <code>stdev</code> 
+are the same whether you specify <code>unbiased=FALSE</code> or not when 
+creating the bootstrap object. 
+</s-details>
+<s-section name=" NOTE">
+
+Bootstrap tilting limits are an area of active research, 
+and the function may be revised accordingly. 
+</s-section>
+
+<s-section name=" REFERENCES">
+DiCiccio, T. J. and J. P. Romano (1990), 
+"Nonparametric Confidence Limits by Resampling 
+ Methods and Least Favorable Families," 
+<it>International Statistical Review,</it>
+<bf>58</bf>, 59-76. 
+<p>
+Efron, B. (1981), 
+"Nonparametric Standard Errors and Confidence Intervals," 
+<it>Canadian Journal of Statistics,</it>
+<bf>9</bf>, 139-172. 
+<p>
+Hesterberg, T.C. (1999), 
+"Bootstrap Tilting Confidence Intervals and Hypothesis Tests", 
+<it>Computing Science and Statistics, </it>
+<bf>31</bf>, 389-393, 
+Interface Foundation of North America, Fairfax Station, VA. 
+<p>
+Hesterberg, T.C. (1999), 
+"Bootstrap Tilting Confidence Intervals", 
+Technical Report No. 84, 
+http://www.insightful.com/Hesterberg 
+</s-section>
+
+<s-see>
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="influence.sgm">influence</s-function>,  
+<s-function name="resampGetL.sgm">resampGetL</s-function>,  
+<s-function name="tiltBootProbs.sgm">tiltBootProbs</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+temp <- bootstrap(stack.loss, mean, B=200) 
+limits.tilt(temp) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

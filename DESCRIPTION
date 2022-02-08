@@ -1,0 +1,33 @@
+Package: resample
+Version: 8.2.0
+Priority: recommended
+Title: S+Resample: bootstrap, jackknife, permutation tests, cross validation
+Author: TIBCO Software Inc.
+Maintainer: TIBCO Software Inc. <http://spotfire.tibco.com/support>
+Dialect: S-PLUS
+License: BSD_3_clause + file LICENSE
+Copyright: 2000-2010 TIBCO Software Inc
+Description: The resample package included functions for resampling, including
+  * bootstrap
+  * jackknife
+  * permutation tests
+  * cross validation
+  * bootstrap estimation of prediction errors
+  * bootstrap tilting
+   A wide variety of statistics, and sampling methods are supported,
+ including one- and two-sample applications, stratified sampling,
+ sampling by subject, regression, time series, and finite populations.
+   A feature of this code is bootstrap tilting, which generally provides
+ very accurate (second-order accurate) confidence intervals, with
+ better finite-sample performance than other bootstrap methods, and require
+ only 1/17 or 1/37 as many bootstrap replications as other bootstrap
+ methods (for 95% confidence intervals), e.g. 60 replications instead
+ of 1000 or 2000.
+Acknowledgements: This work was supported by NIH SBIR 2R44CA67734--02
+ "Statistical Software for Resampling Methods" NSF SBIR DMI-0078706
+ "Bootstrap Tilting Inference and Large Data Sets" Contributors include:
+ Andrea Borning, Ashley Clipson, Steve Ellis, Rachel Epstein, Chris Fraley,
+ Tim Hesterberg, Shan Jin, Shaun Monaghan, Charles Roosen, Jim Schimert,
+ and Robert Thurman.
+   We also appreciate advice received from Brad Efron, Frank Harrell,
+ David S. Moore, Art Owen, Luigi Salmaso, Terry Therneau, and Rob Tibshirani.

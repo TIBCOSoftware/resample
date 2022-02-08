@@ -1,0 +1,97 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>resampMakeFunc</s-topic>
+   <s-topic>resampMakeFuncSimple</s-topic>
+   <s-topic>resampMakeFuncWeighted</s-topic>
+   <s-topic>resampMakeFuncErrF</s-topic>
+   <s-topic>resampMakeFuncErrXY</s-topic>
+   <s-topic>resampMakeFuncBootPred</s-topic>
+   <s-topic>resampMakeFuncCrossVal</s-topic>
+   <s-topic>resampMakeLabel</s-topic>
+   <s-topic>resampMakeNames</s-topic>
+   <s-topic>resampMakeArgument</s-topic>
+   <s-topic>resampMakeWeightsRecip</s-topic>
+</s-topics>
+<s-title>
+Utility Functions called by <code>bootstrap</code> and other resampling functions 
+</s-title>
+<s-description>
+These utility functions are called by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and other resampling functions. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+resampMakeFunc(...) 
+resampMakeFuncSimple(...) 
+resampMakeFuncWeighted(...) 
+resampMakeFuncErrF(...) 
+resampMakeFuncErrXY(...) 
+resampMakeFuncBootPred(...) 
+resampMakeFuncCrossVal(...) 
+resampMakeLabel(...) 
+resampMakeNames(...) 
+resampMakeArgument(...) 
+resampMakeWeightsRecip(...) 
+# In all cases, see the actual function for the argument list. 
+</s-old-style-usage>
+</s-usage>
+<s-details>
+These are not intended to be called directly, but rather by 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and other resampling functions. 
+<p>
+If you are interested in using these functions, see the functions 
+themselves for the argument lists, documentation comments at the 
+beginning of the function, and look inside 
+<s-function name="bootstrap.sgm">bootstrap</s-function>, 
+<s-function name="jackknife.sgm">jackknife</s-function>, 
+and other resampling functions for examples of how to call these 
+functions. But these functions are subject to change without notice. 
+<p>
+<code>resampMakeFunc</code>, <code>resampMakeFuncSimple</code> and <code>resampMakeFuncWeighted</code> create 
+functions which are called in a loop to evaluate a specified statistic 
+given random indices and other arguments. 
+<p>
+<code>resampMakeLabel</code> creates a default label to be used as the main title 
+when plotting, based on the method used (e.g. <code>"bootstrap"</code>) and names of the  
+<code>data</code> and <code>statistic</code>. 
+<p>
+<code>resampMakeNames</code> either extracts names from a statistic or creates 
+names; these are used as column names for the <code>replicates</code> component 
+of <code>"resample"</code> objects. 
+<p>
+<code>resampMakeArgument</code> is used to evaluate an argument.  For example 
+in <code>bootstrap(data=df,...,group=a&gt;b)</code>, where <code>df</code> is a data frame, 
+<code>a</code> and <code>b</code> could be variables in <code>df</code>, 
+be defined inside a function calling <code>bootstrap</code>, or 
+be in a permanent database; <code>resampMakeArgument</code> searches in that 
+order. 
+<p>
+<code>resampMakeWeights</code> constructs importance sampling weights (actually the 
+reciprocal of those weights) for bootstrap objects.  It is called by 
+<code>addSamples.bootstrap</code>. 
+</s-details>
+<s-see>
+
+<s-function name="bootstrap.sgm">bootstrap</s-function>,  
+<s-function name="jackknife.sgm">jackknife</s-function>.  </s-see>
+<s-keywords>
+<s-keyword>bootstrap</s-keyword>
+<s-keyword>jackknife</s-keyword>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

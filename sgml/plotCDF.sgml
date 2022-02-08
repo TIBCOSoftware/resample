@@ -1,0 +1,84 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+<s-topic>plotCDF</s-topic>
+</s-topics>
+<s-title>
+Plot Cumulative Distribution Function 
+</s-title>
+<s-description>
+Plot cumulative distribution function for a set of data. 
+This is a generic function; see 
+<s-function name="plotCDF.resamp.sgm">plotCDF.resamp</s-function> 
+for a version for <code>resamp</code> objects. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plotCDF(x, weights, cumWeights, new=T, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+a vector of numeric data. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="weights">
+a vector of weights; if supplied then a cumulative distribution 
+function is plotted for a weighted distribution, with probability 
+<code>weights[i]</code> (after normalizing to sum to 1) on observation <code>x[i]</code>. 
+</s-arg>
+<s-arg name="cumWeights">
+vector of cumulative weights; if supplied then <code>x</code> must be sorted, 
+and the last cumulative weight should equal 1. 
+</s-arg>
+<s-arg name="new">
+logical, if <code>TRUE</code> (the default) then create a new plot, else 
+add to the existing plot. 
+</s-arg>
+<s-arg name="...">
+additional arguments, to pass to graphical functions <code>plot</code>, <code>lines</code>, 
+and <code>segments</code>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+A list (with the invisible flag set to prevent printing), with components 
+<s-return-component name="x">
+sorted values of <code>x</code> 
+</s-return-component>
+<s-return-component name="y">
+value of the empirical distribution function at values of <code>x</code>; 
+cumulative weights. 
+</s-return-component>
+</s-value>
+
+<s-see>
+<s-function name="plot.sgm">plot</s-function>,  
+<s-function name="plotCDF.resamp.sgm">plotCDF.resamp</s-function>,  
+<s-function name="invisible.sgm">invisible</s-function>.
+</s-see>
+
+<s-examples>
+<s-example type = text>
+x <- sort(runif(10)) 
+plotCDF(x) 
+plotCDF(x,weights=1:10) 
+plotCDF(x,weights=10:1) 
+cw <- c(sort(runif(9)), 1) 
+plotCDF(x,cw=cw) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>hplot</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

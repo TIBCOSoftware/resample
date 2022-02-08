@@ -1,0 +1,191 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>controlVariates</s-topic>
+   <s-topic>controlVariates.default</s-topic>
+</s-topics>
+<s-title>
+Calculate control variate adjustments 
+</s-title>
+<s-description>
+Calculate weights such that a weighted mean matches a specified value. 
+These weights can be used for control variate adjustments of means, 
+quantiles, etc.  This is a generic function; methods include 
+<s-function name="controlVariates.bootstrap.sgm">controlVariates.bootstrap</s-function> 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+controlVariates(x, mu, method="linear", positive=T, weights=NULL) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+vector, or matrix with <code>p</code> columns. 
+</s-arg>
+<s-arg name="mu">
+scalar, or vector of length <code>p</code>; the goal is to find weights 
+such that the weighted mean (column means) of <code>x</code> is <code>mu</code>. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="method">
+character one of <code>"linear"</code>, <code>"exponential"</code>, <code>"ml"</code> (maximum likelihood), 
+or <code>"binary"</code>. 
+Matrix <code>x</code> is currently only supported for <code>"linear"</code>. 
+<code>"binary"</code> requires that <code>x</code> only take on values 0 or 1 
+(or <code>FALSE</code> and <code>TRUE</code>). 
+</s-arg>
+<s-arg name="positive">
+logical -- if <code>TRUE</code> and the method can produce negative weights 
+(<code>"linear"</code>), weights are forced to be non-negative, and the 
+weighted mean may not exactly match <code>mu</code>. 
+</s-arg>
+<s-arg name="weights">
+vector of length <code>numRows(x)</code> (length of vector, or 
+number of rows or a matrix). 
+If supplied then output weights are roughly proportion to these 
+weights. 
+</s-arg>
+</s-args-optional>
+<s-value>
+The output is a vector of weights <code>w</code> such that 
+<code>colMeans(x,weights=w)=mu</code>. 
+</s-value>
+<s-details>
+The approach to control variates here is non-traditional, resulting 
+in a weighted distribution rather than just an adjusted estimate 
+for a mean.  This approach is more general.  The weights can be 
+used for quantiles and moments, and for adjusting the distributions 
+of multivariate statistics. 
+<p>
+In the traditional approach, <code>Y</code> and <code>X</code> are correlated, 
+<code>X</code> with known mean <code>mu</code>, and one wishes to estimate the expected 
+value of <code>Y</code>; the usual estimate is <code>mean(Y)-b1*(mean(X)-mu)</code>,  
+where <code>b1</code> is the estimated regression slope. 
+<p>
+That estimate can also be computed as a weighted average, 
+with weights calculated by this function 
+<code>mean(Y,weights=controlVariates(X,mu))</code>. 
+<p>
+There are two advantages to the non-traditional approach. 
+First,  
+the weights are more generally useful--in addition to expected values, 
+we may use them for estimating quantiles or other 
+aspects of the distribution of <code>Y</code>. 
+<p>
+Second,  
+note that the weights are independent of <code>Y</code>.  Given a single 
+<code>X</code> and multiple <code>Y</code>, we may compute a single set of weights, 
+to be used for all <code>Y</code>s.  The weighted distributions for each <code>Y</code> 
+will typically be more accurate than the empirical (unweighted) 
+distributions; the extent of improvement depends on the 
+correlation between <code>X</code> and each <code>Y</code>. 
+<p>
+For estimating quantiles of <code>Y</code>, it is paticularly useful to 
+include covariates which have high correlation with the 
+corresponding indicator function for <code>Y</code>.  E.g. if the 
+original data are positively correlated <code>X1</code> and <code>Y1</code>, 
+and we wish to estimate the 
+95% quantile for <code>Y1</code>, then an effective control variate is 
+<code>(X1&gt;Xq95)</code>, with mu = 0.05; here <code>Xq95</code> is the 
+95% quantile of the underlying distribution for X1. 
+This may be used instead of or in addition to <code>X1</code> itself. 
+If used alone, this is equivalent to post-stratification. 
+<p>
+Similarly, to obtain accurate estimates of both the mean 
+and variance of <code>Y1</code>, it would be useful to use both 
+<code>X1</code> and <code>X1^2</code> as covariates, e.g. <code>x=cbind(X1,X1^2)</code>. 
+<p>
+The <code>"linear"</code> weights are of the form 
+<code>w = c * weights * (1 + t (x - mean(x)))</code> 
+for univariate <code>x</code>, 
+where <code>c</code> normalizes so that <code>w</code> sums to 1, and <code>t</code> determines the 
+amount by which the weights are tilted in order to satisfy 
+<code>sum(w*x)=mu</code>.  If <code>positive==TRUE</code> then any negative weights 
+are set to zero and the weights renormalized to sum to 1, and the 
+weighted mean equality no longer holds exactly. 
+<p>
+The <code>"exponential"</code> and <code>"ml"</code> weights are of the forms 
+<code>w = c * weights * exp(t * x)</code> and 
+<code>w = c * weights / (1 - t * (x - mean(x)))</code>, respectively. 
+In these cases this function is a front end 
+to <code>tiltMeanSolve</code> and <code>tiltWeights</code>. 
+If <code>mu</code> is outside the range of <code>x</code>, these methods are undefined, 
+and <code>method</code> is automatically switched to <code>"linear"</code> with <code>positive=T</code>. 
+<p>
+In the simple control variate problem, when observations 
+are independent and identically distributed from a joint distribution 
+with certain finite moments, the linear method has bias 
+of order <code>O(1/n)</code>, where the leading term depends on 
+<code>E[Y(X-mu)^2]</code>, the exponential method is biased with a leading 
+term half that of the linear method, and the <code>"ml"</code> method 
+has bias of order <code>o(1/n)</code>. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Hesterberg, T.C. and Nelson, B.L. (1998), 
+"Control Variates for Probability and Quantile Estimation," 
+<it>Management Science,</it>
+<bf>44</bf>(9), 1295-1312. 
+<p>
+Hesterberg, T.C. (1996), 
+"Control Variates and Importance Sampling for Efficient Bootstrap Simulations," 
+<it>Statistics and Computing</it>
+<bf>6</bf>(2), 147-157. 
+</s-section>
+<s-see>
+
+<s-function name="concomitants.sgm">concomitants</s-function>,  
+<s-function name="controlVariates.bootstrap,tiltMeanSolve.sgm">controlVariates.bootstrap,tiltMeanSolve</s-function>,  
+<s-function name="tiltWeights.sgm">tiltWeights</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+set.seed(0); x <- runif(30) 
+w1 <- controlVariates(x, 0.5) 
+w2 <- controlVariates(x, 0.5, method="exponential") 
+w3 <- controlVariates(x, 0.5, method="ml") 
+sum(x * w1); sum(x * w2); sum(x * w3)  # all 0.5 
+ 
+y <- x^2 + runif(30)/3 
+mean(y)             # raw estimate for E[Y] 
+mean(y, weight=w1)  # control variate adjustment 
+mean(y, weight=w2)  #  ditto 
+mean(y, weight=w3)  #  ditto 
+# mean(x) = .56, is greater than 0.5, and x and y are positively 
+# correlated; so the control variate adjusted estimates are 
+# less than the raw estimate, and closer to the true E[Y] = 0.5 
+ 
+b <- bootstrap(1:9, mean, seed=0, save.indices=T) 
+y <- b$replicates 
+mean(y) # not exactly equal to 5 
+ 
+# A univariate control variate -- number of indices <= 5 
+x <- colMeans(b$indices <= 5) 
+plot(x, y)  # not perfect correlation 
+w <- controlVariates(x, 5/9) 
+mean(y, weights=w) # closer to 5 (on average, and for this seed) 
+mean(y) - coef(lm(y ~ x))[2] * (mean(x) - 5/9)  # equivalent 
+ 
+# A multivariate control variate - (#indices<=3, #indices<=6) 
+x <- cbind(colMeans(b$indices <= 3), colMeans(b$indices <= 6)) 
+w <- controlVariates(x, c(3/9, 6/9)) 
+mean(y, weights=w) 
+mean(y) - coef(lm(y ~ x))[-1] %*% (colMeans(x) - c(3,6)/9) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+<s-keyword>tilting</s-keyword>
+<s-keyword>multivariate</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

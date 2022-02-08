@@ -1,0 +1,88 @@
+<!-- Copyright 2021. TIBCO Software Inc. -->
+<!-- This file is subject to the license terms contained -->
+<!-- in the license file that is distributed with this file. -->
+
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>combinePValues</s-topic>
+   <s-topic>combinePValues.Fisher</s-topic>
+   <s-topic>combinePValues.Liptak</s-topic>
+   <s-topic>combinePValues.Tippett</s-topic>
+   <s-topic>combinePValues.chisquare</s-topic>
+   <s-topic>combinePValues.halfnormal</s-topic>
+</s-topics>
+<s-title>
+Combine p-values 
+</s-title>
+<s-description>
+Nonparametric combination of multivariate p-values in permutation testing 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+combinePValues.Fisher(p, ...) 
+combinePValues.Liptak(p, ...) 
+combinePValues.Tippett(p, ...) 
+combinePValues.chisquare(p, ...) 
+combinePValues.halfnormal(p, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="p">
+a matrix containing p-values; each column corresponds to a variable 
+(these need not be independent) and each row to a resample (typically 
+a set of p-values computed from a randomly-permuted version of the 
+original data). 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="...">
+other arguments are currently ignored. 
+</s-arg>
+</s-args-optional>
+<s-value>
+vector, length equal to the number of rows of <code>p</code>. 
+The <code>i</code>th value depends only on the <code>i</code>th row of <code>p</code>. 
+</s-value>
+<s-details>
+A combination function should be decreasing (non-increasing) in each argument 
+and should approach its maximum value (possibly <code>Inf</code>) as any argument 
+approaches 0.  In other words, when a value is more significant 
+(<code>p</code>-values closer to 0) the result is larger. 
+The result need not be in the range <code>[0,1]</code>. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Pesarin, F. (2001), 
+<it> Multivariate Permutation Tests with Applications to 
+Biostatistics: Nonparametric Combination Methodology </it>, 
+Wiley, Chichester, UK. 
+<br>
+We wish to thank Dr. Luigi Salmaso for help designing and testing 
+these functions. 
+</s-section>
+<s-see>
+
+<s-function name="permutationTest.sgm">permutationTest</s-function>,  
+<s-function name="permutationTestMeans.sgm">permutationTestMeans</s-function>.  </s-see>
+<s-examples>
+<s-example type = text>
+set.seed(0) 
+x <- matrix(rnorm(15*3), 15) 
+treatment <- rep(1:2, length=15) 
+result <- permutationTestMeans(x, treatment = treatment, seed=1, 
+                               combine = list(1:3, 1:2)) 
+result 
+update(result, combinationFunction = combinePValues.Liptak) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>resample</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
